@@ -1,8 +1,9 @@
 # ------------------------------------------------------------------------------
 #          FILE:  zshmarks.plugin.zsh
-#   DESCRIPTION:  oh-my-zsh plugin file.
-#        AUTHOR:  Jocelyn Mallon
-#       VERSION:  1.7.0
+#        AUTHOR: Robert Magill
+#        FORKED_FROM:  Jocelyn Mallon
+#       VERSION:  1.7.1
+#       DEPENDS: trash-cli
 # ------------------------------------------------------------------------------
 
 # Set BOOKMARKS_FILE if it doesn't exist to the default.
@@ -21,7 +22,7 @@ if [[ ! -f $BOOKMARKS_FILE ]]; then
 	touch $BOOKMARKS_FILE
 fi
 
-_zshmarks_move_to_trash(){
+_zshmarks_move_bak_to_trash(){
   if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
     label=`date +%s`
     mkdir -p ~/.local/share/Trash/info ~/.local/share/Trash/files
@@ -129,8 +130,11 @@ function deletemark()  {
       bookmark_line=${bookmark_array[(r)$bookmark_search]}
       bookmark_array=(${bookmark_array[@]/$bookmark_line})
       eval "printf '%s\n' \"\${bookmark_array[@]}\"" >! $BOOKMARKS_FILE
-      _zshmarks_move_to_trash
+      _zshmarks_move_bak_to_trash
     fi
 	fi
 }
 
+_zshmarks_clear_all(){
+    trash-put "$BOOKMARKS_FILE"
+}
