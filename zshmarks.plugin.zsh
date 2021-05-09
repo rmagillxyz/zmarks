@@ -58,14 +58,15 @@ function bookmark() {
 	# TODO: this could be sped up sorting and using a search algorithm
 	for line in $(cat $BOOKMARKS_FILE) 
 	do
-			if [[ -n $(echo $line |  awk -F'|' '{print $2}' | grep -w $bookmark_name 2>/dev/null) ]]; then
+
+			if [[ $(echo $line |  awk -F'|' '{print $2}') == $bookmark_name ]]; then
 					echo "Bookmark name already existed"
 					echo "old: $line"
 					echo "new: $bookmark"
 					_ask_to_overwrite $bookmark_name 
 					return 1
 
-			elif [[ -n $(echo $line |  awk -F'|' '{print $1}' | grep -w $cur_dir 2>/dev/null) ]]; then
+			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
 					echo "Bookmark dir already existed"
 					echo "old: $line"
 					echo "new: $bookmark"
