@@ -10,42 +10,42 @@
 # dir="${foo%%|*}"
 # bm="${foo##*|}"
 
-# Set BOOKMARKS_FILE if it doesn't exist to the default.
-# Allows for a user-configured BOOKMARKS_FILE.
-if [[ -z $BOOKMARKS_FILE ]] ; then
-		# export BOOKMARKS_FILE="$HOME/.local/share/bookmarks"
-    [[ ! -d "$HOME/.config/shell" ]] && mkdir -p "$HOME/.config/shell" 
-		export BOOKMARKS_FILE="$HOME/.config/shell/bookmarks"
+# Set ZMARKS_DIR if it doesn't exist to the default.
+# Allows for a user-configured ZMARKS_DIR.
+if [[ -z $ZMARKS_DIR ]] ; then
+    [[ ! -d "$HOME/.local/share/zsh" ]] && mkdir -p "$HOME/.local/share/zsh" 
+		export ZMARKS_DIR="$HOME/.local/share/zsh/"
 fi
 
-zsh_named_dirs="${XDG_CONFIG_HOME:-$HOME/.config}/shell/zshmarks_named_dir"
+# NAMED_DIRS="${XDG_CONFIG_HOME:-$HOME/.config}/shell/zshmarks_named_dir"
+NAMED_DIRS="$ZMARKS_DIR/zmarks_named_dirs"
+ZMARKS_FILE="$ZMARKS_DIR/zmarks"
 
 
-# Check if $BOOKMARKS_FILE is a symlink.
-	 if [[ -L $BOOKMARKS_FILE ]]; then
-		BOOKMARKS_FILE=$(readlink $BOOKMARKS_FILE)
+# Check if $ZMARKS_DIR is a symlink.
+if [[ -L "$ZMARKS_FILE" ]]; then
+ ZMARKS_FILE=$(readlink $ZMARKS_FILE)
 fi
 
-# Create bookmarks_file it if it doesn't exist
-if [[ ! -f $BOOKMARKS_FILE ]]; then
-		touch $BOOKMARKS_FILE
+if [[ ! -f $ZMARKS_FILE ]]; then
+		touch $ZMARKS_FILE
 fi
 
-_zshmarks_move_bak_to_trash(){
-		if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
-				label=`date +%s`
-				mkdir -p ~/.local/share/Trash/info ~/.local/share/Trash/files
-				\mv "${BOOKMARKS_FILE}.bak" ~/.local/share/Trash/files/bookmarks-$label
-				echo "[Trash Info]
-				Path=/home/"$USER"/.bookmarks
-				DeletionDate="`date +"%Y-%m-%dT%H:%M:%S"`"
-				">~/.local/share/Trash/info/bookmarks-$label.trashinfo
-		elif [[ $(uname) = "Darwin" ]]; then
-				\mv "${BOOKMARKS_FILE}.bak" ~/.Trash/"bookmarks"$(date +%H-%M-%S)
-		else
-				\rm -f "${BOOKMARKS_FILE}.bak"
-		fi
-}
+# _zshmarks_move_bak_to_trash(){
+# 		if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
+# 				label=`date +%s`
+# 				mkdir -p ~/.local/share/Trash/info ~/.local/share/Trash/files
+# 				\mv "${ZMARKS_FILE}.bak" ~/.local/share/Trash/files/bookmarks-$label
+# 				echo "[Trash Info]
+# 				Path=/home/"$USER"/.bookmarks
+# 				DeletionDate="`date +"%Y-%m-%dT%H:%M:%S"`"
+# 				">~/.local/share/Trash/info/bookmarks-$label.trashinfo
+# 		elif [[ $(uname) = "Darwin" ]]; then
+# 				\mv "${ZMARKS_FILE}.bak" ~/.Trash/"bookmarks"$(date +%H-%M-%S)
+# 		else
+# 				\rm -f "${ZMARKS_FILE}.bak"
+# 		fi
+# }
 
 function bookmark() {
 		local bookmark_name=$1
@@ -61,7 +61,7 @@ function bookmark() {
 		bookmark="$cur_dir|$bookmark_name"
 
 	# TODO: this could be sped up sorting and using a search algorithm
-	for line in $(cat $BOOKMARKS_FILE) 
+	for line in $(cat $ZMARKS_FILE) 
 	do
 
 			if [[ $(echo $line |  awk -F'|' '{print $2}') == $bookmark_name ]]; then
@@ -82,13 +82,13 @@ function bookmark() {
 	done
 
 	# no duplicates, make bookmark
-	echo $bookmark >> $BOOKMARKS_FILE
+	echo $bookmark >> $ZMARKS_FILE
 	echo "Bookmark '$bookmark_name' saved"
 
-   echo "hash -d $bookmark_name=$cur_dir" >> $zsh_named_dirs
+   echo "hash -d $bookmark_name=$cur_dir" >> $NAMED_DIRS
    echo "Created named dir ~$bookmark_name"
    # source "$ZDOTDIR/.zshrc"
-   source "$zsh_named_dirs"
+   source "$NAMED_DIRS"
 }
 
 __zshmarks_zgrep() {
@@ -116,7 +116,7 @@ __zshmarks_zgrep() {
 function jump() {
 		local bookmark_name=$1
 		local bookmark
-		if ! __zshmarks_zgrep bookmark "\\|$bookmark_name\$" "$BOOKMARKS_FILE"; then
+		if ! __zshmarks_zgrep bookmark "\\|$bookmark_name\$" "$ZMARKS_FILE"; then
 				echo "Invalid name, please provide a valid bookmark name. For example:"
 				echo "  jump foo"
 				echo
@@ -132,7 +132,7 @@ function jump() {
 
 # Show a list of the bookmarks
 function showmarks() {
-		local bookmark_file="$(<"$BOOKMARKS_FILE")"
+		local bookmark_file="$(<"$ZMARKS_FILE")"
 		local bookmark_array; bookmark_array=(${(f)bookmark_file});
 		local bookmark_name bookmark_path bookmark_line
 		if [[ $# -eq 1 ]]; then
@@ -160,17 +160,19 @@ function deletemark()  {
 				return 1
 		else
 				local bookmark_line bookmark_search
-				local bookmark_file="$(<"$BOOKMARKS_FILE")"
+				local bookmark_file="$(<"$ZMARKS_FILE")"
 				local bookmark_array; bookmark_array=(${(f)bookmark_file});
 				bookmark_search="*\|${bookmark_name}"
 				if [[ -z ${bookmark_array[(r)$bookmark_search]} ]]; then
 						eval "printf '%s\n' \"'${bookmark_name}' not found, skipping.\""
 				else
-						\cp "${BOOKMARKS_FILE}" "${BOOKMARKS_FILE}.bak"
+						\cp "${ZMARKS_FILE}" "${ZMARKS_FILE}.bak"
 						bookmark_line=${bookmark_array[(r)$bookmark_search]}
 						bookmark_array=(${bookmark_array[@]/$bookmark_line})
-						eval "printf '%s\n' \"\${bookmark_array[@]}\"" >! $BOOKMARKS_FILE
-						_zshmarks_move_bak_to_trash
+						eval "printf '%s\n' \"\${bookmark_array[@]}\"" >! $ZMARKS_FILE
+
+						# _zshmarks_move_bak_to_trash
+            trash-put "${ZMARKS_FILE}.bak" 
             
             # generate new named dir to sync with bookmarks
             # "$HOME/.local/bin/gen_zshmarks_named_dir" 1> /dev/null
@@ -181,7 +183,7 @@ function deletemark()  {
 }
 
 _zshmarks_clear_all(){
-		trash-put "$BOOKMARKS_FILE"
+		trash-put "$ZMARKS_FILE"
 }
 
 
@@ -207,7 +209,7 @@ _ask_to_overwrite() {
 
 _gen_zshmarks_named_dir(){
 
-   trash-put $zsh_named_dirs
+   trash-put $NAMED_DIRS
 
    while read line
    do
@@ -217,8 +219,8 @@ _gen_zshmarks_named_dir(){
       bm="${line##*|}"
       # echo "bin/named_dir_mark_shortcuts: 20 bm: $bm"
       echo "~$bm"
-      echo "hash -d $bm=$dir" >> $zsh_named_dirs
+      echo "hash -d $bm=$dir" >> $NAMED_DIRS
 
-   done < "$BOOKMARKS_FILE"
+   done < "$ZMARKS_FILE"
 
 }
