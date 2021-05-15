@@ -13,11 +13,16 @@
 # Set BOOKMARKS_FILE if it doesn't exist to the default.
 # Allows for a user-configured BOOKMARKS_FILE.
 if [[ -z $BOOKMARKS_FILE ]] ; then
-		export BOOKMARKS_FILE="$HOME/.local/share/bookmarks"
+		# export BOOKMARKS_FILE="$HOME/.local/share/bookmarks"
+    [[ ! -d "$HOME/.config/shell" ]] && mkdir -p "$HOME/.config/shell" 
+		export BOOKMARKS_FILE="$HOME/.config/shell/bookmarks"
 fi
 
+zsh_named_dirs="${XDG_CONFIG_HOME:-$HOME/.config}/shell/zshmarks_named_dir"
+
+
 # Check if $BOOKMARKS_FILE is a symlink.
-if [[ -L $BOOKMARKS_FILE ]]; then
+	 if [[ -L $BOOKMARKS_FILE ]]; then
 		BOOKMARKS_FILE=$(readlink $BOOKMARKS_FILE)
 fi
 
@@ -79,6 +84,11 @@ function bookmark() {
 	# no duplicates, make bookmark
 	echo $bookmark >> $BOOKMARKS_FILE
 	echo "Bookmark '$bookmark_name' saved"
+
+   echo "hash -d $bookmark_name=$cur_dir" >> $zsh_named_dirs
+   echo "Created named dir ~$bookmark_name"
+   # source "$ZDOTDIR/.zshrc"
+   source "$zsh_named_dirs"
 }
 
 __zshmarks_zgrep() {
@@ -161,6 +171,10 @@ function deletemark()  {
 						bookmark_array=(${bookmark_array[@]/$bookmark_line})
 						eval "printf '%s\n' \"\${bookmark_array[@]}\"" >! $BOOKMARKS_FILE
 						_zshmarks_move_bak_to_trash
+            
+            # generate new named dir to sync with bookmarks
+            "$HOME/.local/bin/gen_zshmarks_named_dir" 1> /dev/null
+            echo "Deleted and synced named dirs"
 				fi
 		fi
 }
