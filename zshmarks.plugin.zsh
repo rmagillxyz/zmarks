@@ -150,7 +150,7 @@ function jump() {
 				eval "cd \"${dir}\""
 				eval "ls \"${dir}\""
         # echo "dir: $dir"
-        echo "$dir"
+        # echo "$dir"
 		fi
 }
 
@@ -231,16 +231,18 @@ _ask_to_overwrite() {
 		fi
 }
 
-_fzf_jump(){
+fzf_jump(){
    local bookmark=$(cat $ZMARKS_DIR/zmarks | fzf)
 	 local dir="${bookmark%%|*}"
    # echo "zshmarks/init.zsh: 237 dir: $dir"
 	 eval "cd ${dir}"
-  zle reset-prompt
+	 # eval "ls ${dir}"
+	 ls
+   echo -e "\n"
+   zle reset-prompt
 }
 
-zle     -N    _fzf_jump
-bindkey '\ej' _fzf_jump
+zle     -N    fzf_jump
 
 
 # dir="${foo%%|*}"
