@@ -150,6 +150,9 @@ function jump() {
 				# echo "zshmarks/init.zsh: 124 bookmark : $bookmark "
 				local dir="${bookmark%%|*}"
 				eval "cd \"${dir}\""
+				eval "ls \"${dir}\""
+        # echo "dir: $dir"
+        echo "$dir"
 		fi
 }
 
