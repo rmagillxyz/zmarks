@@ -22,14 +22,37 @@ NAMED_DIRS="$ZMARKS_DIR/zmarks_named_dirs"
 ZMARKS_FILE="$ZMARKS_DIR/zmarks"
 
 
+
+
 # Check if $ZMARKS_DIR is a symlink.
 if [[ -L "$ZMARKS_FILE" ]]; then
  ZMARKS_FILE=$(readlink $ZMARKS_FILE)
 fi
 
+_gen_zshmarks_named_dirs(){
+   trash-put $NAMED_DIRS
+   while read line
+   do
+      # echo "bin/named_dir_mark_shortcuts: 14 line: $line"
+      dir="${line%%|*}"
+      # echo "bin/named_dir_mark_shortcuts: 18 dir: $dir"
+      bm="${line##*|}"
+      # echo "bin/named_dir_mark_shortcuts: 20 bm: $bm"
+      echo "~$bm"
+      echo "hash -d $bm=$dir" >> $NAMED_DIRS
+   done < "$ZMARKS_FILE"
+}
+
 if [[ ! -f $ZMARKS_FILE ]]; then
 		touch $ZMARKS_FILE
+ else 
+   _gen_zshmarks_named_dirs 1> /dev/null
 fi
+
+
+fpath=($fpath "$ZDOTDIR/zshmarks/functions")
+
+[ -f "$NAMED_DIRS" ] && source "$NAMED_DIRS" 
 
 # _zshmarks_move_bak_to_trash(){
 # 		if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
@@ -176,7 +199,7 @@ function deletemark()  {
             
             # generate new named dir to sync with bookmarks
             # "$HOME/.local/bin/gen_zshmarks_named_dir" 1> /dev/null
-            _gen_zshmarks_named_dir 1> /dev/null
+            _gen_zshmarks_named_dirs 1> /dev/null
             echo "Deleted and synced named dirs"
 				fi
 		fi
@@ -207,20 +230,3 @@ _ask_to_overwrite() {
 		fi
 }
 
-_gen_zshmarks_named_dir(){
-
-   trash-put $NAMED_DIRS
-
-   while read line
-   do
-      # echo "bin/named_dir_mark_shortcuts: 14 line: $line"
-      dir="${line%%|*}"
-      # echo "bin/named_dir_mark_shortcuts: 18 dir: $dir"
-      bm="${line##*|}"
-      # echo "bin/named_dir_mark_shortcuts: 20 bm: $bm"
-      echo "~$bm"
-      echo "hash -d $bm=$dir" >> $NAMED_DIRS
-
-   done < "$ZMARKS_FILE"
-
-}
