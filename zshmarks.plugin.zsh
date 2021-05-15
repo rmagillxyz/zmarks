@@ -173,7 +173,8 @@ function deletemark()  {
 						_zshmarks_move_bak_to_trash
             
             # generate new named dir to sync with bookmarks
-            "$HOME/.local/bin/gen_zshmarks_named_dir" 1> /dev/null
+            # "$HOME/.local/bin/gen_zshmarks_named_dir" 1> /dev/null
+            _gen_zshmarks_named_dir 1> /dev/null
             echo "Deleted and synced named dirs"
 				fi
 		fi
@@ -202,4 +203,22 @@ _ask_to_overwrite() {
 		else
 				return 1
 		fi
+}
+
+_gen_zshmarks_named_dir(){
+
+   trash-put $zsh_named_dirs
+
+   while read line
+   do
+      # echo "bin/named_dir_mark_shortcuts: 14 line: $line"
+      dir="${line%%|*}"
+      # echo "bin/named_dir_mark_shortcuts: 18 dir: $dir"
+      bm="${line##*|}"
+      # echo "bin/named_dir_mark_shortcuts: 20 bm: $bm"
+      echo "~$bm"
+      echo "hash -d $bm=$dir" >> $zsh_named_dirs
+
+   done < "$BOOKMARKS_FILE"
+
 }
