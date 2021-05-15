@@ -14,14 +14,12 @@
 # Allows for a user-configured ZMARKS_DIR.
 if [[ -z $ZMARKS_DIR ]] ; then
     [[ ! -d "$HOME/.local/share/zsh" ]] && mkdir -p "$HOME/.local/share/zsh" 
-		export ZMARKS_DIR="$HOME/.local/share/zsh/"
+		export ZMARKS_DIR="$HOME/.local/share/zsh"
 fi
 
 # NAMED_DIRS="${XDG_CONFIG_HOME:-$HOME/.config}/shell/zshmarks_named_dir"
 NAMED_DIRS="$ZMARKS_DIR/zmarks_named_dirs"
 ZMARKS_FILE="$ZMARKS_DIR/zmarks"
-
-
 
 
 # Check if $ZMARKS_DIR is a symlink.
@@ -233,3 +231,17 @@ _ask_to_overwrite() {
 		fi
 }
 
+_fzf_jump(){
+   local bookmark=$(cat $ZMARKS_DIR/zmarks | fzf)
+	 local dir="${bookmark%%|*}"
+   # echo "zshmarks/init.zsh: 237 dir: $dir"
+	 eval "cd ${dir}"
+  zle reset-prompt
+}
+
+zle     -N    _fzf_jump
+bindkey '\ej' _fzf_jump
+
+
+# dir="${foo%%|*}"
+# bm="${foo##*|}"
