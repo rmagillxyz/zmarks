@@ -1,7 +1,7 @@
 #compdef jump deletemark showmarks
 #autoload
 
-local bookmark_file="$(<"$BOOKMARKS_FILE")"
+local bookmark_file="$(<"$ZMARKS_FILE")"
 local bookmark_array; bookmark_array=(${(f)bookmark_file});
 local bookmark_name bookmark_path bookmark_line
 bookmarks=()
