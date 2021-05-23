@@ -85,6 +85,11 @@ function bookmark() {
 	for line in $(cat $ZMARKS_FILE) 
 	do
 
+		 if [[ "$line" == "$cur_dir|$bookmark_name" ]]; then 
+				echo "umm, you already have this EXACT bm, bro" 
+				return 
+		 fi 
+
 			if [[ $(echo $line |  awk -F'|' '{print $2}') == $bookmark_name ]]; then
 					echo "Bookmark name already existed"
 					echo "old: $line"
