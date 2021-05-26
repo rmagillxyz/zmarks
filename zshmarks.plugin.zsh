@@ -236,7 +236,7 @@ _ask_to_overwrite() {
 		fi
 }
 
-fzf_jump(){
+fzf_zmark_jump(){
    local bookmark=$(cat $ZMARKS_DIR/zmarks | fzf)
 	 local dir="${bookmark%%|*}"
    # echo "zshmarks/init.zsh: 237 dir: $dir"
@@ -247,7 +247,7 @@ fzf_jump(){
    zle reset-prompt
 }
 
-zle     -N    fzf_jump
+zle     -N    fzf_zmark_jump
 
 
 # dir="${foo%%|*}"
