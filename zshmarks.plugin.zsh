@@ -17,6 +17,26 @@ if [[ -z $ZMARKS_DIR ]] ; then
 		export ZMARKS_DIR="$HOME/.local/share/zsh"
 fi
 
+_trash_cli_or_rm(){ 
+	 if [ ! -z $(command -v trash-put) ];
+	 then
+			 trash-put "$1"
+		else
+		echo "trash-put could not be found"
+		echo "It is recommended to install trash-cli"
+			 echo -n "use rm instead? (y/n)"
+			 read answer
+			 if  [ "$answer" != "${answer#[Yy]}" ];then 
+					rm  "$1"
+			 else
+					 return 1
+			 fi
+
+	 fi
+}
+
+
+
 # NAMED_DIRS="${XDG_CONFIG_HOME:-$HOME/.config}/shell/zshmarks_named_dir"
 NAMED_DIRS="$ZMARKS_DIR/zmarks_named_dirs"
 ZMARKS_FILE="$ZMARKS_DIR/zmarks"
@@ -28,7 +48,7 @@ if [[ -L "$ZMARKS_FILE" ]]; then
 fi
 
 _gen_zshmarks_named_dirs(){
-   trash-put $NAMED_DIRS
+   _trash_cli_or_rm $NAMED_DIRS
    while read line
    do
       # echo "bin/named_dir_mark_shortcuts: 14 line: $line"
@@ -39,6 +59,7 @@ _gen_zshmarks_named_dirs(){
       echo "~$bm"
       echo "hash -d $bm=$dir" >> $NAMED_DIRS
    done < "$ZMARKS_FILE"
+	 return 
 }
 
 if [[ ! -f $ZMARKS_FILE ]]; then
@@ -201,7 +222,7 @@ function deletemark()  {
 						eval "printf '%s\n' \"\${bookmark_array[@]}\"" >! $ZMARKS_FILE
 
 						# _zshmarks_move_bak_to_trash
-            trash-put "${ZMARKS_FILE}.bak" 
+            _trash_cli_or_rm "${ZMARKS_FILE}.bak" 
             
             # generate new named dir to sync with bookmarks
             # "$HOME/.local/bin/gen_zshmarks_named_dir" 1> /dev/null
@@ -212,8 +233,26 @@ function deletemark()  {
 }
 
 _zshmarks_clear_all(){
-		trash-put "$ZMARKS_FILE"
+		_trash_cli_or_rm "$ZMARKS_FILE"
 }
+
+
+# _zshmarks_clear_all(){
+# 	 if [ ! -z $(command -v trash-put) ];
+# 	 then
+# 			 trash-put "$ZMARKS_FILE"
+# 		else
+# 		echo "trash-put (trash-cli) could not be found"
+# 			 echo -n "use rm? (y/n)"
+# 			 read answer
+# 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
+# 					rm  "$ZMARKS_FILE"
+# 			 else
+# 					 return 1
+# 			 fi
+# 	 fi
+# }
+
 
 
 _ask_to_overwrite() {
@@ -237,7 +276,7 @@ _ask_to_overwrite() {
 }
 
 fzf_zmark_jump(){
-   local bookmark=$(cat $ZMARKS_DIR/zmarks | fzf)
+   local bookmark=$(cat $ZMARKS_DIR/zmarks | fzf-tmux)
 	 local dir="${bookmark%%|*}"
    # echo "zshmarks/init.zsh: 237 dir: $dir"
 	 eval "cd ${dir}"
