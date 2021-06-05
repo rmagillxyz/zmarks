@@ -3,7 +3,7 @@
 #        AUTHOR: Robert Magill
 #        FORKED_FROM:  Jocelyn Mallon
 #       VERSION:  1.7.1
-#       DEPENDS: trash-cli
+#       DEPENDS: fzf
 # ------------------------------------------------------------------------------
 
 
@@ -17,27 +17,6 @@ if [[ -z $ZMARKS_DIR ]] ; then
 		export ZMARKS_DIR="$HOME/.local/share/zsh"
 fi
 
-_trash_cli_or_rm(){ 
-	 if [ ! -z $(command -v trash-put) ];
-	 then
-			 trash-put "$1"
-		else
-		echo "trash-put could not be found"
-		echo "It is recommended to install trash-cli"
-			 echo -n "use rm instead? (y/n)"
-			 read answer
-			 if  [ "$answer" != "${answer#[Yy]}" ];then 
-					rm  "$1"
-			 else
-					 return 1
-			 fi
-
-	 fi
-}
-
-
-
-# NAMED_DIRS="${XDG_CONFIG_HOME:-$HOME/.config}/shell/zshmarks_named_dir"
 NAMED_DIRS="$ZMARKS_DIR/zmarks_named_dirs"
 ZMARKS_FILE="$ZMARKS_DIR/zmarks"
 
@@ -48,17 +27,14 @@ if [[ -L "$ZMARKS_FILE" ]]; then
 fi
 
 _gen_zshmarks_named_dirs(){
-   _trash_cli_or_rm $NAMED_DIRS
+   rm "$NAMED_DIRS"
    while read line
    do
-      # echo "bin/named_dir_mark_shortcuts: 14 line: $line"
       dir="${line%%|*}"
-      # echo "bin/named_dir_mark_shortcuts: 18 dir: $dir"
       bm="${line##*|}"
-      # echo "bin/named_dir_mark_shortcuts: 20 bm: $bm"
       echo "~$bm"
-      echo "hash -d $bm=$dir" >> $NAMED_DIRS
-   done < "$ZMARKS_FILE"
+			echo "hash -d $bm=$dir" >> "$NAMED_DIRS"
+	 done < "$ZMARKS_FILE"
 	 return 
 }
 
@@ -73,21 +49,23 @@ fpath=($fpath "$ZDOTDIR/zshmarks/functions")
 
 [ -f "$NAMED_DIRS" ] && source "$NAMED_DIRS" 
 
-# _zshmarks_move_bak_to_trash(){
-# 		if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
-# 				label=`date +%s`
-# 				mkdir -p ~/.local/share/Trash/info ~/.local/share/Trash/files
-# 				\mv "${ZMARKS_FILE}.bak" ~/.local/share/Trash/files/bookmarks-$label
-# 				echo "[Trash Info]
-# 				Path=/home/"$USER"/.bookmarks
-# 				DeletionDate="`date +"%Y-%m-%dT%H:%M:%S"`"
-# 				">~/.local/share/Trash/info/bookmarks-$label.trashinfo
-# 		elif [[ $(uname) = "Darwin" ]]; then
-# 				\mv "${ZMARKS_FILE}.bak" ~/.Trash/"bookmarks"$(date +%H-%M-%S)
-# 		else
-# 				\rm -f "${ZMARKS_FILE}.bak"
-# 		fi
-# }
+_zshmarks_move_to_trash(){
+	 local FILE_PATH="$1"
+	 echo "zshmarks/init.zsh: 77 FILE_PATH: $FILE_PATH"
+		if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
+				label=`date +%s`
+				mkdir -p ~/.local/share/Trash/info ~/.local/share/Trash/files
+				\mv "$FILE_PATH" ~/.local/share/Trash/files/$(basename "$FILE_PATH")-$label
+				echo "[Trash Info]
+				Path="$FILE_PATH"
+				DeletionDate="`date +"%Y-%m-%dT%H:%M:%S"`"
+				">~/.local/share/Trash/info/$(basename "$FILE_PATH")-$label.trashinfo
+		elif [[ $(uname) = "Darwin" ]]; then
+				\mv "$FILE_PATH" ~/.Trash/$(basename "$FILE_PATH")$(date +%H-%M-%S) 
+		else
+				\rm -f "$FILE_PATH"
+		fi
+}
 
 function bookmark() {
 		local bookmark_name=$1
@@ -132,26 +110,20 @@ function bookmark() {
 	echo $bookmark >> $ZMARKS_FILE
 	echo "Bookmark '$bookmark_name' saved"
 
-   echo "hash -d $bookmark_name=$cur_dir" >> $NAMED_DIRS
-   echo "Created named dir ~$bookmark_name"
-   # source "$ZDOTDIR/.zshrc"
-   source "$NAMED_DIRS"
+	echo "hash -d $bookmark_name=$cur_dir" >> "$NAMED_DIRS"
+	echo "Created named dir ~$bookmark_name"
+  source "$NAMED_DIRS"
 }
 
 __zshmarks_zgrep() {
 		local outvar="$1"; shift
 		local pattern="$1"
 		local filename="$2"
-		# echo "zshmarks/init.zsh: 94 outvar: $outvar"
-		# echo "zshmarks/init.zsh: 96 pattern: $pattern"
-		# echo "zshmarks/init.zsh: 98 filename: $filename"
 		local file_contents="$(<"$filename")"
-		# echo "zshmarks/init.zsh: 100 file_contents: $file_contents"
 		local file_lines; file_lines=(${(f)file_contents})
 
 		# echo "zshmarks/init.zsh: 101 file_lines: $file_lines"
 		for line in "${file_lines[@]}"; do
-				# echo "zgrep: line : $line "
 				if [[ "$line" =~ "$pattern" ]]; then
 						eval "$outvar=\"$line\""
 						return 0
@@ -221,11 +193,9 @@ function deletemark()  {
 						bookmark_array=(${bookmark_array[@]/$bookmark_line})
 						eval "printf '%s\n' \"\${bookmark_array[@]}\"" >! $ZMARKS_FILE
 
-						# _zshmarks_move_bak_to_trash
-            _trash_cli_or_rm "${ZMARKS_FILE}.bak" 
-            
+						 _zshmarks_move_to_trash "${ZMARKS_FILE}.bak" 
+             
             # generate new named dir to sync with bookmarks
-            # "$HOME/.local/bin/gen_zshmarks_named_dir" 1> /dev/null
             _gen_zshmarks_named_dirs 1> /dev/null
             echo "Deleted and synced named dirs"
 				fi
@@ -233,26 +203,8 @@ function deletemark()  {
 }
 
 _zshmarks_clear_all(){
-		_trash_cli_or_rm "$ZMARKS_FILE"
+		_zshmarks_move_to_trash "$ZMARKS_FILE"
 }
-
-
-# _zshmarks_clear_all(){
-# 	 if [ ! -z $(command -v trash-put) ];
-# 	 then
-# 			 trash-put "$ZMARKS_FILE"
-# 		else
-# 		echo "trash-put (trash-cli) could not be found"
-# 			 echo -n "use rm? (y/n)"
-# 			 read answer
-# 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
-# 					rm  "$ZMARKS_FILE"
-# 			 else
-# 					 return 1
-# 			 fi
-# 	 fi
-# }
-
 
 
 _ask_to_overwrite() {
