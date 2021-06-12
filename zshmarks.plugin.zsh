@@ -248,6 +248,36 @@ zle     -N    fzf_zmark_jump
 
 # -- zedit functions -- 
 
+if [[ -z $EDITOR ]] ; then
+			echo "set \$EDITOR environment variable to choose editor"
+			echo "defaulting to nvim or vim"
+	 if [[ ! -z $(command -v nvim) ]]; then 
+			export EDITOR="$(command -v nvim)"
+	 else
+			export EDITOR="$(command -v vim)"
+	 fi
+fi
+
+
+
+
+_ezoom() {
+# echo "zsh/functions.sh: 1: 76 $1"
+# echo "zsh/functions.sh: 2: 77 $2"
+	if [ -z "$2" ]; then
+		"$EDITOR" "$1"
+     # "$EDITOR" +/"--end--" "$1"	
+	else
+     "$EDITOR" +/"$2" "$1"	
+  fi
+}
+
+_ezoomzsh() {
+	ezoom "$1" "$2"
+	source "$SHELLRC"
+}
+
+
 function zedit() {
 		local editmark_name=$1
 		local editmark
@@ -262,10 +292,10 @@ function zedit() {
 				# echo "zshmarks/init.zsh: 124 editmark : $editmark "
 				local filename="${editmark%%|*}"
 				echo "zshmarks/init.zsh: 169 filename: $filename"
-				eval "$EDITOR \"${filename}\""
-
-				# eval "cd \"${dir}\""
-				# eval "ls \"${dir}\""
+				# eval "_ezoom \"${filename}\" \"$2\""
+				# eval "_ezoom \"$filename\" \"$2\""
+				# eval "_ezoom $filename $2"
+				_ezoom "$filename" "$2"
 		fi
 }
 
@@ -292,7 +322,6 @@ _ask_to_overwrite_zedit() {
 function zeditmark() {
 		local bookmark_name=$1
 		if [[ -z $bookmark_name ]]; then
-				# bookmark_name="${PWD##*/}"
 				echo 'zmark file required'
 				return 1
 		fi
