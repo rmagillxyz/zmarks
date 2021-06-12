@@ -19,6 +19,7 @@ fi
 
 NAMED_DIRS="$ZMARKS_DIR/zmarks_named_dirs"
 ZMARKS_FILE="$ZMARKS_DIR/zmarks"
+ZEDITS_FILE="$ZMARKS_DIR/zedits"
 
 
 # Check if $ZMARKS_DIR is a symlink.
@@ -149,6 +150,27 @@ function jump() {
 				eval "ls \"${dir}\""
         # echo "dir: $dir"
         # echo "$dir"
+		fi
+}
+
+function zedit() {
+		local editmark_name=$1
+		local editmark
+		if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZEDITS_FILE"; then
+				echo "Invalid name, please provide a valid editmark name. For example:"
+				echo "  jump foo"
+				echo
+				echo "To editmark a folder, go to the folder then do this (naming the editmark 'foo'):"
+				echo "  editmark foo"
+				return 1
+		else
+				# echo "zshmarks/init.zsh: 124 editmark : $editmark "
+				local filename="${editmark%%|*}"
+				echo "zshmarks/init.zsh: 169 filename: $filename"
+				eval "$EDITOR \"${filename}\""
+
+				# eval "cd \"${dir}\""
+				# eval "ls \"${dir}\""
 		fi
 }
 
