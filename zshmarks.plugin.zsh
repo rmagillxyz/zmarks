@@ -153,27 +153,6 @@ function jump() {
 		fi
 }
 
-function zedit() {
-		local editmark_name=$1
-		local editmark
-		if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZEDITS_FILE"; then
-				echo "Invalid name, please provide a valid editmark name. For example:"
-				echo "  jump foo"
-				echo
-				echo "To editmark a folder, go to the folder then do this (naming the editmark 'foo'):"
-				echo "  editmark foo"
-				return 1
-		else
-				# echo "zshmarks/init.zsh: 124 editmark : $editmark "
-				local filename="${editmark%%|*}"
-				echo "zshmarks/init.zsh: 169 filename: $filename"
-				eval "$EDITOR \"${filename}\""
-
-				# eval "cd \"${dir}\""
-				# eval "ls \"${dir}\""
-		fi
-}
-
 # Show a list of the bookmarks
 function showmarks() {
 		local bookmark_file="$(<"$ZMARKS_FILE")"
@@ -265,3 +244,181 @@ zle     -N    fzf_zmark_jump
 
 # dir="${foo%%|*}"
 # bm="${foo##*|}"
+
+
+# -- zedit functions -- 
+
+function zedit() {
+		local editmark_name=$1
+		local editmark
+		if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZEDITS_FILE"; then
+				echo "Invalid name, please provide a valid editmark name. For example:"
+				echo "  jump foo"
+				echo
+				echo "To editmark a folder, go to the folder then do this (naming the editmark 'foo'):"
+				echo "  editmark foo"
+				return 1
+		else
+				# echo "zshmarks/init.zsh: 124 editmark : $editmark "
+				local filename="${editmark%%|*}"
+				echo "zshmarks/init.zsh: 169 filename: $filename"
+				eval "$EDITOR \"${filename}\""
+
+				# eval "cd \"${dir}\""
+				# eval "ls \"${dir}\""
+		fi
+}
+
+_ask_to_overwrite_zedit() {
+		usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
+		[ ! $# -ge 1 ] && echo "$usage" && return 1 
+
+		local overwrite=$1
+		local replacement=$1
+		[[  $# == 2 ]] && replacement=$2
+		echo "overwrite: $overwrite"
+		echo "replacement: $replacement"
+
+		echo -n "overwrite mark $1 (y/n)? "
+		read answer
+		if  [ "$answer" != "${answer#[Yy]}" ];then 
+				deleteeditmark $1
+				zeditmark$2
+		else
+				return 1
+		fi
+}
+
+function zeditmark() {
+		local bookmark_name=$1
+		if [[ -z $bookmark_name ]]; then
+				# bookmark_name="${PWD##*/}"
+				echo 'zmark file required'
+				return 1
+		fi
+		zedit_file="$( find $(pwd) -type f | fzf)"
+
+				
+		# Replace /home/uname with $HOME
+		if [[ "$zedit_file" =~ ^"$HOME"(/|$) ]]; then
+				zedit_file="\$HOME${zedit_file#$HOME}"
+		fi
+		# Store the bookmark as folder|name
+		bookmark="$zedit_file|$bookmark_name"
+
+	# TODO: this could be sped up sorting and using a search algorithm
+	for line in $(cat $ZEDITS_FILE) 
+	do
+
+		 if [[ "$line" == "$zedit_file|$bookmark_name" ]]; then 
+				echo "umm, you already have this EXACT edit mark, bro" 
+				return 
+		 fi 
+
+			if [[ $(echo $line |  awk -F'|' '{print $2}') == $bookmark_name ]]; then
+					echo "Bookmark name already existed"
+					echo "old: $line"
+					echo "new: $bookmark"
+					_ask_to_overwrite_zedit $bookmark_name 
+					return 1
+
+			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zedit_file  ]]; then
+					echo "Bookmark dir already existed"
+					echo "old: $line"
+					echo "new: $bookmark"
+					local bm="${line##*|}"
+					_ask_to_overwrite_zedit $bm $bookmark_name 
+					return 1
+			fi
+	done
+
+	# no duplicates, make bookmark
+	echo $bookmark >> "$ZEDITS_FILE"
+	echo "zeditmark '$bookmark_name' saved"
+
+	# echo "hash -d $bookmark_name=$zedit_file" >> "$NAMED_DIRS"
+	# echo "Created named dir ~$bookmark_name"
+  # source "$NAMED_DIRS"
+}
+
+# function bookmark() {
+
+# 	 function usage {
+# 					 echo "$(basename $0) [mark name] \n
+# 					 -e, --edit\n
+# 							 use edit marks
+# 						-h, --help
+# 							 show this 
+# 					 "
+# 	 }
+
+# 	 isZedit=false
+
+# 	 POSITIONAL=()
+# 	 while [[ $# -gt 0 ]]
+# 	 do
+# 	 key="$1"
+
+# 	 case $key in
+# 			 e|-e|--edit)
+# 			 # DAYS_AGO="$2"
+# 			 shift # past argument
+# 			 isZedit=true
+# 			 # shift # past value
+# 			 ;;
+# 			 h|-h|--help)
+# 			 usage
+# 			 exit
+# 	 esac
+# 	 done
+
+# 	 # set -- "${POSITIONAL[@]}" # restore positional parameters
+
+# 		local bookmark_name=$1
+# 		if [[ -z $bookmark_name ]]; then
+# 				bookmark_name="${PWD##*/}"
+# 		fi
+# 		cur_dir="$(pwd)"
+# 		# Replace /home/uname with $HOME
+# 		if [[ "$cur_dir" =~ ^"$HOME"(/|$) ]]; then
+# 				cur_dir="\$HOME${cur_dir#$HOME}"
+# 		fi
+# 		# Store the bookmark as folder|name
+# 		bookmark="$cur_dir|$bookmark_name"
+
+# 	# TODO: this could be sped up sorting and using a search algorithm
+# 	for line in $(cat $(isZedit && $ZEDITS_FILE || $ZMARKS_FILE)) 
+# 	do
+
+# 		 if [[ "$line" == "$cur_dir|$bookmark_name" ]]; then 
+# 				echo "umm, you already have this EXACT bm, bro" 
+# 				return 
+# 		 fi 
+
+# 			if [[ $(echo $line |  awk -F'|' '{print $2}') == $bookmark_name ]]; then
+# 					echo "Bookmark name already existed"
+# 					echo "old: $line"
+# 					echo "new: $bookmark"
+# 					_ask_to_overwrite $bookmark_name 
+# 					return 1
+
+# 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
+# 					echo "Bookmark dir already existed"
+# 					echo "old: $line"
+# 					echo "new: $bookmark"
+# 					local bm="${line##*|}"
+# 					_ask_to_overwrite $bm $bookmark_name 
+# 					return 1
+# 			fi
+# 	done
+
+# 	# no duplicates, make bookmark
+# 	echo $bookmark >> $ZMARKS_FILE
+# 	echo "Bookmark '$bookmark_name' saved"
+
+# 	echo "hash -d $bookmark_name=$cur_dir" >> "$NAMED_DIRS"
+# 	echo "Created named dir ~$bookmark_name"
+#   source "$NAMED_DIRS"
+# }
+
+
