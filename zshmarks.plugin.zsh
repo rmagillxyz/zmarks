@@ -1,9 +1,9 @@
 # ------------------------------------------------------------------------------
-#          FILE:  zshmarks.plugin.zsh
+#        FILE:  zshmarks.plugin.zsh
 #        AUTHOR: Robert Magill
 #        FORKED_FROM:  Jocelyn Mallon
-#       VERSION:  1.7.1
-#       DEPENDS: fzf
+#        VERSION: 0.5
+#        DEPENDS: fzf, fzf-tmux
 # ------------------------------------------------------------------------------
 
 
@@ -156,12 +156,12 @@ __zshmarks_zgrep() {
 		return 1
 }
 
-function jump() {
+function zmj() {
 		local zm_name=$1
 		local zm
 		if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZMARKS_FILE"; then
 				echo "Invalid name, please provide a valid zm name. For example:"
-				echo "  jump foo"
+				echo "zmj foo"
 				echo
 				echo "To zm a folder, go to the folder then do this (naming the zm 'foo'):"
 				echo "  zm foo"
@@ -177,7 +177,7 @@ function jump() {
 }
 
 # Show a list of the zms
-function showmarks() {
+function zms() {
 		local zm_file="$(<"$ZMARKS_FILE")"
 		local zm_array; zm_array=(${(f)zm_file});
 		local zm_name zm_path zm_line
@@ -198,13 +198,13 @@ function showmarks() {
 }
 
 # Delete a zm
-function deletemark()  {
+function zmd()  {
 		local zm_name="$1"
 		local marks_file="${2:-$ZMARKS_FILE}"
 		echo "zshmarks/init.zsh: 204 marks_file: $marks_file"
 		if [[ -z $zm_name ]]; then
 				printf "%s \n" "Please provide a name for your zm to delete. For example:"
-				printf "\t%s \n" "deletemark foo"
+				printf "\t%s \n" "zmd foo"
 				return 1
 		else
 				local zm_line zm_search
@@ -221,7 +221,7 @@ function deletemark()  {
 
 						 _zshmarks_move_to_trash "${marks_file}.bak" 
              
-            # generate new named dir to sync with zms
+            # generate new named dir to sync with marks
             _gen_zshmarks_named_dirs 1> /dev/null
             echo "Deleted and synced named dirs"
 				fi
@@ -246,14 +246,14 @@ _ask_to_overwrite() {
 		echo -n "overwrite mark $1 (y/n)? "
 		read answer
 		if  [ "$answer" != "${answer#[Yy]}" ];then 
-				deletemark $1
+				zmd $1
 				zm $2
 		else
 				return 1
 		fi
 }
 
-fzf_zmark_jump(){
+_fzf_zmj(){
    local zm=$(cat $ZMARKS_DIR/zmarks | fzf-tmux)
 	 local dir="${zm%%|*}"
    # echo "zshmarks/init.zsh: 237 dir: $dir"
@@ -263,23 +263,20 @@ fzf_zmark_jump(){
    echo -e "\n"
    zle reset-prompt
 }
-
-zle     -N    fzf_zmark_jump
-
-
+zle     -N    _fzf_zmj
 
 # dir="${foo%%|*}"
 # bm="${foo##*|}"
 
 
-# -- zedit functions -- 
+# -- zm edit functions -- 
 
-fzf_zedit_jump(){
+_fzf_zmej(){
    local zm=$(cat $ZMARKS_DIR/zedits | fzf-tmux)
 	 # local file="${zm%%|*}"
 	 local bm_name="${zm##*|}"
 	 echo "zshmarks/init.zsh: 281 bm: $bm"
-	 zedit_jump "$bm_name"
+	 zmej "$bm_name"
    # echo "zshmarks/init.zsh: 237 dir: $dir"
 	 # eval "cd ${dir}"
 	 # eval "ls ${dir}"
@@ -287,9 +284,7 @@ fzf_zedit_jump(){
    echo -e "\n"
    zle reset-prompt
 }
-
-zle     -N    fzf_zedit_jump
-
+zle     -N    _fzf_zmej
 
 
 if [[ -z $EDITOR ]] ; then
@@ -321,13 +316,12 @@ _ezoomzsh() {
 	source "$SHELLRC"
 }
 
-
-function zedit_jump() {
+function zmej() {
 		local editmark_name=$1
 		local editmark
 		if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZEDITS_FILE"; then
 				echo "Invalid name, please provide a valid editmark name. For example:"
-				echo "  zedit_jump foo"
+				echo "  zmej foo"
 				echo
 				echo "To editmark a folder, go to the folder then do this (naming the editmark 'foo'):"
 				echo "  editmark foo"
@@ -356,15 +350,15 @@ _ask_to_overwrite_zedit() {
 		echo -n "overwrite mark $1 (y/n)? "
 		read answer
 		if  [ "$answer" != "${answer#[Yy]}" ];then 
-				deleteeditmark "$1"
+				zmed "$1"
 				# echo "zshmarks/init.zsh: 317 zedit_path: $zedit_path"
-				zeditmark "$2" "$zedit_path"
+				zme "$2" "$zedit_path"
 		else
 				return 1
 		fi
 }
 
-function zeditmark() {
+function zme() {
 		local zm_name="$1"
 		zedit_path="$2"
 
@@ -420,7 +414,7 @@ function zeditmark() {
 
 	# no duplicates, make zm
 	echo $zm >> "$ZEDITS_FILE"
-	echo "zeditmark '$zm_name' saved"
+	echo "zm file '$zm_name' saved"
 
 	echo "hash -d $zm_name=$zedit_path" >> "$NAMED_DIRS"
 	echo "Created named file ~$zm_name"
@@ -429,6 +423,6 @@ function zeditmark() {
 
 
 # Delete a edit mark
-function deleteeditmark()  {
- deletemark "$1" "$ZEDITS_FILE"
+function zmed()  {
+ zmd "$1" "$ZEDITS_FILE"
 }
