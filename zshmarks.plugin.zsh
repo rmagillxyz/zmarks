@@ -91,51 +91,51 @@ _zshmarks_move_to_trash(){
 		fi
 }
 
-function bookmark() {
-		local bookmark_name=$1
-		if [[ -z $bookmark_name ]]; then
-				bookmark_name="${PWD##*/}"
+function zm() {
+		local zm_name=$1
+		if [[ -z $zm_name ]]; then
+				zm_name="${PWD##*/}"
 		fi
 		cur_dir="$(pwd)"
 		# Replace /home/uname with $HOME
 		if [[ "$cur_dir" =~ ^"$HOME"(/|$) ]]; then
 				cur_dir="\$HOME${cur_dir#$HOME}"
 		fi
-		# Store the bookmark as folder|name
-		bookmark="$cur_dir|$bookmark_name"
+		# Store the zm as folder|name
+		zm="$cur_dir|$zm_name"
 
 	# TODO: this could be sped up sorting and using a search algorithm
 	for line in $(cat $ZMARKS_FILE) 
 	do
 
-		 if [[ "$line" == "$cur_dir|$bookmark_name" ]]; then 
+		 if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
 				echo "umm, you already have this EXACT bm, bro" 
 				return 
 		 fi 
 
-			if [[ $(echo $line |  awk -F'|' '{print $2}') == $bookmark_name ]]; then
-					echo "Bookmark name already existed"
+			if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
+					echo "zm name already existed"
 					echo "old: $line"
-					echo "new: $bookmark"
-					_ask_to_overwrite $bookmark_name 
+					echo "new: $zm"
+					_ask_to_overwrite $zm_name 
 					return 1
 
 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
-					echo "Bookmark dir already existed"
+					echo "zm dir already existed"
 					echo "old: $line"
-					echo "new: $bookmark"
+					echo "new: $zm"
 					local bm="${line##*|}"
-					_ask_to_overwrite $bm $bookmark_name 
+					_ask_to_overwrite $bm $zm_name 
 					return 1
 			fi
 	done
 
-	# no duplicates, make bookmark
-	echo $bookmark >> $ZMARKS_FILE
-	echo "Bookmark '$bookmark_name' saved"
+	# no duplicates, make zm
+	echo $zm >> $ZMARKS_FILE
+	echo "zm '$zm_name' saved"
 
-	echo "hash -d $bookmark_name=$cur_dir" >> "$NAMED_DIRS"
-	echo "Created named dir ~$bookmark_name"
+	echo "hash -d $zm_name=$cur_dir" >> "$NAMED_DIRS"
+	echo "Created named dir ~$zm_name"
   source "$NAMED_DIRS"
 }
 
@@ -157,18 +157,18 @@ __zshmarks_zgrep() {
 }
 
 function jump() {
-		local bookmark_name=$1
-		local bookmark
-		if ! __zshmarks_zgrep bookmark "\\|$bookmark_name\$" "$ZMARKS_FILE"; then
-				echo "Invalid name, please provide a valid bookmark name. For example:"
+		local zm_name=$1
+		local zm
+		if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZMARKS_FILE"; then
+				echo "Invalid name, please provide a valid zm name. For example:"
 				echo "  jump foo"
 				echo
-				echo "To bookmark a folder, go to the folder then do this (naming the bookmark 'foo'):"
-				echo "  bookmark foo"
+				echo "To zm a folder, go to the folder then do this (naming the zm 'foo'):"
+				echo "  zm foo"
 				return 1
 		else
-				# echo "zshmarks/init.zsh: 124 bookmark : $bookmark "
-				local dir="${bookmark%%|*}"
+				# echo "zshmarks/init.zsh: 124 zm : $zm "
+				local dir="${zm%%|*}"
 				eval "cd \"${dir}\""
 				eval "ls \"${dir}\""
         # echo "dir: $dir"
@@ -176,52 +176,52 @@ function jump() {
 		fi
 }
 
-# Show a list of the bookmarks
+# Show a list of the zms
 function showmarks() {
-		local bookmark_file="$(<"$ZMARKS_FILE")"
-		local bookmark_array; bookmark_array=(${(f)bookmark_file});
-		local bookmark_name bookmark_path bookmark_line
+		local zm_file="$(<"$ZMARKS_FILE")"
+		local zm_array; zm_array=(${(f)zm_file});
+		local zm_name zm_path zm_line
 		if [[ $# -eq 1 ]]; then
-				bookmark_name="*\|${1}"
-				bookmark_line=${bookmark_array[(r)$bookmark_name]}
-				bookmark_path="${bookmark_line%%|*}"
-				bookmark_path="${bookmark_path/\$HOME/~}"
-				printf "%s \n" $bookmark_path
+				zm_name="*\|${1}"
+				zm_line=${zm_array[(r)$zm_name]}
+				zm_path="${zm_line%%|*}"
+				zm_path="${zm_path/\$HOME/~}"
+				printf "%s \n" $zm_path
 		else
-				for bookmark_line in $bookmark_array; do
-						bookmark_path="${bookmark_line%%|*}"
-						bookmark_path="${bookmark_path/\$HOME/~}"
-						bookmark_name="${bookmark_line#*|}"
-						printf "%s\t\t%s\n" "$bookmark_name" "$bookmark_path"
+				for zm_line in $zm_array; do
+						zm_path="${zm_line%%|*}"
+						zm_path="${zm_path/\$HOME/~}"
+						zm_name="${zm_line#*|}"
+						printf "%s\t\t%s\n" "$zm_name" "$zm_path"
 				done
 		fi
 }
 
-# Delete a bookmark
+# Delete a zm
 function deletemark()  {
-		local bookmark_name="$1"
+		local zm_name="$1"
 		local marks_file="${2:-$ZMARKS_FILE}"
 		echo "zshmarks/init.zsh: 204 marks_file: $marks_file"
-		if [[ -z $bookmark_name ]]; then
-				printf "%s \n" "Please provide a name for your bookmark to delete. For example:"
+		if [[ -z $zm_name ]]; then
+				printf "%s \n" "Please provide a name for your zm to delete. For example:"
 				printf "\t%s \n" "deletemark foo"
 				return 1
 		else
-				local bookmark_line bookmark_search
-				local bookmark_file="$(<"$marks_file")"
-				local bookmark_array; bookmark_array=(${(f)bookmark_file});
-				bookmark_search="*\|${bookmark_name}"
-				if [[ -z ${bookmark_array[(r)$bookmark_search]} ]]; then
-						eval "printf '%s\n' \"'${bookmark_name}' not found, skipping.\""
+				local zm_line zm_search
+				local zm_file="$(<"$marks_file")"
+				local zm_array; zm_array=(${(f)zm_file});
+				zm_search="*\|${zm_name}"
+				if [[ -z ${zm_array[(r)$zm_search]} ]]; then
+						eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
 				else
 						\cp "${marks_file}" "${marks_file}.bak"
-						bookmark_line=${bookmark_array[(r)$bookmark_search]}
-						bookmark_array=(${bookmark_array[@]/$bookmark_line})
-						eval "printf '%s\n' \"\${bookmark_array[@]}\"" >! $marks_file
+						zm_line=${zm_array[(r)$zm_search]}
+						zm_array=(${zm_array[@]/$zm_line})
+						eval "printf '%s\n' \"\${zm_array[@]}\"" >! $marks_file
 
 						 _zshmarks_move_to_trash "${marks_file}.bak" 
              
-            # generate new named dir to sync with bookmarks
+            # generate new named dir to sync with zms
             _gen_zshmarks_named_dirs 1> /dev/null
             echo "Deleted and synced named dirs"
 				fi
@@ -247,15 +247,15 @@ _ask_to_overwrite() {
 		read answer
 		if  [ "$answer" != "${answer#[Yy]}" ];then 
 				deletemark $1
-				bookmark $2
+				zm $2
 		else
 				return 1
 		fi
 }
 
 fzf_zmark_jump(){
-   local bookmark=$(cat $ZMARKS_DIR/zmarks | fzf-tmux)
-	 local dir="${bookmark%%|*}"
+   local zm=$(cat $ZMARKS_DIR/zmarks | fzf-tmux)
+	 local dir="${zm%%|*}"
    # echo "zshmarks/init.zsh: 237 dir: $dir"
 	 eval "cd ${dir}"
 	 # eval "ls ${dir}"
@@ -275,9 +275,9 @@ zle     -N    fzf_zmark_jump
 # -- zedit functions -- 
 
 fzf_zedit_jump(){
-   local bookmark=$(cat $ZMARKS_DIR/zedits | fzf-tmux)
-	 # local file="${bookmark%%|*}"
-	 local bm_name="${bookmark##*|}"
+   local zm=$(cat $ZMARKS_DIR/zedits | fzf-tmux)
+	 # local file="${zm%%|*}"
+	 local bm_name="${zm##*|}"
 	 echo "zshmarks/init.zsh: 281 bm: $bm"
 	 zedit_jump "$bm_name"
    # echo "zshmarks/init.zsh: 237 dir: $dir"
@@ -365,10 +365,10 @@ _ask_to_overwrite_zedit() {
 }
 
 function zeditmark() {
-		local bookmark_name="$1"
+		local zm_name="$1"
 		zedit_path="$2"
 
-		if [[ -z $bookmark_name ]]; then
+		if [[ -z $zm_name ]]; then
 				echo 'zmark file required'
 				return 1
 		fi
@@ -388,42 +388,42 @@ function zeditmark() {
 		if [[ "$zedit_path" =~ ^"$HOME"(/|$) ]]; then
 				zedit_path="\$HOME${zedit_path#$HOME}"
 		fi
-		# Store the bookmark as folder|name
-		bookmark="$zedit_path|$bookmark_name"
+		# Store the zm as folder|name
+		zm="$zedit_path|$zm_name"
 
 	# TODO: this could be sped up sorting and using a search algorithm
 	# refactor into function to deal with edits and marks
 	for line in $(cat $ZEDITS_FILE) 
 	do
 
-		 if [[ "$line" == "$zedit_path|$bookmark_name" ]]; then 
+		 if [[ "$line" == "$zedit_path|$zm_name" ]]; then 
 				echo "umm, you already have this EXACT edit mark, bro" 
 				return 
 		 fi 
 
-			if [[ $(echo $line |  awk -F'|' '{print $2}') == $bookmark_name ]]; then
-					echo "Bookmark name already existed"
+			if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
+					echo "zm name already existed"
 					echo "old: $line"
-					echo "new: $bookmark"
-					_ask_to_overwrite_zedit $bookmark_name 
+					echo "new: $zm"
+					_ask_to_overwrite_zedit $zm_name 
 					return 1
 
 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zedit_path  ]]; then
-					echo "Bookmark dir already existed"
+					echo "zm dir already existed"
 					echo "old: $line"
-					echo "new: $bookmark"
+					echo "new: $zm"
 					local bm="${line##*|}"
-					_ask_to_overwrite_zedit $bm $bookmark_name 
+					_ask_to_overwrite_zedit $bm $zm_name 
 					return 1
 			fi
 	done
 
-	# no duplicates, make bookmark
-	echo $bookmark >> "$ZEDITS_FILE"
-	echo "zeditmark '$bookmark_name' saved"
+	# no duplicates, make zm
+	echo $zm >> "$ZEDITS_FILE"
+	echo "zeditmark '$zm_name' saved"
 
-	echo "hash -d $bookmark_name=$zedit_path" >> "$NAMED_DIRS"
-	echo "Created named file ~$bookmark_name"
+	echo "hash -d $zm_name=$zedit_path" >> "$NAMED_DIRS"
+	echo "Created named file ~$zm_name"
   source "$NAMED_DIRS"
 }
 
