@@ -267,11 +267,30 @@ fzf_zmark_jump(){
 zle     -N    fzf_zmark_jump
 
 
+
 # dir="${foo%%|*}"
 # bm="${foo##*|}"
 
 
 # -- zedit functions -- 
+
+fzf_zedit_jump(){
+   local bookmark=$(cat $ZMARKS_DIR/zedits | fzf-tmux)
+	 # local file="${bookmark%%|*}"
+	 local bm_name="${bookmark##*|}"
+	 echo "zshmarks/init.zsh: 281 bm: $bm"
+	 zedit_jump "$bm_name"
+   # echo "zshmarks/init.zsh: 237 dir: $dir"
+	 # eval "cd ${dir}"
+	 # eval "ls ${dir}"
+	 ls
+   echo -e "\n"
+   zle reset-prompt
+}
+
+zle     -N    fzf_zedit_jump
+
+
 
 if [[ -z $EDITOR ]] ; then
 			echo "set \$EDITOR environment variable to choose editor"
@@ -303,12 +322,12 @@ _ezoomzsh() {
 }
 
 
-function zedit() {
+function zedit_jump() {
 		local editmark_name=$1
 		local editmark
 		if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZEDITS_FILE"; then
 				echo "Invalid name, please provide a valid editmark name. For example:"
-				echo "  jump foo"
+				echo "  zedit_jump foo"
 				echo
 				echo "To editmark a folder, go to the folder then do this (naming the editmark 'foo'):"
 				echo "  editmark foo"
