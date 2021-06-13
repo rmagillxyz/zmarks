@@ -74,20 +74,20 @@ fpath=($fpath "$ZDOTDIR/zshmarks/functions")
 [ -f "$NAMED_FILES" ] && source "$NAMED_FILES" 
 
 _zshmarks_move_to_trash(){
-	 local FILE_PATH="$1"
-	 echo "zshmarks/init.zsh: 77 FILE_PATH: $FILE_PATH"
+	 local file_path="$1"
+	 echo "zshmarks/init.zsh: 77 file_path: $file_path"
 		if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
 				label=`date +%s`
 				mkdir -p ~/.local/share/Trash/info ~/.local/share/Trash/files
-				\mv "$FILE_PATH" ~/.local/share/Trash/files/$(basename "$FILE_PATH")-$label
+				\mv "$file_path" ~/.local/share/Trash/files/$(basename "$file_path")-$label
 				echo "[Trash Info]
-				Path="$FILE_PATH"
+				Path="$file_path"
 				DeletionDate="`date +"%Y-%m-%dT%H:%M:%S"`"
-				">~/.local/share/Trash/info/$(basename "$FILE_PATH")-$label.trashinfo
+				">~/.local/share/Trash/info/$(basename "$file_path")-$label.trashinfo
 		elif [[ $(uname) = "Darwin" ]]; then
-				\mv "$FILE_PATH" ~/.Trash/$(basename "$FILE_PATH")$(date +%H-%M-%S) 
+				\mv "$file_path" ~/.Trash/$(basename "$file_path")$(date +%H-%M-%S) 
 		else
-				\rm -f "$FILE_PATH"
+				\rm -f "$file_path"
 		fi
 }
 
@@ -201,28 +201,29 @@ function zms() {
 # Delete a zm
 function zmd()  {
 		local zm_name="$1"
-		# local marks_file="${2:-$ZMARKS_FILE}"
-		# echo "zshmarks/init.zsh: 204 marks_file: $marks_file"
+		local file_path="${2:-$ZMARKS_FILE}"
+		# echo "zshmarks/init.zsh: 204 file_path: $file_path"
 		if [[ -z $zm_name ]]; then
 				printf "%s \n" "Please provide a name for your zm to delete. For example:"
 				printf "\t%s \n" "zmd foo"
 				return 1
 		else
 				local zm_line zm_search
-				local zm_file="$(<${2:-$ZMARKS_FILE})"
 				# local zm_file="$(<${2:-$ZMARKS_FILE})"
-				# local zm_file="$(<"$marks_file")"
+				# local zm_file="$(<${2:-$ZMARKS_FILE})"
+				local zm_file="$(<"$file_path")"
+				echo "zshmarks/init.zsh: 213 zm_file: $zm_file"
 				local zm_array; zm_array=(${(f)zm_file});
 				zm_search="*\|${zm_name}"
 				if [[ -z ${zm_array[(r)$zm_search]} ]]; then
 						eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
 				else
-						\cp "${marks_file}" "${marks_file}.bak"
+						\cp "${file_path}" "${file_path}.bak"
 						zm_line=${zm_array[(r)$zm_search]}
 						zm_array=(${zm_array[@]/$zm_line})
-						eval "printf '%s\n' \"\${zm_array[@]}\"" >! $marks_file
+						eval "printf '%s\n' \"\${zm_array[@]}\"" >! $file_path
 
-						 _zshmarks_move_to_trash "${marks_file}.bak" 
+						 _zshmarks_move_to_trash "${file_path}.bak" 
              
             # generate new named dir to sync with marks
             _gen_zshmarks_named_dirs 1> /dev/null
@@ -379,9 +380,6 @@ function zme() {
 					return 1
 			 fi
 		else
-			 # zedit_path=$("$(pwd)""/""$zm_name")
-			 # zedit_path="$($(pwd)/$zm_name)"
-			 # zedit_path="$($cur_dir/$zm_name)"
 			 cur_dir="$(pwd)"
 			 zedit_path="$cur_dir"
 			 zedit_path+="/$zm_name"
@@ -429,7 +427,7 @@ function zme() {
 
 	echo "hash -d $zm_name=$zedit_path" >> "$NAMED_DIRS"
 	echo "Created named file ~$zm_name"
-  source "$NAMED_DIRS"
+  source "$NAMED_FILES"
 }
 
 
