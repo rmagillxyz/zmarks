@@ -200,7 +200,8 @@ function showmarks() {
 # Delete a bookmark
 function deletemark()  {
 		local bookmark_name="$1"
-		local marks_file="${2:-ZMARKS_FILE}"
+		local marks_file="${2:-$ZMARKS_FILE}"
+		echo "zshmarks/init.zsh: 204 marks_file: $marks_file"
 		if [[ -z $bookmark_name ]]; then
 				printf "%s \n" "Please provide a name for your bookmark to delete. For example:"
 				printf "\t%s \n" "deletemark foo"
