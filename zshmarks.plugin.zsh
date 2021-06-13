@@ -363,22 +363,30 @@ _ask_to_overwrite_zedit() {
 
 function zme() {
 		local zm_name="$1"
-		zedit_path="$2"
+		local zedit_path="$2"
 
 		if [[ -z $zm_name ]]; then
 				echo 'zmark file required'
 				return 1
 		fi
 
+		local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
+		echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
 
-		if [[ -z $zedit_path ]]; then
+		if [[ -z $zedit_path && -z $exactmatchfromdir ]]; then
 	 		zedit_path="$(find $(pwd) -type f | fzf-tmux)"
 			 if [[ -z "$zedit_path" ]]; then
 					return 1
 			 fi
+		else
+			 # zedit_path=$("$(pwd)""/""$zm_name")
+			 # zedit_path="$($(pwd)/$zm_name)"
+			 # zedit_path="$($cur_dir/$zm_name)"
+			 cur_dir="$(pwd)"
+			 zedit_path="$cur_dir"
+			 zedit_path+="/$zm_name"
+			echo "zshmarks/init.zsh: 385 zedit_path: $zedit_path"
 		fi
-
-		echo "$zedit_path"
 
 				
 		# Replace /home/uname with $HOME
