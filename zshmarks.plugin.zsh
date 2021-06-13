@@ -178,7 +178,8 @@ function zmj() {
 
 # Show a list of the zms
 function zms() {
-		local zm_file="$(<"$ZMARKS_FILE")"
+	 local zm_file="$(<${2:-$ZMARKS_FILE})"
+		# local zm_file="$(<"$ZMARKS_FILE")"
 		local zm_array; zm_array=(${(f)zm_file});
 		local zm_name zm_path zm_line
 		if [[ $# -eq 1 ]]; then
@@ -200,15 +201,17 @@ function zms() {
 # Delete a zm
 function zmd()  {
 		local zm_name="$1"
-		local marks_file="${2:-$ZMARKS_FILE}"
-		echo "zshmarks/init.zsh: 204 marks_file: $marks_file"
+		# local marks_file="${2:-$ZMARKS_FILE}"
+		# echo "zshmarks/init.zsh: 204 marks_file: $marks_file"
 		if [[ -z $zm_name ]]; then
 				printf "%s \n" "Please provide a name for your zm to delete. For example:"
 				printf "\t%s \n" "zmd foo"
 				return 1
 		else
 				local zm_line zm_search
-				local zm_file="$(<"$marks_file")"
+				local zm_file="$(<${2:-$ZMARKS_FILE})"
+				# local zm_file="$(<${2:-$ZMARKS_FILE})"
+				# local zm_file="$(<"$marks_file")"
 				local zm_array; zm_array=(${(f)zm_file});
 				zm_search="*\|${zm_name}"
 				if [[ -z ${zm_array[(r)$zm_search]} ]]; then
@@ -425,4 +428,9 @@ function zme() {
 # Delete a edit mark
 function zmed()  {
  zmd "$1" "$ZEDITS_FILE"
+}
+
+# Show edit marks
+function zmes()  {
+ zms "$1" "$ZEDITS_FILE"
 }
