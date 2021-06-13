@@ -18,6 +18,7 @@ if [[ -z $ZMARKS_DIR ]] ; then
 fi
 
 NAMED_DIRS="$ZMARKS_DIR/zmarks_named_dirs"
+NAMED_FILES="$ZMARKS_DIR/zmarks_named_files"
 ZMARKS_FILE="$ZMARKS_DIR/zmarks"
 ZEDITS_FILE="$ZMARKS_DIR/zedits"
 
@@ -28,7 +29,10 @@ if [[ -L "$ZMARKS_FILE" ]]; then
 fi
 
 _gen_zshmarks_named_dirs(){
-   rm "$NAMED_DIRS"
+	 if [[  -f "$NAMED_DIRS" ]]; then
+			rm "$NAMED_DIRS"
+	 fi
+   # rm "$NAMED_DIRS"
    while read line
    do
       dir="${line%%|*}"
@@ -39,16 +43,35 @@ _gen_zshmarks_named_dirs(){
 	 return 
 }
 
+_gen_zshmarks_named_files(){
+   # rm "$NAMED_FILES"
+
+	 if [[  -f "$NAMED_FILES" ]]; then
+			rm "$NAMED_FILES"
+	 fi
+
+   while read line
+   do
+      dir="${line%%|*}"
+      bm="${line##*|}"
+      echo "~$bm"
+			echo "hash -d $bm=$dir" >> "$NAMED_FILES"
+	 done < "$ZEDITS_FILE"
+	 return 
+}
+
 if [[ ! -f $ZMARKS_FILE ]]; then
 		touch $ZMARKS_FILE
  else 
    _gen_zshmarks_named_dirs 1> /dev/null
+	 _gen_zshmarks_named_files 1> /dev/null
 fi
 
 
 fpath=($fpath "$ZDOTDIR/zshmarks/functions")
 
 [ -f "$NAMED_DIRS" ] && source "$NAMED_DIRS" 
+[ -f "$NAMED_FILES" ] && source "$NAMED_FILES" 
 
 _zshmarks_move_to_trash(){
 	 local FILE_PATH="$1"
@@ -379,9 +402,9 @@ function zeditmark() {
 	echo $bookmark >> "$ZEDITS_FILE"
 	echo "zeditmark '$bookmark_name' saved"
 
-	# echo "hash -d $bookmark_name=$zedit_path" >> "$NAMED_DIRS"
-	# echo "Created named dir ~$bookmark_name"
-  # source "$NAMED_DIRS"
+	echo "hash -d $bookmark_name=$zedit_path" >> "$NAMED_DIRS"
+	echo "Created named file ~$bookmark_name"
+  source "$NAMED_DIRS"
 }
 
 
@@ -389,114 +412,3 @@ function zeditmark() {
 function deleteeditmark()  {
  deletemark "$1" "$ZEDITS_FILE"
 }
-
-# function bookmark() {
-
-# 	 function usage {
-# 					 echo "$(basename $0) [mark name] \n
-# 					 -e, --edit\n
-# 							 use edit marks
-# 						-h, --help
-# 							 show this 
-# 					 "
-# 	 }
-
-# 	 isZedit=false
-
-# 	 POSITIONAL=()
-# 	 while [[ $# -gt 0 ]]
-# 	 do
-# 	 key="$1"
-
-# 	 case $key in
-# 			 e|-e|--edit)
-# 			 # DAYS_AGO="$2"
-# 			 shift # past argument
-# 			 isZedit=true
-# 			 # shift # past value
-# 			 ;;
-# 			 h|-h|--help)
-# 			 usage
-# 			 exit
-# 	 esac
-# 	 done
-
-# 	 # set -- "${POSITIONAL[@]}" # restore positional parameters
-
-# 		local bookmark_name=$1
-# 		if [[ -z $bookmark_name ]]; then
-# 				bookmark_name="${PWD##*/}"
-# 		fi
-# 		cur_dir="$(pwd)"
-# 		# Replace /home/uname with $HOME
-# 		if [[ "$cur_dir" =~ ^"$HOME"(/|$) ]]; then
-# 				cur_dir="\$HOME${cur_dir#$HOME}"
-# 		fi
-# 		# Store the bookmark as folder|name
-# 		bookmark="$cur_dir|$bookmark_name"
-
-# 	# TODO: this could be sped up sorting and using a search algorithm
-# 	for line in $(cat $(isZedit && $ZEDITS_FILE || $ZMARKS_FILE)) 
-# 	do
-
-# 		 if [[ "$line" == "$cur_dir|$bookmark_name" ]]; then 
-# 				echo "umm, you already have this EXACT bm, bro" 
-# 				return 
-# 		 fi 
-
-# 			if [[ $(echo $line |  awk -F'|' '{print $2}') == $bookmark_name ]]; then
-# 					echo "Bookmark name already existed"
-# 					echo "old: $line"
-# 					echo "new: $bookmark"
-# 					_ask_to_overwrite $bookmark_name 
-# 					return 1
-
-# 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
-# 					echo "Bookmark dir already existed"
-# 					echo "old: $line"
-# 					echo "new: $bookmark"
-# 					local bm="${line##*|}"
-# 					_ask_to_overwrite $bm $bookmark_name 
-# 					return 1
-# 			fi
-# 	done
-
-# 	# no duplicates, make bookmark
-# 	echo $bookmark >> $ZMARKS_FILE
-# 	echo "Bookmark '$bookmark_name' saved"
-
-# 	echo "hash -d $bookmark_name=$cur_dir" >> "$NAMED_DIRS"
-# 	echo "Created named dir ~$bookmark_name"
-#   source "$NAMED_DIRS"
-# }
-
-# function deleteeditmark()  {
-# 		local bookmark_name=$1
-# 		if [[ -z $bookmark_name ]]; then
-# 				printf "%s \n" "Please provide a name for your bookmark to delete. For example:"
-# 				printf "\t%s \n" "deletemark foo"
-# 				return 1
-# 		else
-# 				local bookmark_line bookmark_search
-# 				local bookmark_file="$(<"$ZMARKS_FILE")"
-# 				local bookmark_array; bookmark_array=(${(f)bookmark_file});
-# 				bookmark_search="*\|${bookmark_name}"
-# 				if [[ -z ${bookmark_array[(r)$bookmark_search]} ]]; then
-# 						eval "printf '%s\n' \"'${bookmark_name}' not found, skipping.\""
-# 				else
-# 						\cp "${ZMARKS_FILE}" "${ZMARKS_FILE}.bak"
-# 						bookmark_line=${bookmark_array[(r)$bookmark_search]}
-# 						bookmark_array=(${bookmark_array[@]/$bookmark_line})
-# 						eval "printf '%s\n' \"\${bookmark_array[@]}\"" >! $ZMARKS_FILE
-
-# 						 _zshmarks_move_to_trash "${ZMARKS_FILE}.bak" 
-             
-#             # generate new named dir to sync with bookmarks
-#             _gen_zshmarks_named_dirs 1> /dev/null
-#             echo "Deleted and synced named dirs"
-# 				fi
-# 		fi
-# }
-
-
-
