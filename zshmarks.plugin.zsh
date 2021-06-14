@@ -525,6 +525,7 @@ __zm_checkclash(){
 				 __asktodelete zmd "$clash"
 			fi
 			# __zm_checkhashclash
+			__zm_checkhashclash "$zm_name"
 	 fi
 		}
 
@@ -533,6 +534,7 @@ __zm_checkclash(){
 	 __zm_checkhashclash(){
 	  local zm_name="$1"
 		local hashexists=$(echo ~"$zm_name")
+		echo "zshmarks/init.zsh: 535 zm_name: $zm_name"
 		echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
 		if [[ ! -z $hashexists ]]; then
 				printf "${RED}Named hash clash${NOCOLOR}\n"
