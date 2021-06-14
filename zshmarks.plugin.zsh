@@ -8,7 +8,6 @@
 #        DEPENDS: fzf, fzf-tmux
 # ------------------------------------------------------------------------------
 
-
 # dir="${foo%%|*}"
 # bm="${foo##*|}"
 RED='\033[0;31m'
@@ -73,7 +72,6 @@ _gen_zshmarks_named_dirs(){
 }
 
 _gen_zshmarks_named_files(){
-   # rm "$NAMED_FILES"
 
 	 if [[  -f "$NAMED_FILES" ]]; then
 			rm "$NAMED_FILES"
@@ -96,11 +94,10 @@ if [[ ! -f $ZMARKS_FILE ]]; then
 	 _gen_zshmarks_named_files 1> /dev/null
 fi
 
-
-fpath=($fpath "$ZDOTDIR/zshmarks/functions")
-
 [ -f "$NAMED_DIRS" ] && source "$NAMED_DIRS" 
 [ -f "$NAMED_FILES" ] && source "$NAMED_FILES" 
+
+fpath=($fpath "$ZDOTDIR/zshmarks/functions")
 
 _zshmarks_move_to_trash(){
 	 local file_path="$1"
@@ -218,9 +215,10 @@ function zmj() {
 
 # Show a list of the zms
 function zms() {
+	 # is zm_file is the contents of the file stored in a var
 	 local zm_file="$(<${2:-$ZMARKS_FILE})"
-		# local zm_file="$(<"$ZMARKS_FILE")"
 		local zm_array; zm_array=(${(f)zm_file});
+		echo "zshmarks/init.zsh: 226 zm_array: $zm_array"
 		local zm_name zm_path zm_line
 		if [[ $# -eq 1 ]]; then
 				zm_name="*\|${1}"
@@ -240,22 +238,15 @@ function zms() {
 
 # Delete a zm
 function zmd()  {
-	 # echo '-----zmd'
 		local zm_name="$1"
-		echo "zshmarks/init.zsh: 222 zm_name: $zm_name"
 		local file_path="${2:-$ZMARKS_FILE}"
-		echo "zshmarks/init.zsh: 224 file_path: $file_path"
-		# echo "zshmarks/init.zsh: 204 file_path: $file_path"
 		if [[ -z $zm_name ]]; then
 				printf "%s \n" "Please provide a name for your zm to delete. For example:"
 				printf "\t%s \n" "zmd foo"
 				return 1
 		else
 				local zm_line zm_search
-				# local zm_file="$(<${2:-$ZMARKS_FILE})"
-				# local zm_file="$(<${2:-$ZMARKS_FILE})"
 				local zm_file="$(<"$file_path")"
-				# echo "zshmarks/init.zsh: 213 zm_file: $zm_file"
 				local zm_array; zm_array=(${(f)zm_file});
 				zm_search="*\|${zm_name}"
 				if [[ -z ${zm_array[(r)$zm_search]} ]]; then
@@ -271,6 +262,7 @@ function zmd()  {
             # generate new named dir to sync with marks
 						hash -d -r  # rebuild hash table
             _gen_zshmarks_named_dirs 1> /dev/null
+            _gen_zshmarks_named_files 1> /dev/null
             echo "Deleted and synced named dirs"
 				fi
 		fi
@@ -504,16 +496,14 @@ __asktodelete(){
 
 __zm_checkclash(){
 			local zm_name="$2"
-			local zm_file="${3:-$ZMARKS_FILE}"
+			local zm_path="${3:-$ZMARKS_FILE}"
 			 if [[ $1 == "-e" ]];then
-				 zm_file="$ZEDITS_FILE"
+				 zm_path="$ZEDITS_FILE"
 			 fi
-			# echo "zshmarks/init.zsh: 490 zm_file: $zm_file"
-			# echo "zshmarks/init.zsh: 489 zm_name: $zm_name"
 
 		local clash
 		# check dir marks for collision
-		if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_file"; then
+		if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
 			 if [[ $1 == "-e" ]];then
 				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark file?: $clash (y/n)? "
