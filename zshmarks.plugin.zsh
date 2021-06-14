@@ -80,7 +80,6 @@ fpath=($fpath "$ZDOTDIR/zshmarks/functions")
 
 _zshmarks_move_to_trash(){
 	 local file_path="$1"
-	 echo "zshmarks/init.zsh: 77 file_path: $file_path"
 		if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
 				label=`date +%s`
 				mkdir -p ~/.local/share/Trash/info ~/.local/share/Trash/files
@@ -110,7 +109,6 @@ function zm() {
 
 			clashfail=false
 			__zm_checkclash -e "$zm_name" "$ZEDITS_FILE"
-			# __zm_checkhashclash "$zm_name"
 
 			echo "zshmarks/init.zsh: 115 clashfail : $clashfail "
 			"$clashfail" && return 1
@@ -124,7 +122,7 @@ function zm() {
 	do
 
 		 if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
-				echo "umm, you already have this EXACT bm, bro" 
+				echo "umm, you already have this EXACT dir zmark, bro" 
 				return 
 		 fi 
 
@@ -132,7 +130,7 @@ function zm() {
 					echo "zmark name already existed"
 					echo "old: $line"
 					echo "new: $zm"
-					_ask_to_overwrite $zm_name 
+					__ask_to_overwrite $zm_name 
 					return 1
 
 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
@@ -140,12 +138,12 @@ function zm() {
 					echo "old: $line"
 					echo "new: $zm"
 					local bm="${line##*|}"
-					_ask_to_overwrite $bm $zm_name 
+					__ask_to_overwrite $bm $zm_name 
 					return 1
 			fi
 	done
 
-	# no duplicates, make zm
+	# no duplicates, make mark
 	echo $zm >> $ZMARKS_FILE
 	echo "zm '$zm_name' saved"
 
@@ -177,12 +175,13 @@ function zmj() {
 		local zm_name=$1
 		local zm
 		if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZMARKS_FILE"; then
-				echo "Invalid name, please provide a valid zmark name. For example:"
-				echo "zmj foo"
-				echo
-				echo "To zm a directory, go to the directory then do this (naming the zm 'foo'):"
-				echo "  zm foo"
-				return 1
+			 __zmej "$zm_name" "$2"
+				# echo "Invalid name, please provide a valid zmark name. For example:"
+				# echo "zmj foo"
+				# echo
+				# echo "To zm a directory, go to the directory then do this (naming the zm 'foo'):"
+				# echo "  zm foo"
+				# return 1
 		else
 				# echo "zshmarks/init.zsh: 124 zm : $zm "
 				local dir="${zm%%|*}"
@@ -217,7 +216,7 @@ function zms() {
 
 # Delete a zm
 function zmd()  {
-	 echo '-----zmd'
+	 # echo '-----zmd'
 		local zm_name="$1"
 		echo "zshmarks/init.zsh: 222 zm_name: $zm_name"
 		local file_path="${2:-$ZMARKS_FILE}"
@@ -258,7 +257,7 @@ _zshmarks_clear_all(){
 }
 
 
-_ask_to_overwrite() {
+__ask_to_overwrite() {
 		usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
 		[ ! $# -ge 1 ] && echo "$usage" && return 1 
 
@@ -322,6 +321,20 @@ if [[ -z $EDITOR ]] ; then
 	 fi
 fi
 
+if [[ -z $SHELLRC]] ; then
+			echo "set \$EDITOR environment variable to choose editor"
+			echo "defaulting to nvim or vim"
+	 if [[ ! -f "$HOME/.zshrc" ]]; then 
+			export SHELLRC="$HOME/.zshrc"
+	 else [[ ! -f "$HOME/config/.zshrc" ]]; then 
+			export SHELLRC="$HOME/config/.zshrc"
+	 else [[ ! -f "$HOME/config/zshrc" ]]; then 
+			export SHELLRC="$HOME/config/zshrc"
+	 else
+			printf "${RED}No $SHELLRC (.zshrc) found. Please set SHELLRC env var.${NOCOLOR}\n"
+	 fi
+fi
+
 
 
 
@@ -336,34 +349,36 @@ _ezoom() {
   fi
 }
 
-## TODO add ez from personal functions
+jz() {
+	zmj "$1" "$2"
+	source "$SHELLRC"
+}
+
 # _ezoomzsh() {
 # 	ezoom "$1" "$2"
 # 	source "$SHELLRC"
 # }
 
-function zmej() {
+# jump to maked file
+function __zmej() {
 		local editmark_name=$1
 		local editmark
 		if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZEDITS_FILE"; then
-				echo "Invalid name, please provide a valid editmark name. For example:"
-				echo "  zmej foo"
+				echo "Invalid name, please provide a valid zmark name. For example:"
+				echo "zmj foo [pattern]"
 				echo
-				echo "To editmark a directory, go to the directory then do this (naming the editmark 'foo'):"
-				echo "  editmark foo"
+				echo "To mark a directory:"
+				echo "zm <name>"
+				echo "To mark a file:"
+				echo "zme <name>"
 				return 1
 		else
-				# echo "zshmarks/init.zsh: 124 editmark : $editmark "
 				local filename="${editmark%%|*}"
-				echo "zshmarks/init.zsh: 169 filename: $filename"
-				# eval "_ezoom \"${filename}\" \"$2\""
-				# eval "_ezoom \"$filename\" \"$2\""
-				# eval "_ezoom $filename $2"
 				_ezoom "$filename" "$2"
 		fi
 }
 
-_ask_to_overwrite_zedit() {
+__ask_to_overwrite_zedit() {
 		usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
 		[ ! $# -ge 1 ] && echo "$usage" && return 1 
 
@@ -407,6 +422,7 @@ function zme() {
 
 		if [[ -z $zedit_path && -z $exactmatchfromdir ]]; then
 	 		zedit_path="$(find $(pwd) -type f | fzf-tmux)"
+			echo "zshmarks/init.zsh: 409 zedit_path: $zedit_path"
 			 if [[ -z "$zedit_path" ]]; then
 					return 1
 			 fi
@@ -439,7 +455,7 @@ function zme() {
 					echo "zmarks file name already existed"
 					echo "old: $line"
 					echo "new: $zm"
-					_ask_to_overwrite_zedit $zm_name 
+					__ask_to_overwrite_zedit $zm_name 
 					return 1
 
 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zedit_path  ]]; then
@@ -447,7 +463,7 @@ function zme() {
 					echo "old: $line"
 					echo "new: $zm"
 					local bm="${line##*|}"
-					_ask_to_overwrite_zedit $bm $zm_name 
+					__ask_to_overwrite_zedit $bm $zm_name 
 					return 1
 			fi
 	done
@@ -464,7 +480,7 @@ function zme() {
 
 # Delete a edit mark
 function zmed()  {
-	 echo '-----zmed'
+	 # echo '-----zmed'
  zmd "$1" "$ZEDITS_FILE"
 }
 
@@ -476,19 +492,10 @@ function zmes()  {
 
 __asktodelete(){
 	 local cmd="$1"
-	 echo "zshmarks/init.zsh: 477 cmd: $cmd"
-
-# dir="${foo%%|*}"
-# bm="${foo##*|}"
 	 local zm="${2##*|}"
-	 # local zm="$2"
-	 echo "zshmarks/init.zsh: 478 zm: $zm"
 				 read answer
 				 if  [ "$answer" != "${answer#[Yy]}" ];then 
-					 # zmd "$1"
-					 # eval "$"
 						eval "$cmd \"$zm\""
-						# eval "$outvar=\"$line\""
 				 else
 						clashfail=true
 						return 1
@@ -498,33 +505,27 @@ __asktodelete(){
 
 __zm_checkclash(){
 			local zm_name="$2"
-			# local zm_file="${3:-$ZMARKS_FILE}"
 			local zm_file
 			 if [[ $1 == "-e" ]];then
-					echo 'going to check zedits!'
 				 zm_file="$ZEDITS_FILE"
 			else
 				 zm_file="${3:-$ZMARKS_FILE}"
 			 fi
-			echo "zshmarks/init.zsh: 490 zm_file: $zm_file"
-			echo "zshmarks/init.zsh: 489 zm_name: $zm_name"
+			# echo "zshmarks/init.zsh: 490 zm_file: $zm_file"
+			# echo "zshmarks/init.zsh: 489 zm_name: $zm_name"
 
 		local clash
 		# check dir marks for collision
 		if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_file"; then
-			 echo "zshmarks/init.zsh: 497 clash : $clash "
 			 if [[ $1 == "-e" ]];then
-				 # echo "name clashes with zmark edit file: $clash"
-				 printf "${RED}name clashes with zmark edit file: $clash${NOCOLOR}\n"
+				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark file?: $clash (y/n)? "
 				 __asktodelete zmed "$clash"
 			else
-				 # echo "name clashes with zmark dir: $clash"
 				 printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark directory?: $clash (y/n)? "
 				 __asktodelete zmd "$clash"
 			fi
-			# __zm_checkhashclash
 			__zm_checkhashclash "$zm_name"
 	 fi
 		}
@@ -543,32 +544,3 @@ __zm_checkclash(){
 				return 1
 		fi
 	 }
-
-# checkmarks(){
-
-# for line in $(cat $ZMARKS_FILE) 
-# 	do
-
-# 		 if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
-# 				echo "umm, you already have this EXACT bm, bro" 
-# 				return 
-# 		 fi 
-
-# 			if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
-# 					echo "zm name already existed"
-# 					echo "old: $line"
-# 					echo "new: $zm"
-# 					_ask_to_overwrite $zm_name 
-# 					return 1
-
-# 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
-# 					echo "zm dir already existed"
-# 					echo "old: $line"
-# 					echo "new: $zm"
-# 					local bm="${line##*|}"
-# 					_ask_to_overwrite $bm $zm_name 
-# 					return 1
-# 			fi
-# 	done
-
-# }
