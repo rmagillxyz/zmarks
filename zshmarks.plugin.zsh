@@ -44,15 +44,15 @@ if [[ -z $ZMARKS_DIR ]] ; then
 		export ZMARKS_DIR="$HOME/.local/share/zsh"
 fi
 
-NAMED_DIRS="$ZMARKS_DIR/zmarks_named_dirs"
-NAMED_FILES="$ZMARKS_DIR/zmarks_named_files"
-ZMARKS_FILE="$ZMARKS_DIR/zmarks"
-ZEDITS_FILE="$ZMARKS_DIR/zedits"
+NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
+NAMED_FILES="$ZMARKS_DIR/zm_named_files"
+ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
+ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 
 
 # Check if $ZMARKS_DIR is a symlink.
-if [[ -L "$ZMARKS_FILE" ]]; then
- ZMARKS_FILE=$(readlink $ZMARKS_FILE)
+if [[ -L "$ZM_DIRS_FILE" ]]; then
+ ZM_DIRS_FILE=$(readlink $ZM_DIRS_FILE)
 fi
 
 ## could just remove one instead of rebuilting
@@ -67,7 +67,7 @@ _gen_zshmarks_named_dirs(){
       bm="${line##*|}"
       echo "~$bm"
 			echo "hash -d $bm=$dir" >> "$NAMED_DIRS"
-	 done < "$ZMARKS_FILE"
+	 done < "$ZM_DIRS_FILE"
 	 return 
 }
 
@@ -83,12 +83,12 @@ _gen_zshmarks_named_files(){
       bm="${line##*|}"
       echo "~$bm"
 			echo "hash -d $bm=$dir" >> "$NAMED_FILES"
-	 done < "$ZEDITS_FILE"
+	 done < "$ZM_FILES_FILE"
 	 return 
 }
 
-if [[ ! -f $ZMARKS_FILE ]]; then
-		touch $ZMARKS_FILE
+if [[ ! -f $ZM_DIRS_FILE ]]; then
+		touch $ZM_DIRS_FILE
  else 
    _gen_zshmarks_named_dirs 1> /dev/null
 	 _gen_zshmarks_named_files 1> /dev/null
@@ -129,7 +129,7 @@ function zm() {
 
 
 			clashfail=false
-			__zm_checkclash -e "$zm_name" "$ZEDITS_FILE"
+			__zm_checkclash -e "$zm_name" "$ZM_FILES_FILE"
 
 			echo "zshmarks/init.zsh: 115 clashfail : $clashfail "
 			"$clashfail" && return 1
@@ -139,7 +139,7 @@ function zm() {
 
 
 	# TODO: this could be sped up sorting and using a search algorithm
-	for line in $(cat $ZMARKS_FILE) 
+	for line in $(cat $ZM_DIRS_FILE) 
 	do
 
 		 if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
@@ -165,7 +165,7 @@ function zm() {
 	done
 
 	# no duplicates, make mark
-	echo $zm >> $ZMARKS_FILE
+	echo $zm >> $ZM_DIRS_FILE
 	echo "zm '$zm_name' saved"
 
 	echo "hash -d $zm_name=$cur_dir" >> "$NAMED_DIRS"
@@ -195,8 +195,8 @@ __zshmarks_zgrep() {
 function zmj() {
 		local zm_name=$1
 		local zm
-		if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZMARKS_FILE"; then
-			 __zmej "$zm_name" "$2"
+		if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+			 __zmfj "$zm_name" "$2"
 				# echo "Invalid name, please provide a valid zmark name. For example:"
 				# echo "zmj foo"
 				# echo
@@ -216,7 +216,7 @@ function zmj() {
 # Show a list of the zms
 function zms() {
 	 # is zm_file is the contents of the file stored in a var
-	 local zm_file="$(<${2:-$ZMARKS_FILE})"
+	 local zm_file="$(<${2:-$ZM_DIRS_FILE})"
 		local zm_array; zm_array=(${(f)zm_file});
 		echo "zshmarks/init.zsh: 226 zm_array: $zm_array"
 		local zm_name zm_path zm_line
@@ -239,7 +239,7 @@ function zms() {
 # Delete a zm
 function zmd()  {
 		local zm_name="$1"
-		local file_path="${2:-$ZMARKS_FILE}"
+		local file_path="${2:-$ZM_DIRS_FILE}"
 		if [[ -z $zm_name ]]; then
 				printf "%s \n" "Please provide a name for your zm to delete. For example:"
 				printf "\t%s \n" "zmd foo"
@@ -269,7 +269,7 @@ function zmd()  {
 }
 
 _zshmarks_clear_all(){
-		_zshmarks_move_to_trash "$ZMARKS_FILE"
+		_zshmarks_move_to_trash "$ZM_DIRS_FILE"
 }
 
 
@@ -293,16 +293,39 @@ __ask_to_overwrite() {
 		fi
 }
 
+# _fzf_zmj(){
+#    local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
+# 	 local dir="${zm%%|*}"
+#    # echo "zshmarks/init.zsh: 237 dir: $dir"
+# 	 eval "cd ${dir}"
+# 	 # eval "ls ${dir}"
+# 	 ls
+#    echo -e "\n"
+#    zle reset-prompt
+# }
+
 _fzf_zmj(){
-   local zm=$(cat $ZMARKS_DIR/zmarks | fzf-tmux)
-	 local dir="${zm%%|*}"
-   # echo "zshmarks/init.zsh: 237 dir: $dir"
-	 eval "cd ${dir}"
-	 # eval "ls ${dir}"
-	 ls
-   echo -e "\n"
+   # local zm=$(< "$ZM_DIRS_FILE" && cat "$ZM_FILES_FILE" | fzf-tmux)
+   local zm=$(cat "$ZM_DIRS_FILE" "$ZM_FILES_FILE" | fzf-tmux)
+	 local dest="${zm%%|*}"
+	 # echo "zshmarks/init.zsh: 299 dest: $dest"
+	 [[ -z "$dest" ]] && zle reset-prompt && return 1
+
+	 if [ -d $(eval "echo $dest") ]; then
+			echo "we gotta dir"
+			# eval "cd ${dest}"
+			eval "cd \"$dest\""
+			ls
+			echo -e "\n"
+			# zle reset-prompt
+	 else
+			echo "we gotta file"
+	  	eval "_ezoom \"$dest\""
+	 fi
    zle reset-prompt
+
 }
+
 zle     -N    _fzf_zmj
 
 # dir="${foo%%|*}"
@@ -311,12 +334,12 @@ zle     -N    _fzf_zmj
 
 # -- zm edit functions -- 
 
-_fzf_zmej(){
+_fzf_zmfj(){
    local zm=$(cat $ZMARKS_DIR/zedits | fzf-tmux)
 	 # local file="${zm%%|*}"
 	 local bm_name="${zm##*|}"
 	 echo "zshmarks/init.zsh: 281 bm: $bm"
-	 zmej "$bm_name"
+	 zmfj "$bm_name"
    # echo "zshmarks/init.zsh: 237 dir: $dir"
 	 # eval "cd ${dir}"
 	 # eval "ls ${dir}"
@@ -324,7 +347,7 @@ _fzf_zmej(){
    echo -e "\n"
    zle reset-prompt
 }
-zle     -N    _fzf_zmej
+zle     -N    _fzf_zmfj
 
 
 
@@ -351,17 +374,17 @@ jz() {
 # }
 
 # jump to maked file
-function __zmej() {
+function __zmfj() {
 		local editmark_name=$1
 		local editmark
-		if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZEDITS_FILE"; then
+		if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
 				echo "Invalid name, please provide a valid zmark name. For example:"
 				echo "zmj foo [pattern]"
 				echo
 				echo "To mark a directory:"
 				echo "zm <name>"
 				echo "To mark a file:"
-				echo "zme <name>"
+				echo "zmf <name>"
 				return 1
 		else
 				local filename="${editmark%%|*}"
@@ -382,15 +405,15 @@ __ask_to_overwrite_zedit() {
 		echo -n "overwrite mark $1 (y/n)? "
 		read answer
 		if  [ "$answer" != "${answer#[Yy]}" ];then 
-				zmed "$1"
+				zmfd "$1"
 				# echo "zshmarks/init.zsh: 317 zedit_path: $zedit_path"
-				zme "$2" "$zedit_path"
+				zmf "$2" "$zedit_path"
 		else
 				return 1
 		fi
 }
 
-function zme() {
+function zmf() {
 		local zm_name="$1"
 		local zedit_path="$2"
 
@@ -434,7 +457,7 @@ function zme() {
 
 	# TODO: this could be sped up sorting and using a search algorithm
 	# refactor into function to deal with edits and marks
-	for line in $(cat $ZEDITS_FILE) 
+	for line in $(cat $ZM_FILES_FILE) 
 	do
 
 		 if [[ "$line" == "$zedit_path|$zm_name" ]]; then 
@@ -460,7 +483,7 @@ function zme() {
 	done
 
 	# no duplicates, make zm
-	echo $zm >> "$ZEDITS_FILE"
+	echo $zm >> "$ZM_FILES_FILE"
 	echo "zmark file '$zm_name' saved"
 
 	echo "hash -d $zm_name=$zedit_path" >> "$NAMED_DIRS"
@@ -470,15 +493,15 @@ function zme() {
 
 
 # Delete a edit mark
-function zmed()  {
-	 # echo '-----zmed'
- zmd "$1" "$ZEDITS_FILE"
+function zmfd()  {
+	 # echo '-----zmfd'
+ zmd "$1" "$ZM_FILES_FILE"
 }
 
-# TODO this has a bug. It does not show an individual mark with argument. compare with zms. also check zmed
+# TODO this has a bug. It does not show an individual mark with argument. compare with zms. also check zmfd
 # Show edit marks
-function zmes()  {
- zms "$1" "$ZEDITS_FILE"
+function zmfs()  {
+ zms "$1" "$ZM_FILES_FILE"
 }
 
 __asktodelete(){
@@ -496,9 +519,9 @@ __asktodelete(){
 
 __zm_checkclash(){
 			local zm_name="$2"
-			local zm_path="${3:-$ZMARKS_FILE}"
+			local zm_path="${3:-$ZM_DIRS_FILE}"
 			 if [[ $1 == "-e" ]];then
-				 zm_path="$ZEDITS_FILE"
+				 zm_path="$ZM_FILES_FILE"
 			 fi
 
 		local clash
@@ -507,7 +530,7 @@ __zm_checkclash(){
 			 if [[ $1 == "-e" ]];then
 				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark file?: $clash (y/n)? "
-				 __asktodelete zmed "$clash"
+				 __asktodelete zmfd "$clash"
 			else
 				 printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark directory?: $clash (y/n)? "
