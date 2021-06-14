@@ -101,7 +101,7 @@ function zm() {
 		if [[ "$cur_dir" =~ ^"$HOME"(/|$) ]]; then
 				cur_dir="\$HOME${cur_dir#$HOME}"
 		fi
-		# Store the zm as folder|name
+		# Store the zm as directory|name
 		zm="$cur_dir|$zm_name"
 
 	# TODO: this could be sped up sorting and using a search algorithm
@@ -160,10 +160,10 @@ function zmj() {
 		local zm_name=$1
 		local zm
 		if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZMARKS_FILE"; then
-				echo "Invalid name, please provide a valid zm name. For example:"
+				echo "Invalid name, please provide a valid zmark name. For example:"
 				echo "zmj foo"
 				echo
-				echo "To zm a folder, go to the folder then do this (naming the zm 'foo'):"
+				echo "To zm a directory, go to the directory then do this (naming the zm 'foo'):"
 				echo "  zm foo"
 				return 1
 		else
@@ -327,7 +327,7 @@ function zmej() {
 				echo "Invalid name, please provide a valid editmark name. For example:"
 				echo "  zmej foo"
 				echo
-				echo "To editmark a folder, go to the folder then do this (naming the editmark 'foo'):"
+				echo "To editmark a directory, go to the directory then do this (naming the editmark 'foo'):"
 				echo "  editmark foo"
 				return 1
 		else
@@ -367,12 +367,36 @@ function zme() {
 		local zedit_path="$2"
 
 		if [[ -z $zm_name ]]; then
-				echo 'zmark file required'
+				echo 'zmark name required'
 				return 1
 		fi
 
+		# local hashexists=$(hash -m "$zm_name" )
+
+		local dirclash
+		# check dir marks for collision
+		if  __zshmarks_zgrep dirclash "\\|$zm_name\$" "$ZMARKS_FILE"; then
+			echo 'name clashes with a dir zmark:'
+			# zms "$zm_name"
+			echo "$dirclash"
+			return 1
+		fi
+
+
+# 		local hashexists=$(echo ~"$zm_name")
+# 		echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
+# 		if [[ ! -z $hashexists ]]; then
+# 				echo 'Named hash clash'
+# 				echo 'Choose another name or remove the named hash and try again.'
+# 				echo 'This could potentially be set by a program running on your machine, but if you have created it with zmarks'
+# 				return 1
+# 		fi
+
+
+
 		local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
 		echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
+
 
 		if [[ -z $zedit_path && -z $exactmatchfromdir ]]; then
 	 		zedit_path="$(find $(pwd) -type f | fzf-tmux)"
@@ -391,7 +415,7 @@ function zme() {
 		if [[ "$zedit_path" =~ ^"$HOME"(/|$) ]]; then
 				zedit_path="\$HOME${zedit_path#$HOME}"
 		fi
-		# Store the zm as folder|name
+		# Store the zm as directory|name
 		zm="$zedit_path|$zm_name"
 
 	# TODO: this could be sped up sorting and using a search algorithm
@@ -405,7 +429,7 @@ function zme() {
 		 fi 
 
 			if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
-					echo "zm name already existed"
+					echo "zmarks file name already existed"
 					echo "old: $line"
 					echo "new: $zm"
 					_ask_to_overwrite_zedit $zm_name 
@@ -440,3 +464,32 @@ function zmed()  {
 function zmes()  {
  zms "$1" "$ZEDITS_FILE"
 }
+
+# checkmarks(){
+
+# for line in $(cat $ZMARKS_FILE) 
+# 	do
+
+# 		 if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
+# 				echo "umm, you already have this EXACT bm, bro" 
+# 				return 
+# 		 fi 
+
+# 			if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
+# 					echo "zm name already existed"
+# 					echo "old: $line"
+# 					echo "new: $zm"
+# 					_ask_to_overwrite $zm_name 
+# 					return 1
+
+# 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
+# 					echo "zm dir already existed"
+# 					echo "old: $line"
+# 					echo "new: $zm"
+# 					local bm="${line##*|}"
+# 					_ask_to_overwrite $bm $zm_name 
+# 					return 1
+# 			fi
+# 	done
+
+# }
