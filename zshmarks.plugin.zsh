@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 # ------------------------------------------------------------------------------
 #        FILE:  zshmarks.plugin.zsh
 #        AUTHOR: Robert Magill
@@ -9,6 +11,8 @@
 
 # dir="${foo%%|*}"
 # bm="${foo##*|}"
+RED='\033[0;31m'
+NOCOLOR='\033[0m' # No Color
 
 # Set ZMARKS_DIR if it doesn't exist to the default.
 # Allows for a user-configured ZMARKS_DIR.
@@ -375,37 +379,35 @@ function zme() {
 		fi
 
 
+		__zm_checkclash
+
+		__zm_checkclash(){
+	 	 local zm_file="$(<${2:-$ZMARKS_FILE})"
+			 if [[ $1 -eq "-e" ]];then
+				 zm_file="$ZEDITS_FILE"
+			 fi
+
 		local dirclash
 		# check dir marks for collision
-		if  __zshmarks_zgrep dirclash "\\|$zm_name\$" "$ZMARKS_FILE"; then
-			echo 'name clashes with a dir zmark:'
-			# zms "$zm_name"
-			# echo "$dirclash"
-			echo -n "delete directory zmark $dirclash (y/n)? "
-			read answer
-			if  [ "$answer" != "${answer#[Yy]}" ];then 
-				zmd "$1"
+		if  __zshmarks_zgrep dirclash "\\|$zm_name\$" "$zm_file"; then
+			 if [[ $1 -eq "-e" ]];then
+				 # echo "name clashes with zmark edit file: $dirclash"
+				 printf "${RED}name clashes with zmark edit file: $dirclash${NOCOLOR}\n"
 			else
-				return 1
+				 # echo "name clashes with zmark dir: $dirclash"
+				 printf "${RED}name clashes with zmark dir: $dirclash${NOCOLOR}\n"
+				 echo -n "delete directory zmark: $dirclash (y/n)? "
+				 read answer
+				 if  [ "$answer" != "${answer#[Yy]}" ];then 
+					 zmd "$1"
+				 else
+					 return 1
+				 fi
 			fi
 	 fi
+		}
 
-		# local hashexists=$(hash -m "$zm_name" )
-		local hashexists=$(echo ~"$zm_name")
-		echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
-		if [[ ! -z $hashexists ]]; then
-				 RED='\033[0;31m'
-				 NC='\033[0m' # No Color
-				# printf "${RED}love${NC} Stack Overflow\n"
-				printf "${RED}Named hash clash${NC}\n"
-				# echo 'Named hash clash'
-				echo 'If you created this, you can remove it and try again, but this could potentially be set by a program running on your machine. If you did not create it, I would just choose another name.'
-				# echo 'Choose another name or remove the named hash and try again.'
-				# echo 'This could potentially be set by a program running on your machine, but if you have created it with zmarks'
-				return 1
-		fi
-
-
+	 __zm_checkhashclash
 
 		local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
 		echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
@@ -478,6 +480,16 @@ function zmed()  {
 function zmes()  {
  zms "$1" "$ZEDITS_FILE"
 }
+
+	 __zm_checkhashclash(){
+		local hashexists=$(echo ~"$zm_name")
+		echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
+		if [[ ! -z $hashexists ]]; then
+				printf "${RED}Named hash clash${NOCOLOR}\n"
+				echo 'If you created this, you can remove it and try again, but this could potentially be set by a program running on your machine. If you did not create it, I would just choose another name.'
+				return 1
+		fi
+	 }
 
 # checkmarks(){
 
