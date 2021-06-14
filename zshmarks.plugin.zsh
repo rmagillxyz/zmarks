@@ -28,6 +28,7 @@ if [[ -L "$ZMARKS_FILE" ]]; then
  ZMARKS_FILE=$(readlink $ZMARKS_FILE)
 fi
 
+## could just remove one instead of rebuilting
 _gen_zshmarks_named_dirs(){
 	 if [[  -f "$NAMED_DIRS" ]]; then
 			rm "$NAMED_DIRS"
@@ -226,6 +227,7 @@ function zmd()  {
 						 _zshmarks_move_to_trash "${file_path}.bak" 
              
             # generate new named dir to sync with marks
+						hash -d -r  # rebuild hash table
             _gen_zshmarks_named_dirs 1> /dev/null
             echo "Deleted and synced named dirs"
 				fi
@@ -315,10 +317,11 @@ _ezoom() {
   fi
 }
 
-_ezoomzsh() {
-	ezoom "$1" "$2"
-	source "$SHELLRC"
-}
+## TODO add ez from personal functions
+# _ezoomzsh() {
+# 	ezoom "$1" "$2"
+# 	source "$SHELLRC"
+# }
 
 function zmej() {
 		local editmark_name=$1
@@ -371,26 +374,36 @@ function zme() {
 				return 1
 		fi
 
-		# local hashexists=$(hash -m "$zm_name" )
 
 		local dirclash
 		# check dir marks for collision
 		if  __zshmarks_zgrep dirclash "\\|$zm_name\$" "$ZMARKS_FILE"; then
 			echo 'name clashes with a dir zmark:'
 			# zms "$zm_name"
-			echo "$dirclash"
-			return 1
+			# echo "$dirclash"
+			echo -n "delete directory zmark $dirclash (y/n)? "
+			read answer
+			if  [ "$answer" != "${answer#[Yy]}" ];then 
+				zmd "$1"
+			else
+				return 1
+			fi
+	 fi
+
+		# local hashexists=$(hash -m "$zm_name" )
+		local hashexists=$(echo ~"$zm_name")
+		echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
+		if [[ ! -z $hashexists ]]; then
+				 RED='\033[0;31m'
+				 NC='\033[0m' # No Color
+				# printf "${RED}love${NC} Stack Overflow\n"
+				printf "${RED}Named hash clash${NC}\n"
+				# echo 'Named hash clash'
+				echo 'If you created this, you can remove it and try again, but this could potentially be set by a program running on your machine. If you did not create it, I would just choose another name.'
+				# echo 'Choose another name or remove the named hash and try again.'
+				# echo 'This could potentially be set by a program running on your machine, but if you have created it with zmarks'
+				return 1
 		fi
-
-
-# 		local hashexists=$(echo ~"$zm_name")
-# 		echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
-# 		if [[ ! -z $hashexists ]]; then
-# 				echo 'Named hash clash'
-# 				echo 'Choose another name or remove the named hash and try again.'
-# 				echo 'This could potentially be set by a program running on your machine, but if you have created it with zmarks'
-# 				return 1
-# 		fi
 
 
 
@@ -460,6 +473,7 @@ function zmed()  {
  zmd "$1" "$ZEDITS_FILE"
 }
 
+# TODO this has a bug. It does not show an individual mark with argument. compare with zms
 # Show edit marks
 function zmes()  {
  zms "$1" "$ZEDITS_FILE"
