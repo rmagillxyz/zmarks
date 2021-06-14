@@ -14,6 +14,30 @@
 RED='\033[0;31m'
 NOCOLOR='\033[0m' # No Color
 
+if [[ -z $EDITOR ]]; then
+			echo "set \$EDITOR environment variable to choose editor"
+			echo "defaulting to nvim or vim"
+	 if [[ ! -z $(command -v nvim) ]]; then 
+			export EDITOR="$(command -v nvim)"
+	 else
+			export EDITOR="$(command -v vim)"
+	 fi
+fi
+
+if [[ -z $SHELLRC ]]; then
+			echo "set \$EDITOR environment variable to choose editor"
+			echo "defaulting to nvim or vim"
+	 if [[ ! -f "$HOME/.zshrc" ]]; then 
+			export SHELLRC="$HOME/.zshrc"
+	 elif [[ ! -f "$HOME/config/.zshrc" ]]; then 
+			export SHELLRC="$HOME/config/.zshrc"
+	 elif [[ ! -f "$HOME/config/zshrc" ]]; then 
+			export SHELLRC="$HOME/config/zshrc"
+	 else
+			printf "${RED}No $SHELLRC (.zshrc) found. Please set SHELLRC env var.${NOCOLOR}\n"
+	 fi
+fi
+
 # Set ZMARKS_DIR if it doesn't exist to the default.
 # Allows for a user-configured ZMARKS_DIR.
 if [[ -z $ZMARKS_DIR ]] ; then
@@ -311,31 +335,6 @@ _fzf_zmej(){
 zle     -N    _fzf_zmej
 
 
-if [[ -z $EDITOR ]] ; then
-			echo "set \$EDITOR environment variable to choose editor"
-			echo "defaulting to nvim or vim"
-	 if [[ ! -z $(command -v nvim) ]]; then 
-			export EDITOR="$(command -v nvim)"
-	 else
-			export EDITOR="$(command -v vim)"
-	 fi
-fi
-
-if [[ -z $SHELLRC]] ; then
-			echo "set \$EDITOR environment variable to choose editor"
-			echo "defaulting to nvim or vim"
-	 if [[ ! -f "$HOME/.zshrc" ]]; then 
-			export SHELLRC="$HOME/.zshrc"
-	 else [[ ! -f "$HOME/config/.zshrc" ]]; then 
-			export SHELLRC="$HOME/config/.zshrc"
-	 else [[ ! -f "$HOME/config/zshrc" ]]; then 
-			export SHELLRC="$HOME/config/zshrc"
-	 else
-			printf "${RED}No $SHELLRC (.zshrc) found. Please set SHELLRC env var.${NOCOLOR}\n"
-	 fi
-fi
-
-
 
 
 _ezoom() {
@@ -505,11 +504,9 @@ __asktodelete(){
 
 __zm_checkclash(){
 			local zm_name="$2"
-			local zm_file
+			local zm_file="${3:-$ZMARKS_FILE}"
 			 if [[ $1 == "-e" ]];then
 				 zm_file="$ZEDITS_FILE"
-			else
-				 zm_file="${3:-$ZMARKS_FILE}"
 			 fi
 			# echo "zshmarks/init.zsh: 490 zm_file: $zm_file"
 			# echo "zshmarks/init.zsh: 489 zm_name: $zm_name"
@@ -535,8 +532,8 @@ __zm_checkclash(){
 	 __zm_checkhashclash(){
 	  local zm_name="$1"
 		local hashexists=$(echo ~"$zm_name")
-		echo "zshmarks/init.zsh: 535 zm_name: $zm_name"
-		echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
+		# echo "zshmarks/init.zsh: 535 zm_name: $zm_name"
+		# echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
 		if [[ ! -z $hashexists ]]; then
 				printf "${RED}Named hash clash${NOCOLOR}\n"
 				echo 'If you created this, you can remove it and try again, but this could potentially be set by a program running on your machine. If you did not create it, I would just choose another name.'
