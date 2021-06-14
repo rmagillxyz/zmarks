@@ -244,13 +244,23 @@ function zmd()  {
 				printf "%s \n" "Please provide a name for your zm to delete. For example:"
 				printf "\t%s \n" "zmd foo"
 				return 1
+		# elif ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+		# 	 zmfd "$zm_name" 
 		else
 				local zm_line zm_search
 				local zm_file="$(<"$file_path")"
 				local zm_array; zm_array=(${(f)zm_file});
 				zm_search="*\|${zm_name}"
+				# if [[ -z ${zm_array[(r)$zm_search]} ]]; then
 				if [[ -z ${zm_array[(r)$zm_search]} ]]; then
+					 if [[ $file_path == $ZM_DIRS_FILE ]]; then
+							# name not found in dirs, run again with try files
+	 						# zmfd "$zm_name" 
+	 						zmd "$zm_name" "$ZM_FILES_FILE"
+							# zmd "$1" "$ZM_FILES_FILE"
+					else
 						eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
+					 fi
 				else
 						\cp "${file_path}" "${file_path}.bak"
 						zm_line=${zm_array[(r)$zm_search]}
@@ -309,6 +319,8 @@ _fzf_zmj(){
 	 local dest="${zm%%|*}"
 	 [[ -z "$dest" ]] && zle reset-prompt && return 1
 
+	 # could also use zgrep here
+	 # if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 	 if [ -d $(eval "echo $dest") ]; then
 			echo "we gotta dir"
 			eval "cd \"$dest\""
@@ -487,10 +499,10 @@ function zmf() {
 
 
 # Delete a edit mark
-function zmfd()  {
-	 # echo '-----zmfd'
- zmd "$1" "$ZM_FILES_FILE"
-}
+# function zmfd()  {
+# 	 # echo '-----zmfd'
+#  zmd "$1" "$ZM_FILES_FILE"
+# }
 
 # TODO this has a bug. It does not show an individual mark with argument. compare with zms. also check zmfd
 # Show edit marks
