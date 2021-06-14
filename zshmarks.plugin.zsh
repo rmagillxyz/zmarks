@@ -218,7 +218,7 @@ function zms() {
 	 # is zm_file is the contents of the file stored in a var
 	 local zm_file="$(<${2:-$ZM_DIRS_FILE})"
 		local zm_array; zm_array=(${(f)zm_file});
-		echo "zshmarks/init.zsh: 226 zm_array: $zm_array"
+		# echo "zshmarks/init.zsh: 226 zm_array: $zm_array"
 		local zm_name zm_path zm_line
 		if [[ $# -eq 1 ]]; then
 				zm_name="*\|${1}"
