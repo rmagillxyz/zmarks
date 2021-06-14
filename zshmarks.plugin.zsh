@@ -305,27 +305,21 @@ __ask_to_overwrite() {
 # }
 
 _fzf_zmj(){
-   # local zm=$(< "$ZM_DIRS_FILE" && cat "$ZM_FILES_FILE" | fzf-tmux)
-   local zm=$(cat "$ZM_DIRS_FILE" "$ZM_FILES_FILE" | fzf-tmux)
+   local zm=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
 	 local dest="${zm%%|*}"
-	 # echo "zshmarks/init.zsh: 299 dest: $dest"
 	 [[ -z "$dest" ]] && zle reset-prompt && return 1
 
 	 if [ -d $(eval "echo $dest") ]; then
 			echo "we gotta dir"
-			# eval "cd ${dest}"
 			eval "cd \"$dest\""
 			ls
 			echo -e "\n"
-			# zle reset-prompt
 	 else
 			echo "we gotta file"
 	  	eval "_ezoom \"$dest\""
 	 fi
    zle reset-prompt
-
 }
-
 zle     -N    _fzf_zmj
 
 # dir="${foo%%|*}"

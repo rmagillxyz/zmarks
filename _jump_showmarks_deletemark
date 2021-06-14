@@ -1,7 +1,7 @@
 #compdef zmj zmd zms
 #autoload
 
-local zm_file="$(<"$ZMARKS_FILE")"
+local zm_file="$(<"$ZM_DIRS_FILE")"
 local zm_array; zm_array=(${(f)zm_file});
 local zm_name zm_path zm_line
 zmarks=()
