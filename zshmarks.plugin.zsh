@@ -106,7 +106,11 @@ function zm() {
 		if [[ "$cur_dir" =~ ^"$HOME"(/|$) ]]; then
 				cur_dir="\$HOME${cur_dir#$HOME}"
 		fi
-		# Store the zm as directory|name
+
+
+			__zm_checkclash "$zm_name"
+			__zm_checkhashclash "$zm_name"
+		# Store the zmark as directory|name
 		zm="$cur_dir|$zm_name"
 
 	# TODO: this could be sped up sorting and using a search algorithm
@@ -119,14 +123,14 @@ function zm() {
 		 fi 
 
 			if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
-					echo "zm name already existed"
+					echo "zmark name already existed"
 					echo "old: $line"
 					echo "new: $zm"
 					_ask_to_overwrite $zm_name 
 					return 1
 
 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
-					echo "zm dir already existed"
+					echo "zmark dir already existed"
 					echo "old: $line"
 					echo "new: $zm"
 					local bm="${line##*|}"
@@ -379,35 +383,8 @@ function zme() {
 		fi
 
 
-		__zm_checkclash
-
-		__zm_checkclash(){
-	 	 local zm_file="$(<${2:-$ZMARKS_FILE})"
-			 if [[ $1 -eq "-e" ]];then
-				 zm_file="$ZEDITS_FILE"
-			 fi
-
-		local dirclash
-		# check dir marks for collision
-		if  __zshmarks_zgrep dirclash "\\|$zm_name\$" "$zm_file"; then
-			 if [[ $1 -eq "-e" ]];then
-				 # echo "name clashes with zmark edit file: $dirclash"
-				 printf "${RED}name clashes with zmark edit file: $dirclash${NOCOLOR}\n"
-			else
-				 # echo "name clashes with zmark dir: $dirclash"
-				 printf "${RED}name clashes with zmark dir: $dirclash${NOCOLOR}\n"
-				 echo -n "delete directory zmark: $dirclash (y/n)? "
-				 read answer
-				 if  [ "$answer" != "${answer#[Yy]}" ];then 
-					 zmd "$1"
-				 else
-					 return 1
-				 fi
-			fi
-	 fi
-		}
-
-	 __zm_checkhashclash
+	 __zm_checkclash "$zm_name"
+	 __zm_checkhashclash "$zm_name"
 
 		local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
 		echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
@@ -451,7 +428,7 @@ function zme() {
 					return 1
 
 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zedit_path  ]]; then
-					echo "zm dir already existed"
+					echo "zmark dir already existed"
 					echo "old: $line"
 					echo "new: $zm"
 					local bm="${line##*|}"
@@ -462,7 +439,7 @@ function zme() {
 
 	# no duplicates, make zm
 	echo $zm >> "$ZEDITS_FILE"
-	echo "zm file '$zm_name' saved"
+	echo "zmark file '$zm_name' saved"
 
 	echo "hash -d $zm_name=$zedit_path" >> "$NAMED_DIRS"
 	echo "Created named file ~$zm_name"
@@ -481,7 +458,47 @@ function zmes()  {
  zms "$1" "$ZEDITS_FILE"
 }
 
+__asktodelete(){
+	 local cmd="$1"
+	 local zm="$2"
+				 read answer
+				 if  [ "$answer" != "${answer#[Yy]}" ];then 
+					 # zmd "$1"
+					 # eval "$"
+						eval "$cmd \"$zm\""
+						# eval "$outvar=\"$line\""
+				 else
+					 return 1
+				 fi
+}
+
+
+		__zm_checkclash(){
+			local zm_name="$1"
+			local zm_file="$(<${2:-$ZMARKS_FILE})"
+			 if [[ $1 -eq "-e" ]];then
+				 zm_file="$ZEDITS_FILE"
+			 fi
+
+		local clash
+		# check dir marks for collision
+		if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_file"; then
+			 if [[ $1 -eq "-e" ]];then
+				 # echo "name clashes with zmark edit file: $clash"
+				 printf "${RED}name clashes with zmark edit file: $clash${NOCOLOR}\n"
+			else
+				 # echo "name clashes with zmark dir: $clash"
+				 printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
+				 echo -n "delete directory zmark: $clash (y/n)? "
+				 __asktodelete zmd "$clash"
+			fi
+	 fi
+		}
+
+
+
 	 __zm_checkhashclash(){
+	  local zm_name="$1"
 		local hashexists=$(echo ~"$zm_name")
 		echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
 		if [[ ! -z $hashexists ]]; then
