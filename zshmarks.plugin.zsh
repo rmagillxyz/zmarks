@@ -108,10 +108,16 @@ function zm() {
 		fi
 
 
-			__zm_checkclash "$zm_name"
-			__zm_checkhashclash "$zm_name"
+			clashfail=false
+			__zm_checkclash -e "$zm_name" "$ZEDITS_FILE"
+			# __zm_checkhashclash "$zm_name"
+
+			echo "zshmarks/init.zsh: 115 clashfail : $clashfail "
+			"$clashfail" && return 1
+						
 		# Store the zmark as directory|name
 		zm="$cur_dir|$zm_name"
+
 
 	# TODO: this could be sped up sorting and using a search algorithm
 	for line in $(cat $ZMARKS_FILE) 
@@ -152,6 +158,8 @@ __zshmarks_zgrep() {
 		local outvar="$1"; shift
 		local pattern="$1"
 		local filename="$2"
+		# echo "zshmarks/init.zsh: 161 filename: $filename"
+		# echo "zshmarks/init.zsh: 162 pattern: $pattern"
 		local file_contents="$(<"$filename")"
 		local file_lines; file_lines=(${(f)file_contents})
 
@@ -209,8 +217,11 @@ function zms() {
 
 # Delete a zm
 function zmd()  {
+	 echo '-----zmd'
 		local zm_name="$1"
+		echo "zshmarks/init.zsh: 222 zm_name: $zm_name"
 		local file_path="${2:-$ZMARKS_FILE}"
+		echo "zshmarks/init.zsh: 224 file_path: $file_path"
 		# echo "zshmarks/init.zsh: 204 file_path: $file_path"
 		if [[ -z $zm_name ]]; then
 				printf "%s \n" "Please provide a name for your zm to delete. For example:"
@@ -221,7 +232,7 @@ function zmd()  {
 				# local zm_file="$(<${2:-$ZMARKS_FILE})"
 				# local zm_file="$(<${2:-$ZMARKS_FILE})"
 				local zm_file="$(<"$file_path")"
-				echo "zshmarks/init.zsh: 213 zm_file: $zm_file"
+				# echo "zshmarks/init.zsh: 213 zm_file: $zm_file"
 				local zm_array; zm_array=(${(f)zm_file});
 				zm_search="*\|${zm_name}"
 				if [[ -z ${zm_array[(r)$zm_search]} ]]; then
@@ -383,8 +394,12 @@ function zme() {
 		fi
 
 
-	 __zm_checkclash "$zm_name"
-	 __zm_checkhashclash "$zm_name"
+			clashfail=false
+	 __zm_checkclash -d "$zm_name"
+	 # __zm_checkhashclash "$zm_name"
+
+			echo "zshmarks/init.zsh: 115 clashfail : $clashfail "
+			"$clashfail" && return 1
 
 		local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
 		echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
@@ -449,10 +464,11 @@ function zme() {
 
 # Delete a edit mark
 function zmed()  {
+	 echo '-----zmed'
  zmd "$1" "$ZEDITS_FILE"
 }
 
-# TODO this has a bug. It does not show an individual mark with argument. compare with zms
+# TODO this has a bug. It does not show an individual mark with argument. compare with zms. also check zmed
 # Show edit marks
 function zmes()  {
  zms "$1" "$ZEDITS_FILE"
@@ -460,7 +476,13 @@ function zmes()  {
 
 __asktodelete(){
 	 local cmd="$1"
-	 local zm="$2"
+	 echo "zshmarks/init.zsh: 477 cmd: $cmd"
+
+# dir="${foo%%|*}"
+# bm="${foo##*|}"
+	 local zm="${2##*|}"
+	 # local zm="$2"
+	 echo "zshmarks/init.zsh: 478 zm: $zm"
 				 read answer
 				 if  [ "$answer" != "${answer#[Yy]}" ];then 
 					 # zmd "$1"
@@ -468,30 +490,41 @@ __asktodelete(){
 						eval "$cmd \"$zm\""
 						# eval "$outvar=\"$line\""
 				 else
-					 return 1
+						clashfail=true
+						return 1
 				 fi
 }
 
 
-		__zm_checkclash(){
-			local zm_name="$1"
-			local zm_file="$(<${2:-$ZMARKS_FILE})"
-			 if [[ $1 -eq "-e" ]];then
+__zm_checkclash(){
+			local zm_name="$2"
+			# local zm_file="${3:-$ZMARKS_FILE}"
+			local zm_file
+			 if [[ $1 == "-e" ]];then
+					echo 'going to check zedits!'
 				 zm_file="$ZEDITS_FILE"
+			else
+				 zm_file="${3:-$ZMARKS_FILE}"
 			 fi
+			echo "zshmarks/init.zsh: 490 zm_file: $zm_file"
+			echo "zshmarks/init.zsh: 489 zm_name: $zm_name"
 
 		local clash
 		# check dir marks for collision
 		if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_file"; then
-			 if [[ $1 -eq "-e" ]];then
+			 echo "zshmarks/init.zsh: 497 clash : $clash "
+			 if [[ $1 == "-e" ]];then
 				 # echo "name clashes with zmark edit file: $clash"
 				 printf "${RED}name clashes with zmark edit file: $clash${NOCOLOR}\n"
+				 echo -n "delete zmark file?: $clash (y/n)? "
+				 __asktodelete zmed "$clash"
 			else
 				 # echo "name clashes with zmark dir: $clash"
 				 printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
-				 echo -n "delete directory zmark: $clash (y/n)? "
+				 echo -n "delete zmark directory?: $clash (y/n)? "
 				 __asktodelete zmd "$clash"
 			fi
+			# __zm_checkhashclash
 	 fi
 		}
 
@@ -504,6 +537,7 @@ __asktodelete(){
 		if [[ ! -z $hashexists ]]; then
 				printf "${RED}Named hash clash${NOCOLOR}\n"
 				echo 'If you created this, you can remove it and try again, but this could potentially be set by a program running on your machine. If you did not create it, I would just choose another name.'
+				clashfail=true
 				return 1
 		fi
 	 }
