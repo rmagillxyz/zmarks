@@ -24,10 +24,7 @@ if [[ -z $EDITOR ]]; then
 	 fi
 fi
 
-# echo "zshmarks/zshmarks.plugin.zsh: 29 SHELLRC : $SHELLRC "
 if [[ -z $SHELLRC ]]; then
-			# echo "set \$SHELLRC environment variable to choose editor"
-			# echo "defaulting to nvim or vim"
 	 if [[ ! -f "$HOME/.zshrc" ]]; then 
 			export SHELLRC="$HOME/.zshrc"
 	 elif [[ ! -f "$HOME/config/.zshrc" ]]; then 
@@ -416,10 +413,9 @@ __ask_to_overwrite_zedit() {
 		echo -n "overwrite mark $1 (y/n)? "
 		read answer
 		if  [ "$answer" != "${answer#[Yy]}" ];then 
-				# zmfd "$1"
-				zmrm "$1"
-				# echo "zshmarks/init.zsh: 317 zedit_path: $zedit_path"
-				zmf "$2" "$zedit_path"
+				zmrm "$overwrite"
+				echo "zshmarks/init.zsh: 418 zedit_path: $zedit_path"
+				zmf "$replacement" "$zedit_path"
 		else
 				return 1
 		fi
@@ -427,7 +423,10 @@ __ask_to_overwrite_zedit() {
 
 function zmf() {
 		local zm_name="$1"
-		local zedit_path="$2"
+		echo "zshmarks/init.zsh: 427 zm_name: $zm_name"
+		# removed local from zedit_path to use in __ask_to_overwrite_zedit. make sure this is okay.
+		zedit_path="$2"
+		echo "zshmarks/init.zsh: 429 zedit_path: $zedit_path"
 
 		if [[ -z $zm_name ]]; then
 				echo 'zmark name required'
@@ -446,21 +445,21 @@ function zmf() {
 		echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
 
 
-		if [[ -z $zedit_path && -z $exactmatchfromdir ]]; then
-	 		# zedit_path="$(find $(pwd) -type f | fzf-tmux)"
-			# zedit_path="$(find -L $(pwd) -maxdepth 4 -type f -executable | fzf-tmux)"
-			zedit_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
-			echo "zshmarks/init.zsh: 409 zedit_path: $zedit_path"
-			 if [[ -z "$zedit_path" ]]; then
-					return 1
-			 fi
-		else
+		# if [[ -z $zedit_path && -z $exactmatchfromdir ]]; then
+		if [[ -z $zedit_path && -n $exactmatchfromdir ]]; then
 			 #could use find here
 			 cur_dir="$(pwd)"
 			 zedit_path="$cur_dir"
 			 zedit_path+="/$zm_name"
 			echo "zshmarks/init.zsh: 385 zedit_path: $zedit_path"
-		fi
+
+	 elif [[ -z $zedit_path ]]; then
+			zedit_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
+			echo "zshmarks/init.zsh: 409 zedit_path: $zedit_path"
+			 if [[ -z "$zedit_path" ]]; then
+					return 1
+			 fi
+	 fi
 
 				
 		# Replace /home/uname with $HOME
@@ -491,8 +490,8 @@ function zmf() {
 					echo "zmark dir already existed"
 					echo "old: $line"
 					echo "new: $zm"
-					local bm="${line##*|}"
-					__ask_to_overwrite_zedit $bm $zm_name 
+					local zm_to_overwrite_name="${line##*|}"
+					__ask_to_overwrite_zedit "$zm_to_overwrite_name" "$zm_name" 
 					return 1
 			fi
 	done
@@ -519,6 +518,9 @@ function zmf() {
 #  zms "$1" "$ZM_FILES_FILE"
 # }
 
+# TODO
+# cmd no longer needed as zmrm deal with files and dirs
+# can this be made local?
 __asktodelete(){
 	 local cmd="$1"
 	 local zm="${2##*|}"
