@@ -244,14 +244,11 @@ function zmrm()  {
 			printf "%s \n" "Please provide a name for your zm to delete. For example:"
 			printf "\t%s \n" "zmrm foo"
 			return 1
-			# elif ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
-			#		 zmfd "$zm_name" 
 	 else
 			local zm_line zm_search
 			local zm_file="$(<"$file_path")"
 			local zm_array; zm_array=(${(f)zm_file});
 			zm_search="*\|${zm_name}"
-			# if [[ -z ${zm_array[(r)$zm_search]} ]]; then
 			if [[ -z ${zm_array[(r)$zm_search]} ]]; then
 				 if [[ $file_path == $ZM_DIRS_FILE ]]; then
 						# name not found in dirs, run again with try files
