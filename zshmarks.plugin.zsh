@@ -239,12 +239,12 @@ function zms() {
 }
 
 # Delete a zm
-function zmd()  {
+function zmrm()  {
 		local zm_name="$1"
 		local file_path="${2:-$ZM_DIRS_FILE}"
 		if [[ -z $zm_name ]]; then
 				printf "%s \n" "Please provide a name for your zm to delete. For example:"
-				printf "\t%s \n" "zmd foo"
+				printf "\t%s \n" "zmrm foo"
 				return 1
 		# elif ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 		# 	 zmfd "$zm_name" 
@@ -258,8 +258,8 @@ function zmd()  {
 					 if [[ $file_path == $ZM_DIRS_FILE ]]; then
 							# name not found in dirs, run again with try files
 	 						# zmfd "$zm_name" 
-	 						zmd "$zm_name" "$ZM_FILES_FILE"
-							# zmd "$1" "$ZM_FILES_FILE"
+	 						zmrm "$zm_name" "$ZM_FILES_FILE"
+							# zmrm "$1" "$ZM_FILES_FILE"
 					else
 						eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
 					 fi
@@ -298,7 +298,7 @@ __ask_to_overwrite() {
 		echo -n "overwrite mark $1 (y/n)? "
 		read answer
 		if  [ "$answer" != "${answer#[Yy]}" ];then 
-				zmd $1
+				zmrm $1
 				zm $2
 		else
 				return 1
@@ -371,7 +371,7 @@ _ezoom() {
   fi
 }
 
-jz() {
+zmjz() {
 	zmj "$1" "$2"
 	source "$SHELLRC"
 }
@@ -413,7 +413,8 @@ __ask_to_overwrite_zedit() {
 		echo -n "overwrite mark $1 (y/n)? "
 		read answer
 		if  [ "$answer" != "${answer#[Yy]}" ];then 
-				zmfd "$1"
+				# zmfd "$1"
+				zmrm "$1"
 				# echo "zshmarks/init.zsh: 317 zedit_path: $zedit_path"
 				zmf "$2" "$zedit_path"
 		else
@@ -503,7 +504,7 @@ function zmf() {
 # Delete a edit mark
 # function zmfd()  {
 # 	 # echo '-----zmfd'
-#  zmd "$1" "$ZM_FILES_FILE"
+#  zmrm "$1" "$ZM_FILES_FILE"
 # }
 
 # TODO this has a bug. It does not show an individual mark with argument. compare with zms. also check zmfd
@@ -538,11 +539,12 @@ __zm_checkclash(){
 			 if [[ $1 == "-e" ]];then
 				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark file?: $clash (y/n)? "
-				 __asktodelete zmfd "$clash"
+				 # __asktodelete zmfd "$clash"
+				 __asktodelete zmrm "$clash"
 			else
 				 printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark directory?: $clash (y/n)? "
-				 __asktodelete zmd "$clash"
+				 __asktodelete zmrm "$clash"
 			fi
 			__zm_checkhashclash "$zm_name"
 	 fi

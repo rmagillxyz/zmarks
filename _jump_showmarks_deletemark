@@ -1,4 +1,4 @@
-#compdef zmj zmd zms
+#compdef zmj zmd zms zmjz
 #autoload
 
    # local zm=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
