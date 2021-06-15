@@ -13,6 +13,7 @@
 RED='\033[0;31m'
 NOCOLOR='\033[0m' # No Color
 
+# echo "zshmarks/zshmarks.plugin.zsh: 16 EDITOR : $EDITOR "
 if [[ -z $EDITOR ]]; then
 			echo "set \$EDITOR environment variable to choose editor"
 			echo "defaulting to nvim or vim"
@@ -23,9 +24,10 @@ if [[ -z $EDITOR ]]; then
 	 fi
 fi
 
+# echo "zshmarks/zshmarks.plugin.zsh: 29 SHELLRC : $SHELLRC "
 if [[ -z $SHELLRC ]]; then
-			echo "set \$EDITOR environment variable to choose editor"
-			echo "defaulting to nvim or vim"
+			# echo "set \$SHELLRC environment variable to choose editor"
+			# echo "defaulting to nvim or vim"
 	 if [[ ! -f "$HOME/.zshrc" ]]; then 
 			export SHELLRC="$HOME/.zshrc"
 	 elif [[ ! -f "$HOME/config/.zshrc" ]]; then 
@@ -371,7 +373,8 @@ _ezoom() {
   fi
 }
 
-zmjz() {
+# zmjz() {
+__zm_jump_source_zsh() {
 	zmj "$1" "$2"
 	source "$SHELLRC"
 }
@@ -444,12 +447,15 @@ function zmf() {
 
 
 		if [[ -z $zedit_path && -z $exactmatchfromdir ]]; then
-	 		zedit_path="$(find $(pwd) -type f | fzf-tmux)"
+	 		# zedit_path="$(find $(pwd) -type f | fzf-tmux)"
+			# zedit_path="$(find -L $(pwd) -maxdepth 4 -type f -executable | fzf-tmux)"
+			zedit_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
 			echo "zshmarks/init.zsh: 409 zedit_path: $zedit_path"
 			 if [[ -z "$zedit_path" ]]; then
 					return 1
 			 fi
 		else
+			 #could use find here
 			 cur_dir="$(pwd)"
 			 zedit_path="$cur_dir"
 			 zedit_path+="/$zm_name"
