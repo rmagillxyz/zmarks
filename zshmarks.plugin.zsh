@@ -414,8 +414,8 @@ __ask_to_overwrite_zedit() {
 		read answer
 		if  [ "$answer" != "${answer#[Yy]}" ];then 
 				zmrm "$overwrite"
-				echo "zshmarks/init.zsh: 418 zedit_path: $zedit_path"
-				zmf "$replacement" "$zedit_path"
+				echo "zshmarks/init.zsh: 418 zm_file_path: $zm_file_path"
+				zmf "$replacement" "$zm_file_path"
 		else
 				return 1
 		fi
@@ -424,9 +424,9 @@ __ask_to_overwrite_zedit() {
 function zmf() {
 		local zm_name="$1"
 		echo "zshmarks/init.zsh: 427 zm_name: $zm_name"
-		# removed local from zedit_path to use in __ask_to_overwrite_zedit. make sure this is okay.
-		zedit_path="$2"
-		echo "zshmarks/init.zsh: 429 zedit_path: $zedit_path"
+		# removed local from zm_file_path to use in __ask_to_overwrite_zedit. make sure this is okay.
+		zm_file_path="$2"
+		echo "zshmarks/init.zsh: 429 zm_file_path: $zm_file_path"
 
 		if [[ -z $zm_name ]]; then
 				echo 'zmark name required'
@@ -445,36 +445,36 @@ function zmf() {
 		echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
 
 
-		# if [[ -z $zedit_path && -z $exactmatchfromdir ]]; then
-		if [[ -z $zedit_path && -n $exactmatchfromdir ]]; then
+		# if [[ -z $zm_file_path && -z $exactmatchfromdir ]]; then
+		if [[ -z $zm_file_path && -n $exactmatchfromdir ]]; then
 			 #could use find here
 			 cur_dir="$(pwd)"
-			 zedit_path="$cur_dir"
-			 zedit_path+="/$zm_name"
-			echo "zshmarks/init.zsh: 385 zedit_path: $zedit_path"
+			 zm_file_path="$cur_dir"
+			 zm_file_path+="/$zm_name"
+			echo "zshmarks/init.zsh: 385 zm_file_path: $zm_file_path"
 
-	 elif [[ -z $zedit_path ]]; then
-			zedit_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
-			echo "zshmarks/init.zsh: 409 zedit_path: $zedit_path"
-			 if [[ -z "$zedit_path" ]]; then
+	 elif [[ -z $zm_file_path ]]; then
+			zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
+			echo "zshmarks/init.zsh: 409 zm_file_path: $zm_file_path"
+			 if [[ -z "$zm_file_path" ]]; then
 					return 1
 			 fi
 	 fi
 
 				
 		# Replace /home/uname with $HOME
-		if [[ "$zedit_path" =~ ^"$HOME"(/|$) ]]; then
-				zedit_path="\$HOME${zedit_path#$HOME}"
+		if [[ "$zm_file_path" =~ ^"$HOME"(/|$) ]]; then
+				zm_file_path="\$HOME${zm_file_path#$HOME}"
 		fi
 		# Store the zm as directory|name
-		zm="$zedit_path|$zm_name"
+		zm="$zm_file_path|$zm_name"
 
 	# TODO: this could be sped up sorting and using a search algorithm
 	# refactor into function to deal with edits and marks
 	for line in $(cat $ZM_FILES_FILE) 
 	do
 
-		 if [[ "$line" == "$zedit_path|$zm_name" ]]; then 
+		 if [[ "$line" == "$zm_file_path|$zm_name" ]]; then 
 				echo "umm, you already have this EXACT edit mark, bro" 
 				return 
 		 fi 
@@ -486,7 +486,7 @@ function zmf() {
 					__ask_to_overwrite_zedit $zm_name 
 					return 1
 
-			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zedit_path  ]]; then
+			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zm_file_path  ]]; then
 					echo "zmark dir already existed"
 					echo "old: $line"
 					echo "new: $zm"
@@ -500,7 +500,7 @@ function zmf() {
 	echo $zm >> "$ZM_FILES_FILE"
 	echo "zmark file '$zm_name' saved"
 
-	echo "hash -d $zm_name=$zedit_path" >> "$NAMED_DIRS"
+	echo "hash -d $zm_name=$zm_file_path" >> "$NAMED_DIRS"
 	echo "Created named file ~$zm_name"
   source "$NAMED_FILES"
 }
