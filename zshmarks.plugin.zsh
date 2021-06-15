@@ -341,20 +341,21 @@ zle     -N    _fzf_zmj
 
 # -- zm edit functions -- 
 
-_fzf_zmfj(){
-   local zm=$(cat $ZMARKS_DIR/zedits | fzf-tmux)
-	 # local file="${zm%%|*}"
-	 local bm_name="${zm##*|}"
-	 echo "zshmarks/init.zsh: 281 bm: $bm"
-	 zmfj "$bm_name"
-   # echo "zshmarks/init.zsh: 237 dir: $dir"
-	 # eval "cd ${dir}"
-	 # eval "ls ${dir}"
-	 ls
-   echo -e "\n"
-   zle reset-prompt
-}
-zle     -N    _fzf_zmfj
+# works but _fzf_zmj now deals with both. may add back in the future if could be useful
+# _fzf_zmfj(){
+#    local zm=$(cat $ZM_FILES_FILE| fzf-tmux)
+# 	 # local file="${zm%%|*}"
+# 	 local bm_name="${zm##*|}"
+# 	 echo "zshmarks/init.zsh: 281 bm: $bm"
+# 	 zmfj "$bm_name"
+#    # echo "zshmarks/init.zsh: 237 dir: $dir"
+# 	 # eval "cd ${dir}"
+# 	 # eval "ls ${dir}"
+# 	 ls
+#    echo -e "\n"
+#    zle reset-prompt
+# }
+# zle     -N    _fzf_zmfj
 
 
 
