@@ -25,16 +25,29 @@ if [[ -z $EDITOR ]]; then
 fi
 
 if [[ -z $SHELLRC ]]; then
-	 if [[ ! -f "$HOME/.zshrc" ]]; then 
-			export SHELLRC="$HOME/.zshrc"
-	 elif [[ ! -f "$HOME/config/.zshrc" ]]; then 
-			export SHELLRC="$HOME/config/.zshrc"
-	 elif [[ ! -f "$HOME/config/zshrc" ]]; then 
-			export SHELLRC="$HOME/config/zshrc"
-	 else
-			printf "${RED}No $SHELLRC (.zshrc) found. Please set SHELLRC env var.${NOCOLOR}\n"
-	 fi
+	if [[ -f "$HOME/.config/zsh/.zshrc" ]]; then
+		export SHELLRC="$HOME/.config/zsh/.zshrc"
+	elif [[ -f "$HOME/.zshrc" ]]; then
+		export SHELLRC="$HOME/.zshrc"
+	elif [[ -f "$HOME/.config/zshrc" ]]; then
+		export SHELLRC="$HOME/config/zsh/zshrc"
+	else
+		printf "${RED}No $SHELLRC (.zshrc) found. Please set SHELLRC env var.${NOCOLOR}\n"
+		# printf "(.zshrc) found. Please set SHELLRC env var.\n"
+	fi
 fi
+
+# if [[ -z $SHELLRC ]]; then
+# 	 if [[ ! -f "$HOME/.zshrc" ]]; then 
+# 			export SHELLRC="$HOME/.zshrc"
+# 	 elif [[ ! -f "$HOME/config/.zshrc" ]]; then 
+# 			export SHELLRC="$HOME/config/.zshrc"
+# 	 elif [[ ! -f "$HOME/config/zshrc" ]]; then 
+# 			export SHELLRC="$HOME/config/zshrc"
+# 	 else
+# 			printf "${RED}No $SHELLRC (.zshrc) found. Please set SHELLRC env var.${NOCOLOR}\n"
+# 	 fi
+# fi
 
 # Set ZMARKS_DIR if it doesn't exist to the default.
 # Allows for a user-configured ZMARKS_DIR.
@@ -47,6 +60,38 @@ NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
 NAMED_FILES="$ZMARKS_DIR/zm_named_files"
 ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
+
+
+## could just remove one instead of rebuilting
+_gen_zshmarks_named_dirs(){
+	 if [[  -f "$NAMED_DIRS" ]]; then
+			rm "$NAMED_DIRS"
+	 fi
+	 while read line
+	 do
+			dir="${line%%|*}"
+			bm="${line##*|}"
+			echo "~$bm"
+			echo "hash -d $bm=$dir" >> "$NAMED_DIRS"
+	 done < "$ZM_DIRS_FILE"
+	 return 
+}
+
+_gen_zshmarks_named_files(){
+	 if [[  -f "$NAMED_FILES" ]]; then
+			rm "$NAMED_FILES"
+	 fi
+	 while read line
+	 do
+			dir="${line%%|*}"
+			bm="${line##*|}"
+			echo "~$bm"
+			echo "hash -d $bm=$dir" >> "$NAMED_FILES"
+	 done < "$ZM_FILES_FILE"
+	 return 
+}
+
+
 
 # Check if $ZMARKS_DIR is a symlink.
 if [[ -L "$ZM_DIRS_FILE" ]]; then
@@ -64,38 +109,6 @@ fi
 [ -f "$NAMED_FILES" ] && source "$NAMED_FILES" 
 
 fpath=($fpath "$ZDOTDIR/zshmarks/functions")
-
-## could just remove one instead of rebuilting
-_gen_zshmarks_named_dirs(){
-	 if [[  -f "$NAMED_DIRS" ]]; then
-			rm "$NAMED_DIRS"
-	 fi
-	 # rm "$NAMED_DIRS"
-	 while read line
-	 do
-			dir="${line%%|*}"
-			bm="${line##*|}"
-			echo "~$bm"
-			echo "hash -d $bm=$dir" >> "$NAMED_DIRS"
-	 done < "$ZM_DIRS_FILE"
-	 return 
-}
-
-_gen_zshmarks_named_files(){
-	 if [[  -f "$NAMED_FILES" ]]; then
-			rm "$NAMED_FILES"
-	 fi
-
-	 while read line
-	 do
-			dir="${line%%|*}"
-			bm="${line##*|}"
-			echo "~$bm"
-			echo "hash -d $bm=$dir" >> "$NAMED_FILES"
-	 done < "$ZM_FILES_FILE"
-	 return 
-}
-
 
 _zshmarks_move_to_trash(){
 	 local file_path="$1"
@@ -223,6 +236,7 @@ function zms() {
 	 if [[ $# -eq 1 ]]; then
 			zm_name="*\|${1}"
 			zm_line=${zm_array[(r)$zm_name]}
+			echo "zshmarks/zshmarks.plugin.zsh: 226 zm_line: $zm_line"
 			zm_path="${zm_line%%|*}"
 			zm_path="${zm_path/\$HOME/~}"
 			printf "%s \n" $zm_path
@@ -370,7 +384,8 @@ _ezoom() {
 # zmjz() {
 __zm_jump_source_zsh() {
 	 zmj "$1" "$2"
-	 source "$SHELLRC"
+	 # source "$SHELLRC"
+	 source ~"$1"
 }
 
 # _ezoomzsh() {
