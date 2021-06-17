@@ -182,7 +182,34 @@ function zmj() {
 	 local zm_name=$1
 	 local zm
 	 if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
-			__zmfj "$zm_name" "$2"
+			if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
+				 echo "Invalid name, please provide a valid zmark name. For example:"
+				 echo "zmj foo [pattern]"
+				 echo
+				 echo "To mark a directory:"
+				 echo "zm <name>"
+				 echo "To mark a file:"
+				 echo "zmf <name>"
+				 return 1
+			else
+				 local filename="${zm%%|*}"
+				 _ezoom "$filename" "$2"
+			fi
+
+			# __zmfj "$zm_name" "$2"
+			# if [ -f  "~$zm" ];then 
+			
+			# echo "zshmarks/init.zsh: 188 zm_name: $zm_name"
+			# if [ -f $(eval "echo ~$zm_name") ]; then
+			# 	 echo 'we have a file'
+			# 	 # eval "echo \"name: ~$zm_name\""
+			# 	 eval "echo ~$zm_name"
+			# 	 eval "echo \"name: ~$zm_name\""
+			# 	 # $EDITOR "~$zm"
+			# fi
+
+			# # if [ -d $(eval "echo $dest") ]; then
+			# if [ -d $(eval "echo $dest") ]; then
 			# echo "Invalid name, please provide a valid zmark name. For example:"
 			# echo "zmj foo"
 			# echo
@@ -290,7 +317,7 @@ __ask_to_overwrite() {
 }
 
 # _fzf_zmj(){
-#    local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
+# 	local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
 #		 local dir="${zm%%|*}"
 #    # echo "zshmarks/init.zsh: 237 dir: $dir"
 #		 eval "cd ${dir}"
@@ -307,6 +334,7 @@ _fzf_zmj(){
 
 	 # could also use zgrep here
 	 # if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+	 # TODO why do I need eval here?
 	 if [ -d $(eval "echo $dest") ]; then
 			echo "we gotta dir"
 			eval "cd \"$dest\""
@@ -369,23 +397,23 @@ zm_jump_n_source() {
 # }
 
 # jump to maked file
-function __zmfj() {
-	 local editmark_name=$1
-	 local editmark
-	 if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
-			echo "Invalid name, please provide a valid zmark name. For example:"
-			echo "zmj foo [pattern]"
-			echo
-			echo "To mark a directory:"
-			echo "zm <name>"
-			echo "To mark a file:"
-			echo "zmf <name>"
-			return 1
-	 else
-			local filename="${editmark%%|*}"
-			_ezoom "$filename" "$2"
-	 fi
-}
+# function __zmfj() {
+# 	 local editmark_name=$1
+# 	 local editmark
+# 	 if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
+# 			echo "Invalid name, please provide a valid zmark name. For example:"
+# 			echo "zmj foo [pattern]"
+# 			echo
+# 			echo "To mark a directory:"
+# 			echo "zm <name>"
+# 			echo "To mark a file:"
+# 			echo "zmf <name>"
+# 			return 1
+# 	 else
+# 			local filename="${editmark%%|*}"
+# 			_ezoom "$filename" "$2"
+# 	 fi
+# }
 
 __ask_to_overwrite_zedit() {
 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
@@ -422,19 +450,14 @@ function zmf() {
 			return 1
 	 fi
 
-
 	 clashfail=false
 	 __zm_checkclash -d "$zm_name"
-	 # __zm_checkhashclash "$zm_name"
 
-	 echo "zshmarks/init.zsh: 115 clashfail : $clashfail "
 	 "$clashfail" && return 1
 
 	 local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
 	 echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
 
-
-		# if [[ -z $zm_file_path && -z $exactmatchfromdir ]]; then
 		if [[ -z $zm_file_path && -n $exactmatchfromdir ]]; then
 			 #could use find here
 			 cur_dir="$(pwd)"
@@ -494,18 +517,6 @@ function zmf() {
 	source "$ZM_NAMED_FIlES"
 }
 
-
-# Delete a edit mark
-# function zmfd()  {
-#		 # echo '-----zmfd'
-#  zmrm "$1" "$ZM_FILES_FILE"
-# }
-
-# TODO this has a bug. It does not show an individual mark with argument. compare with zms. also check zmfd
-# Show edit marks
-# function zmfs()  {
-#  zms "$1" "$ZM_FILES_FILE"
-# }
 
 # TODO
 # cmd no longer needed as zmrm deal with files and dirs
