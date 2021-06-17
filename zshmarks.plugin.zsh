@@ -137,7 +137,7 @@ function zm() {
 				echo "zmark name already existed"
 				echo "old: $line"
 				echo "new: $zm"
-				__ask_to_overwrite $zm_name 
+				__ask_to_overwrite_zm_dir $zm_name 
 				return 1
 
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
@@ -145,7 +145,7 @@ function zm() {
 				echo "old: $line"
 				echo "new: $zm"
 				local bm="${line##*|}"
-				__ask_to_overwrite $bm $zm_name 
+				__ask_to_overwrite_zm_dir $bm $zm_name 
 				return 1
 		 fi
 	done
@@ -296,7 +296,7 @@ _zshmarks_clear_all(){
 }
 
 
-__ask_to_overwrite() {
+__ask_to_overwrite_zm_dir() {
 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
 	 [ ! $# -ge 1 ] && echo "$usage" && return 1 
 
@@ -458,19 +458,12 @@ function zmf() {
 		# Store the zm as directory|name
 		zm="$zm_file_path|$zm_name"
 
-			__ask_to_overwrite_zedit() {
-				 # usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
-				 # usage='usage: ${FUNCNAME[0]} [file path] to-overwrite <replacement>'
-				 usage='usage: ${FUNCNAME[0]} to-overwrite replacement file_path'
-				 echo "zshmarks/init.zsh: 477 zm_file_path: $zm_file_path"
+			__ask_to_overwrite_zm_file() {
+				 usage='usage: ${FUNCNAME[0]} to-overwrite replacement'
 
 				 local overwrite=$1
-				 echo "zshmarks/init.zsh: 425 overwrite: $overwrite"
 				 local replacement=$1
 				 [[  $# == 2 ]] && replacement=$2
-				 echo "zshmarks/init.zsh: 427 replacement: $replacement"
-
-				 # zm_file_path=$3
 				 echo "overwrite: $overwrite"
 				 echo "replacement: $replacement"
 
@@ -486,7 +479,7 @@ function zmf() {
 			}
 
 	# TODO: this could be sped up sorting and using a search algorithm
-	# refactor into function to deal with edits and marks
+	# refactor into function to deal with fils and dirs
 	for line in $(cat $ZM_FILES_FILE) 
 	do
 
@@ -499,7 +492,7 @@ function zmf() {
 				echo "zmarks file name already existed"
 				echo "old: $line"
 				echo "new: $zm"
-				__ask_to_overwrite_zedit $zm_name 
+				__ask_to_overwrite_zm_file $zm_name 
 				return 1
 
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zm_file_path  ]]; then
@@ -507,7 +500,7 @@ function zmf() {
 				echo "old: $line"
 				echo "new: $zm"
 				local zm_to_overwrite_name="${line##*|}"
-				__ask_to_overwrite_zedit "$zm_to_overwrite_name" "$zm_name" 
+				__ask_to_overwrite_zm_file "$zm_to_overwrite_name" "$zm_name" 
 				return 1
 		 fi
 	done
