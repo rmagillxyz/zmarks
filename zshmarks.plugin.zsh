@@ -32,37 +32,37 @@ if [[ -z $ZMARKS_DIR ]] ; then
 	 export ZMARKS_DIR="$HOME/.local/share/zsh"
 fi
 
-NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
-NAMED_FILES="$ZMARKS_DIR/zm_named_files"
 ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
+ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
+ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
 
 
 ## could just remove one instead of rebuilting
 _gen_zshmarks_named_dirs(){
-	 if [[  -f "$NAMED_DIRS" ]]; then
-			rm "$NAMED_DIRS"
+	 if [[  -f "$ZM_NAMED_DIRS" ]]; then
+			rm "$ZM_NAMED_DIRS"
 	 fi
 	 while read line
 	 do
 			dir="${line%%|*}"
 			bm="${line##*|}"
 			echo "~$bm"
-			echo "hash -d $bm=$dir" >> "$NAMED_DIRS"
+			echo "hash -d $bm=$dir" >> "$ZM_NAMED_DIRS"
 	 done < "$ZM_DIRS_FILE"
 	 return 
 }
 
 _gen_zshmarks_named_files(){
-	 if [[  -f "$NAMED_FILES" ]]; then
-			rm "$NAMED_FILES"
+	 if [[  -f "$ZM_NAMED_FIlES" ]]; then
+			rm "$ZM_NAMED_FIlES"
 	 fi
 	 while read line
 	 do
 			dir="${line%%|*}"
 			bm="${line##*|}"
 			echo "~$bm"
-			echo "hash -d $bm=$dir" >> "$NAMED_FILES"
+			echo "hash -d $bm=$dir" >> "$ZM_NAMED_FIlES"
 	 done < "$ZM_FILES_FILE"
 	 return 
 }
@@ -81,8 +81,8 @@ else
 	 _gen_zshmarks_named_files 1> /dev/null
 fi
 
-[ -f "$NAMED_DIRS" ] && source "$NAMED_DIRS" 
-[ -f "$NAMED_FILES" ] && source "$NAMED_FILES" 
+[ -f "$ZM_NAMED_DIRS" ] && source "$ZM_NAMED_DIRS" 
+[ -f "$ZM_NAMED_FIlES" ] && source "$ZM_NAMED_FIlES" 
 
 
 _zshmarks_move_to_trash(){
@@ -154,9 +154,9 @@ function zm() {
 	echo $zm >> $ZM_DIRS_FILE
 	echo "zm '$zm_name' saved"
 
-	echo "hash -d $zm_name=$cur_dir" >> "$NAMED_DIRS"
+	echo "hash -d $zm_name=$cur_dir" >> "$ZM_NAMED_DIRS"
 	echo "Created named dir ~$zm_name"
-	source "$NAMED_DIRS"
+	source "$ZM_NAMED_DIRS"
 }
 
 __zshmarks_zgrep() {
@@ -411,6 +411,8 @@ __ask_to_overwrite_zedit() {
 function zmf() {
 	 local zm_name="$1"
 	 echo "zshmarks/init.zsh: 427 zm_name: $zm_name"
+	 
+	 # TODO: this should not be local, pass var to do it properly
 	 # removed local from zm_file_path to use in __ask_to_overwrite_zedit. make sure this is okay.
 	 zm_file_path="$2"
 	 echo "zshmarks/init.zsh: 429 zm_file_path: $zm_file_path"
@@ -487,9 +489,9 @@ function zmf() {
 	echo $zm >> "$ZM_FILES_FILE"
 	echo "zmark file '$zm_name' saved"
 
-	echo "hash -d $zm_name=$zm_file_path" >> "$NAMED_DIRS"
+	echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_DIRS"
 	echo "Created named file ~$zm_name"
-	source "$NAMED_FILES"
+	source "$ZM_NAMED_FIlES"
 }
 
 

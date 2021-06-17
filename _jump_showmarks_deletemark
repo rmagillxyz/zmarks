@@ -4,7 +4,8 @@
    # local zm=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
 # local zm_file="$(<"$ZM_DIRS_FILE")"
 # local zm_file=$(<"$ZM_DIRS_FILE")
-local zm_file=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
+# local zm_file=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
+local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
 local zm_array; zm_array=(${(f)zm_file});
 local zm_name zm_path zm_line
 zmarks=()
