@@ -7,6 +7,7 @@
 #        VERSION: 0.5
 #        DEPENDS: fzf, fzf-tmux
 # ------------------------------------------------------------------------------
+fpath=("$ZDOTDIR/zshmarks/functions" $fpath)
 
 # dir="${foo%%|*}"
 # zm="${foo##*|}"
@@ -23,31 +24,6 @@ if [[ -z $EDITOR ]]; then
 			export EDITOR="$(command -v vim)"
 	 fi
 fi
-
-if [[ -z $SHELLRC ]]; then
-	if [[ -f "$HOME/.config/zsh/.zshrc" ]]; then
-		export SHELLRC="$HOME/.config/zsh/.zshrc"
-	elif [[ -f "$HOME/.zshrc" ]]; then
-		export SHELLRC="$HOME/.zshrc"
-	elif [[ -f "$HOME/.config/zshrc" ]]; then
-		export SHELLRC="$HOME/config/zsh/zshrc"
-	else
-		printf "${RED}No $SHELLRC (.zshrc) found. Please set SHELLRC env var.${NOCOLOR}\n"
-		# printf "(.zshrc) found. Please set SHELLRC env var.\n"
-	fi
-fi
-
-# if [[ -z $SHELLRC ]]; then
-# 	 if [[ ! -f "$HOME/.zshrc" ]]; then 
-# 			export SHELLRC="$HOME/.zshrc"
-# 	 elif [[ ! -f "$HOME/config/.zshrc" ]]; then 
-# 			export SHELLRC="$HOME/config/.zshrc"
-# 	 elif [[ ! -f "$HOME/config/zshrc" ]]; then 
-# 			export SHELLRC="$HOME/config/zshrc"
-# 	 else
-# 			printf "${RED}No $SHELLRC (.zshrc) found. Please set SHELLRC env var.${NOCOLOR}\n"
-# 	 fi
-# fi
 
 # Set ZMARKS_DIR if it doesn't exist to the default.
 # Allows for a user-configured ZMARKS_DIR.
@@ -108,7 +84,6 @@ fi
 [ -f "$NAMED_DIRS" ] && source "$NAMED_DIRS" 
 [ -f "$NAMED_FILES" ] && source "$NAMED_FILES" 
 
-fpath=($fpath "$ZDOTDIR/zshmarks/functions")
 
 _zshmarks_move_to_trash(){
 	 local file_path="$1"
@@ -584,3 +559,4 @@ __zm_checkhashclash(){
 			return 1
 			fi
 	 }
+
