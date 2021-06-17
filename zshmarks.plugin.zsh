@@ -382,7 +382,7 @@ _ezoom() {
 }
 
 # zmjz() {
-__zm_jump_source_zsh() {
+zm_jump_n_source() {
 	 zmj "$1" "$2"
 	 # source "$SHELLRC"
 	 source ~"$1"
