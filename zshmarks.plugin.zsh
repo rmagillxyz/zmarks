@@ -416,12 +416,18 @@ zm_jump_n_source() {
 # }
 
 __ask_to_overwrite_zedit() {
-	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
-	 [ ! $# -ge 1 ] && echo "$usage" && return 1 
+	 # usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
+	 # usage='usage: ${FUNCNAME[0]} [file path] to-overwrite <replacement>'
+	 usage='usage: ${FUNCNAME[0]} to-overwrite replacement file_path'
+	 echo "zshmarks/init.zsh: 422 zm_file_path: $zm_file_path"
 
 	 local overwrite=$1
+	 echo "zshmarks/init.zsh: 425 overwrite: $overwrite"
 	 local replacement=$1
-	 [[  $# == 2 ]] && replacement=$2
+	 echo "zshmarks/init.zsh: 427 replacement: $replacement"
+
+	 replacement=$2
+	 zm_file_path=$3
 	 echo "overwrite: $overwrite"
 	 echo "replacement: $replacement"
 
@@ -440,10 +446,8 @@ function zmf() {
 	 local zm_name="$1"
 	 echo "zshmarks/init.zsh: 427 zm_name: $zm_name"
 	 
-	 # TODO: this should not be local, pass var to do it properly
-	 # removed local from zm_file_path to use in __ask_to_overwrite_zedit. make sure this is okay.
-	 zm_file_path="$2"
-	 echo "zshmarks/init.zsh: 429 zm_file_path: $zm_file_path"
+	 local zm_file_path="$2"
+	 echo "zshmarks/init.zsh: 450 zm_file_path: $zm_file_path"
 
 	 if [[ -z $zm_name ]]; then
 			echo 'zmark name required'
@@ -495,7 +499,7 @@ function zmf() {
 				echo "zmarks file name already existed"
 				echo "old: $line"
 				echo "new: $zm"
-				__ask_to_overwrite_zedit $zm_name 
+				__ask_to_overwrite_zedit $zm_file_path $zm_name 
 				return 1
 
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zm_file_path  ]]; then
