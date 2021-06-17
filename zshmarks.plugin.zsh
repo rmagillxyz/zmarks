@@ -415,39 +415,12 @@ zm_jump_n_source() {
 # 	 fi
 # }
 
-__ask_to_overwrite_zedit() {
-	 # usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
-	 # usage='usage: ${FUNCNAME[0]} [file path] to-overwrite <replacement>'
-	 usage='usage: ${FUNCNAME[0]} to-overwrite replacement file_path'
-	 echo "zshmarks/init.zsh: 422 zm_file_path: $zm_file_path"
-
-	 local overwrite=$1
-	 echo "zshmarks/init.zsh: 425 overwrite: $overwrite"
-	 local replacement=$1
-	 echo "zshmarks/init.zsh: 427 replacement: $replacement"
-
-	 replacement=$2
-	 zm_file_path=$3
-	 echo "overwrite: $overwrite"
-	 echo "replacement: $replacement"
-
-	 echo -n "overwrite mark $1 (y/n)? "
-	 read answer
-	 if  [ "$answer" != "${answer#[Yy]}" ];then 
-			zmrm "$overwrite"
-			echo "zshmarks/init.zsh: 418 zm_file_path: $zm_file_path"
-			zmf "$replacement" "$zm_file_path"
-	 else
-			return 1
-	 fi
-}
 
 function zmf() {
 	 local zm_name="$1"
 	 echo "zshmarks/init.zsh: 427 zm_name: $zm_name"
 	 
 	 local zm_file_path="$2"
-	 echo "zshmarks/init.zsh: 450 zm_file_path: $zm_file_path"
 
 	 if [[ -z $zm_name ]]; then
 			echo 'zmark name required'
@@ -485,6 +458,33 @@ function zmf() {
 		# Store the zm as directory|name
 		zm="$zm_file_path|$zm_name"
 
+			__ask_to_overwrite_zedit() {
+				 # usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
+				 # usage='usage: ${FUNCNAME[0]} [file path] to-overwrite <replacement>'
+				 usage='usage: ${FUNCNAME[0]} to-overwrite replacement file_path'
+				 echo "zshmarks/init.zsh: 477 zm_file_path: $zm_file_path"
+
+				 local overwrite=$1
+				 echo "zshmarks/init.zsh: 425 overwrite: $overwrite"
+				 local replacement=$1
+				 [[  $# == 2 ]] && replacement=$2
+				 echo "zshmarks/init.zsh: 427 replacement: $replacement"
+
+				 # zm_file_path=$3
+				 echo "overwrite: $overwrite"
+				 echo "replacement: $replacement"
+
+				 echo -n "overwrite mark $1 (y/n)? "
+				 read answer
+				 if  [ "$answer" != "${answer#[Yy]}" ];then 
+						zmrm "$overwrite"
+						echo "zshmarks/init.zsh: 494 zm_file_path: $zm_file_path"
+						zmf "$replacement" "$zm_file_path"
+				 else
+						return 1
+				 fi
+			}
+
 	# TODO: this could be sped up sorting and using a search algorithm
 	# refactor into function to deal with edits and marks
 	for line in $(cat $ZM_FILES_FILE) 
@@ -493,13 +493,13 @@ function zmf() {
 		 if [[ "$line" == "$zm_file_path|$zm_name" ]]; then 
 				echo "umm, you already have this EXACT edit mark, bro" 
 				return 
-		 fi 
+		 fi 	
 
 		 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
 				echo "zmarks file name already existed"
 				echo "old: $line"
 				echo "new: $zm"
-				__ask_to_overwrite_zedit $zm_file_path $zm_name 
+				__ask_to_overwrite_zedit $zm_name 
 				return 1
 
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zm_file_path  ]]; then
