@@ -114,8 +114,8 @@ function zm() {
 	 fi
 
 
-	 zm_clash_fail=false
-	 __zm_checkclash -e "$zm_name" "$ZM_FILES_FILE"
+	 local zm_clash_fail=false
+	 __zm_checkclash -f zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
 
 	 echo "zshmarks/init.zsh: 115 zm_clash_fail : $zm_clash_fail "
 	 "$zm_clash_fail" && return 1
@@ -427,8 +427,8 @@ function zmf() {
 			return 1
 	 fi
 
-	 zm_clash_fail=false
-	 __zm_checkclash -d "$zm_name"
+	 local zm_clash_fail=false
+	 __zm_checkclash -d zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
 
 	 "$zm_clash_fail" && return 1
 
@@ -515,56 +515,65 @@ function zmf() {
 }
 
 
-# TODO
-# cmd no longer needed as zmrm deal with files and dirs
-# can this be made local?
-__asktodelete(){
-	 local cmd="$1"
-	 local zm="${2##*|}"
-	 read answer
-	 if  [ "$answer" != "${answer#[Yy]}" ];then 
-			eval "$cmd \"$zm\""
-	 else
-			zm_clash_fail=true
-			return 1
-	 fi
-}
-
 
 __zm_checkclash(){
+
+# 	 if [[ $1 == "-f" ]];then
+# 			zm_path="$ZM_FILES_FILE"
+# 	 fi
+
+	 local zm_clash_fail="$2"; shift
+	 echo "zshmarks/init.zsh: 526 zm_clash_fail: $zm_clash_fail"
 	 local zm_name="$2"
-	 local zm_path="${3:-$ZM_DIRS_FILE}"
-	 if [[ $1 == "-e" ]];then
-			zm_path="$ZM_FILES_FILE"
-	 fi
+	 # local zm_path="${3:-$ZM_DIRS_FILE}"
+	 local zm_path="$3"
 
 	 local clash
+
+
+	 __asktodelete(){
+			# local cmd="$1"
+			local zm="${clash##*|}"
+			read answer
+			if  [ "$answer" != "${answer#[Yy]}" ];then 
+				 # eval "$cmd \"$zm\""
+				 zmrm "$zm"
+			else
+				 # zm_clash_fail=true
+				 eval "$zm_clash_fail=true"
+				 echo "zshmarks/init.zsh: 544 zm_clash_fail: $zm_clash_fail"
+				 return 1
+			fi
+	 }
+
+	 __zm_checkhashclash(){
+			# local zm_name="$1"
+			local hash_already_exists=$(echo ~"$zm_name")
+			if [[ -n $hash_already_exists ]]; then
+				 printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
+				 echo 'If you created this, you can remove it and run again, but this could potentially be set by another program on your machine. If you did not create it, I would just choose another name.'
+				 # zm_clash_fail=true
+				 eval "$zm_clash_fail=true"
+				 echo "zshmarks/init.zsh: 557 zm_clash_fail: $zm_clash_fail"
+				 return 1
+				 fi
+			}
+
 	 # check dir marks for collision
 	 if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
-			if [[ $1 == "-e" ]];then
+			if [[ $1 == "-f" ]];then
 				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark file?: $clash (y/n)? "
-				 # __asktodelete zmfd "$clash"
-				 __asktodelete zmrm "$clash"
+				 __asktodelete "$clash"
 			else
 				 printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark directory?: $clash (y/n)? "
-				 __asktodelete zmrm "$clash"
+				 __asktodelete "$clash"
 			fi
 	 fi
-			__zm_checkhashclash "$zm_name"
+			# __zm_checkhashclash "$zm_name"
+			__zm_checkhashclash 
 }
 
 
-
-__zm_checkhashclash(){
-	 local zm_name="$1"
-	 local hash_already_exists=$(echo ~"$zm_name")
-	 if [[ -n $hash_already_exists ]]; then
-			printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
-			echo 'If you created this, you can remove it and run again, but this could potentially be set by another program on your machine. If you did not create it, I would just choose another name.'
-			zm_clash_fail=true
-			return 1
-			fi
-	 }
 
