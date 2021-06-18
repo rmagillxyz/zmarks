@@ -1,11 +1,11 @@
 #!/bin/zsh
 
 # ------------------------------------------------------------------------------
-#        FILE:  zshmarks.plugin.zsh
+#        FILE:  zsharks.plugin.zsh
 #        AUTHOR: Robert Magill
 #        FORKED_FROM:  Jocelyn Mallon
-#        VERSION: 0.5
-#        DEPENDS: fzf, fzf-tmux
+#        VERSION: 0.6
+#        DEPENDS: fzf
 # ------------------------------------------------------------------------------
 fpath=("$ZDOTDIR/zshmarks/functions" $fpath)
 
@@ -18,7 +18,7 @@ NOCOLOR='\033[0m'
 if [[ -z $EDITOR ]]; then
 	 echo "set \$EDITOR environment variable to choose editor"
 	 echo "defaulting to nvim or vim"
-	 if [[ ! -z $(command -v nvim) ]]; then 
+	 if [[ -n $(command -v nvim) ]]; then 
 			export EDITOR="$(command -v nvim)"
 	 else
 			export EDITOR="$(command -v vim)"
@@ -114,11 +114,11 @@ function zm() {
 	 fi
 
 
-	 clashfail=false
+	 zm_clash_fail=false
 	 __zm_checkclash -e "$zm_name" "$ZM_FILES_FILE"
 
-	 echo "zshmarks/init.zsh: 115 clashfail : $clashfail "
-	 "$clashfail" && return 1
+	 echo "zshmarks/init.zsh: 115 zm_clash_fail : $zm_clash_fail "
+	 "$zm_clash_fail" && return 1
 
 		# Store the zmark as directory|name
 		zm="$cur_dir|$zm_name"
@@ -427,10 +427,10 @@ function zmf() {
 			return 1
 	 fi
 
-	 clashfail=false
+	 zm_clash_fail=false
 	 __zm_checkclash -d "$zm_name"
 
-	 "$clashfail" && return 1
+	 "$zm_clash_fail" && return 1
 
 	 local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
 	 echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
@@ -525,7 +525,7 @@ __asktodelete(){
 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
 			eval "$cmd \"$zm\""
 	 else
-			clashfail=true
+			zm_clash_fail=true
 			return 1
 	 fi
 }
@@ -551,21 +551,19 @@ __zm_checkclash(){
 				 echo -n "delete zmark directory?: $clash (y/n)? "
 				 __asktodelete zmrm "$clash"
 			fi
-			__zm_checkhashclash "$zm_name"
 	 fi
+			__zm_checkhashclash "$zm_name"
 }
 
 
 
 __zm_checkhashclash(){
 	 local zm_name="$1"
-	 local hashexists=$(echo ~"$zm_name")
-	 # echo "zshmarks/init.zsh: 535 zm_name: $zm_name"
-	 # echo "zshmarks/init.zsh: 401 hashexists: $hashexists"
-	 if [[ ! -z $hashexists ]]; then
-			printf "${RED}Named hash clash${NOCOLOR}\n"
-			echo 'If you created this, you can remove it and try again, but this could potentially be set by a program running on your machine. If you did not create it, I would just choose another name.'
-			clashfail=true
+	 local hash_already_exists=$(echo ~"$zm_name")
+	 if [[ -n $hash_already_exists ]]; then
+			printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
+			echo 'If you created this, you can remove it and run again, but this could potentially be set by another program on your machine. If you did not create it, I would just choose another name.'
+			zm_clash_fail=true
 			return 1
 			fi
 	 }
