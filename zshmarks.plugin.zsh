@@ -115,7 +115,7 @@ function zm() {
 
 
 	 local zm_clash_fail=false
-	 __zm_checkclash -f zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
+	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
 
 	 echo "zshmarks/init.zsh: 115 zm_clash_fail : $zm_clash_fail "
 	 "$zm_clash_fail" && return 1
@@ -428,7 +428,7 @@ function zmf() {
 	 fi
 
 	 local zm_clash_fail=false
-	 __zm_checkclash -d zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
+	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
 
 	 "$zm_clash_fail" && return 1
 
@@ -522,11 +522,12 @@ __zm_checkclash(){
 # 			zm_path="$ZM_FILES_FILE"
 # 	 fi
 
-	 local zm_clash_fail="$2"; shift
+	 local zm_clash_fail="$1"; shift
+				 eval "$zm_clash_fail=true"
 	 echo "zshmarks/init.zsh: 526 zm_clash_fail: $zm_clash_fail"
-	 local zm_name="$2"
+	 local zm_name="$1"
 	 # local zm_path="${3:-$ZM_DIRS_FILE}"
-	 local zm_path="$3"
+	 local zm_path="$2"
 
 	 local clash
 
@@ -561,7 +562,8 @@ __zm_checkclash(){
 
 	 # check dir marks for collision
 	 if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
-			if [[ $1 == "-f" ]];then
+			# if [[ $1 == "-f" ]];then
+			if [[ $zm_path == $ZM_FILES_FILE ]];then
 				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark file?: $clash (y/n)? "
 				 __asktodelete "$clash"
