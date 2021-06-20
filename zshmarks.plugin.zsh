@@ -437,7 +437,8 @@ function zmf() {
 
 	 # "$zm_clash_fail" && return 1
 	# [[ -n $zm_clash_fail ]] && return 1
-	[[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
+	# [[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
+	[[ -n $zm_clash_fail ]] && return 1
 
 	 local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
 	 echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
@@ -549,7 +550,8 @@ __zm_checkclash(){
 			else
 				 # clash_fail=true
 				 # eval "$clash_fail=true"
-				 eval "$clash_fail=\"hash clash: $clash\""
+				 # eval "$clash_fail=\"hash clash: $clash\""
+				 eval "$clash_fail=true"
 				 echo "zshmarks/init.zsh: 544 clash_fail: $clash_fail"
 				 return 1
 			fi
@@ -559,11 +561,13 @@ __zm_checkclash(){
 			# local zm_name="$1"
 			local hash_already_exists=$(echo ~"$zm_name")
 			if [[ -n $hash_already_exists ]]; then
-				 printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
+				 # printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
+				 printf "${RED} ~$zm_name clashes. Named hash: $zm_name=$hash_already_exists ${NOCOLOR}\n"
 				 echo 'If you created this, you can remove it and run again, but this could have been set by another program on your machine. If you did not create it, I would just choose another name.'
 				 # clash_fail=true
 				 # eval "$clash_fail=true"
-				 eval "$clash_fail=\"hash clash: $hash_already_exists \""
+				 # eval "$clash_fail=\"hash clash: $hash_already_exists \""
+				 eval "$clash_fail=true"
 				 echo "zshmarks/init.zsh: 557 clash_fail: $clash_fail"
 				 return 1
 				 fi
