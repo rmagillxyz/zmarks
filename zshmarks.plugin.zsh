@@ -116,11 +116,8 @@ function zm() {
 
 	 # local zm_clash_fail=false
 	 local zm_clash_fail
-	 echo "zshmarks/init.zsh: 119 zm_clash_fail: $zm_clash_fail"
 	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
-	 echo "zshmarks/init.zsh: 121 zm_clash_fail: $zm_clash_fail"
 
-	 echo "zshmarks/init.zsh: 115 zm_clash_fail : $zm_clash_fail "
 	[[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
 
 		# Store the zmark as directory|name
@@ -166,12 +163,9 @@ __zshmarks_zgrep() {
 	 local outvar="$1"; shift
 	 local pattern="$1"
 	 local filename="$2"
-	 # echo "zshmarks/init.zsh: 161 filename: $filename"
-	 # echo "zshmarks/init.zsh: 162 pattern: $pattern"
 	 local file_contents="$(<"$filename")"
 	 local file_lines; file_lines=(${(f)file_contents})
 
-		# echo "zshmarks/init.zsh: 101 file_lines: $file_lines"
 		for line in "${file_lines[@]}"; do
 			 if [[ "$line" =~ "$pattern" ]]; then
 					eval "$outvar=\"$line\""
@@ -199,33 +193,10 @@ function zmj() {
 				 _ezoom "$filename" "$2"
 			fi
 
-			# __zmfj "$zm_name" "$2"
-			# if [ -f  "~$zm" ];then 
-			
-			# echo "zshmarks/init.zsh: 188 zm_name: $zm_name"
-			# if [ -f $(eval "echo ~$zm_name") ]; then
-			# 	 echo 'we have a file'
-			# 	 # eval "echo \"name: ~$zm_name\""
-			# 	 eval "echo ~$zm_name"
-			# 	 eval "echo \"name: ~$zm_name\""
-			# 	 # $EDITOR "~$zm"
-			# fi
-
-			# # if [ -d $(eval "echo $dest") ]; then
-			# if [ -d $(eval "echo $dest") ]; then
-			# echo "Invalid name, please provide a valid zmark name. For example:"
-			# echo "zmj foo"
-			# echo
-			# echo "To zm a directory, go to the directory then do this (naming the zm 'foo'):"
-			# echo "  zm foo"
-			# return 1
 	 else
-			# echo "zshmarks/init.zsh: 124 zm : $zm "
 			local dir="${zm%%|*}"
 			eval "cd \"${dir}\""
 			eval "ls \"${dir}\""
-			# echo "dir: $dir"
-			# echo "$dir"
 	 fi
 }
 
@@ -291,7 +262,7 @@ function zmrm()  {
 						_gen_zshmarks_named_files 1> /dev/null
 						echo "Deleted and synced named dirs"
 			fi
-			fi
+	 fi
 	 }
 
 _zshmarks_clear_all(){
@@ -421,7 +392,6 @@ zm_jump_n_source() {
 
 function zmf() {
 	 local zm_name="$1"
-	 echo "zshmarks/init.zsh: 427 zm_name: $zm_name"
 	 
 	 local zm_file_path="$2"
 
@@ -431,17 +401,11 @@ function zmf() {
 	 fi
 
 	 local zm_clash_fail
-	 echo "zshmarks/init.zsh: 431 zm_clash_fail: $zm_clash_fail"
 	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
-	 echo "zshmarks/init.zsh: 431 zm_clash_fail: $zm_clash_fail"
 
-	 # "$zm_clash_fail" && return 1
-	# [[ -n $zm_clash_fail ]] && return 1
-	# [[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
 	[[ -n $zm_clash_fail ]] && return 1
 
 	 local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
-	 echo "zshmarks/init.zsh: 374 exactmatchfromdir: $exactmatchfromdir"
 
 		if [[ -z $zm_file_path && -n $exactmatchfromdir ]]; then
 			 #could use find here
@@ -525,32 +489,20 @@ function zmf() {
 
 
 __zm_checkclash(){
-
-# 	 if [[ $1 == "-f" ]];then
-# 			zm_path="$ZM_FILES_FILE"
-# 	 fi
+	 # usage='usage: ${FUNCNAME[0]} zm_clash_fail  $zm_name $ZM_X_FILE'
 
 	 local clash_fail="$1"; shift
-				 # eval "$clash_fail=\"\""
-	 echo "zshmarks/init.zsh: 526 clash_fail: $clash_fail"
 	 local zm_name="$1"
-	 # local zm_path="${3:-$ZM_DIRS_FILE}"
 	 local zm_path="$2"
 
 	 local clash
 
-
 	 __asktodelete(){
-			# local cmd="$1"
 			local zm="${clash##*|}"
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ];then 
-				 # eval "$cmd \"$zm\""
 				 zmrm "$zm"
 			else
-				 # clash_fail=true
-				 # eval "$clash_fail=true"
-				 # eval "$clash_fail=\"hash clash: $clash\""
 				 eval "$clash_fail=true"
 				 echo "zshmarks/init.zsh: 544 clash_fail: $clash_fail"
 				 return 1
@@ -558,17 +510,12 @@ __zm_checkclash(){
 	 }
 
 	 __zm_checkhashclash(){
-			# local zm_name="$1"
 			local hash_already_exists=$(echo ~"$zm_name")
 			if [[ -n $hash_already_exists ]]; then
 				 # printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
 				 printf "${RED} ~$zm_name clashes. Named hash: $zm_name=$hash_already_exists ${NOCOLOR}\n"
 				 echo 'If you created this, you can remove it and run again, but this could have been set by another program on your machine. If you did not create it, I would just choose another name.'
-				 # clash_fail=true
-				 # eval "$clash_fail=true"
-				 # eval "$clash_fail=\"hash clash: $hash_already_exists \""
 				 eval "$clash_fail=true"
-				 echo "zshmarks/init.zsh: 557 clash_fail: $clash_fail"
 				 return 1
 				 fi
 			}
