@@ -118,7 +118,7 @@ function zm() {
 	 local zm_clash_fail
 	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
 
-	[[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
+	 [[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
 
 		# Store the zmark as directory|name
 		zm="$cur_dir|$zm_name"
@@ -166,14 +166,14 @@ __zshmarks_zgrep() {
 	 local file_contents="$(<"$filename")"
 	 local file_lines; file_lines=(${(f)file_contents})
 
-		for line in "${file_lines[@]}"; do
-			 if [[ "$line" =~ "$pattern" ]]; then
-					eval "$outvar=\"$line\""
-					return 0
-			 fi
-		done
-		return 1
- }
+	 for line in "${file_lines[@]}"; do
+			if [[ "$line" =~ "$pattern" ]]; then
+				 eval "$outvar=\"$line\""
+				 return 0
+			fi
+	 done
+	 return 1
+}
 
 function zmj() {
 	 local zm_name=$1
@@ -200,7 +200,7 @@ function zmj() {
 	 fi
 }
 
-# Show a list of the zms
+# Show a list of the zmarks
 function zms() {
 	 # is zm_file is the contents of the file stored in a var
 	 # local zm_file="$(<${2:-$ZM_DIRS_FILE})"
@@ -263,7 +263,7 @@ function zmrm()  {
 						echo "Deleted and synced named dirs"
 			fi
 	 fi
-	 }
+}
 
 _zshmarks_clear_all(){
 	 _zshmarks_move_to_trash "$ZM_DIRS_FILE"
@@ -392,7 +392,7 @@ zm_jump_n_source() {
 
 function zmf() {
 	 local zm_name="$1"
-	 
+
 	 local zm_file_path="$2"
 
 	 if [[ -z $zm_name ]]; then
@@ -403,24 +403,24 @@ function zmf() {
 	 local zm_clash_fail
 	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
 
-	[[ -n $zm_clash_fail ]] && return 1
+	 [[ -n $zm_clash_fail ]] && return 1
 
 	 local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
 
-		if [[ -z $zm_file_path && -n $exactmatchfromdir ]]; then
-			 #could use find here
-			 cur_dir="$(pwd)"
-			 zm_file_path="$cur_dir"
-			 zm_file_path+="/$zm_name"
-			 echo "zshmarks/init.zsh: 385 zm_file_path: $zm_file_path"
+	 if [[ -z $zm_file_path && -n $exactmatchfromdir ]]; then
+			#could use find here
+			cur_dir="$(pwd)"
+			zm_file_path="$cur_dir"
+			zm_file_path+="/$zm_name"
+			echo "zshmarks/init.zsh: 385 zm_file_path: $zm_file_path"
 
-		elif [[ -z $zm_file_path ]]; then
-			 zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
-			 echo "zshmarks/init.zsh: 409 zm_file_path: $zm_file_path"
-			 if [[ -z "$zm_file_path" ]]; then
-					return 1
-			 fi
-		fi
+	 elif [[ -z $zm_file_path ]]; then
+			zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
+			echo "zshmarks/init.zsh: 409 zm_file_path: $zm_file_path"
+			if [[ -z "$zm_file_path" ]]; then
+				 return 1
+			fi
+	 fi
 
 
 		# Replace /home/uname with $HOME
@@ -430,25 +430,25 @@ function zmf() {
 		# Store the zm as directory|name
 		zm="$zm_file_path|$zm_name"
 
-			__ask_to_overwrite_zm_file() {
-				 usage='usage: ${FUNCNAME[0]} to-overwrite replacement'
+		__ask_to_overwrite_zm_file() {
+			 usage='usage: ${FUNCNAME[0]} to-overwrite replacement'
 
-				 local overwrite=$1
-				 local replacement=$1
-				 [[  $# == 2 ]] && replacement=$2
-				 echo "overwrite: $overwrite"
-				 echo "replacement: $replacement"
+			 local overwrite=$1
+			 local replacement=$1
+			 [[  $# == 2 ]] && replacement=$2
+			 echo "overwrite: $overwrite"
+			 echo "replacement: $replacement"
 
-				 echo -n "overwrite mark $1 (y/n)? "
-				 read answer
-				 if  [ "$answer" != "${answer#[Yy]}" ];then 
-						zmrm "$overwrite"
-						echo "zshmarks/init.zsh: 494 zm_file_path: $zm_file_path"
-						zmf "$replacement" "$zm_file_path"
-				 else
-						return 1
-				 fi
-			}
+			 echo -n "overwrite mark $1 (y/n)? "
+			 read answer
+			 if  [ "$answer" != "${answer#[Yy]}" ];then 
+					zmrm "$overwrite"
+					echo "zshmarks/init.zsh: 494 zm_file_path: $zm_file_path"
+					zmf "$replacement" "$zm_file_path"
+			 else
+					return 1
+			 fi
+		}
 
 	# TODO: this could be sped up sorting and using a search algorithm
 	# refactor into function to deal with fils and dirs
@@ -509,16 +509,16 @@ __zm_checkclash(){
 			fi
 	 }
 
-	 __zm_checkhashclash(){
-			local hash_already_exists=$(echo ~"$zm_name")
-			if [[ -n $hash_already_exists ]]; then
-				 # printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
-				 printf "${RED} ~$zm_name clashes. Named hash: $zm_name=$hash_already_exists ${NOCOLOR}\n"
-				 echo 'If you created this, you can remove it and run again, but this could have been set by another program on your machine. If you did not create it, I would just choose another name.'
-				 eval "$clash_fail=true"
-				 return 1
-				 fi
-			}
+__zm_checkhashclash(){
+	 local hash_already_exists=$(echo ~"$zm_name")
+	 if [[ -n $hash_already_exists ]]; then
+			# printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
+			printf "${RED} ~$zm_name clashes. Named hash: $zm_name=$hash_already_exists ${NOCOLOR}\n"
+			echo 'If you created this, you can remove it and run again, but this could have been set by another program on your machine. If you did not create it, I would just choose another name.'
+			eval "$clash_fail=true"
+			return 1
+			fi
+	 }
 
 	 # check dir marks for collision
 	 if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
@@ -532,10 +532,10 @@ __zm_checkclash(){
 				 echo -n "delete zmark directory?: $clash (y/n)? "
 				 __asktodelete "$clash"
 			fi
-	 fi
+			fi
 			# __zm_checkhashclash "$zm_name"
 			__zm_checkhashclash 
-}
+	 }
 
 
 
