@@ -504,13 +504,10 @@ __zm_checkclash(){
 	 }
 
 __zm_checkhashclash(){
-	 # local hash_already_exists=$(echo ~"$zm_name" 2> /dev/null)
-	 local hash_already_exists=$(echo ~"$zm_name")
-	 echo "zshmarks/init.zsh: 511 hash_already_exists: $hash_already_exists"
-	 # local hash_already_exists='foo'
+	 local hash_already_exists=$(hash -dm "$zm_name")
+	 # echo "zshmarks/init.zsh: 511 hash_already_exists: $hash_already_exists"
 	 if [[ -n $hash_already_exists ]]; then
-			# printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
-			printf "${RED} ~$zm_name clashes. Named hash: $zm_name=$hash_already_exists ${NOCOLOR}\n"
+			printf "${RED} ~$zm_name clashes. Named hash: $hash_already_exists ${NOCOLOR}\n"
 			echo 'If you created this, you can remove it and run again, but this could have been set by another program on your machine. If you did not create it, I would just choose another name.'
 			eval "$clash_fail=true"
 			return 1
