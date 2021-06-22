@@ -288,17 +288,6 @@ function __ask_to_overwrite_zm_dir() {
 	 fi
 }
 
-# _fzf_zm_jump(){
-# 	local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
-#		 local dir="${zm%%|*}"
-#    # echo "zshmarks/init.zsh: 237 dir: $dir"
-#		 eval "cd ${dir}"
-#		 # eval "ls ${dir}"
-#		 ls
-#    echo -e "\n"
-#    zle reset-prompt
-# }
-
 _fzf_zm_jump(){
 	 local zm=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
 	 local dest="${zm%%|*}"
@@ -324,9 +313,17 @@ zle     -N    _fzf_zm_jump
 # bm="${foo##*|}"
 
 
-# -- zm edit functions -- 
-
-# works but _fzf_zm_jump now deals with both. may add back in the future if could be useful
+_fzf_zm_dir_jump(){
+	local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
+ 	 local dir="${zm%%|*}"
+   # echo "zshmarks/init.zsh: 237 dir: $dir"
+ 	 eval "cd ${dir}"
+ 	 # eval "ls ${dir}"
+ 	 ls
+   echo -e "\n"
+   zle reset-prompt
+}
+zle     -N    _fzf_zm_dir_jump
 
 _fzf_zm_file_jump(){
     local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
@@ -377,6 +374,26 @@ function _zm_file_jump() {
 	 else
 			local filename="${editmark%%|*}"
 			_ezoom "$filename" "$2"
+	 fi
+}
+
+# jump to marked dir
+function _zm_dir_jump() {
+	 local zmark_name=$1
+	 local zmark
+	 if ! __zshmarks_zgrep zmark "\\|$zmark_name\$" "$ZM_DIRS_FILE"; then
+			echo "Invalid directory zmark name, please provide a valid zmark name. For example:"
+			echo "_zm_dir_jump foo [pattern]"
+			echo
+			echo "To mark a directory:"
+			echo "zm <name>"
+			echo "To mark a file:"
+			echo "zmf <name>"
+			return 1
+	 else
+			local dir="${zmark%%|*}"
+			eval "cd \"${dir}\""
+			eval "ls \"${dir}\""
 	 fi
 }
 
