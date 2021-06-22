@@ -39,7 +39,7 @@ ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
 
 
 ## could just remove one instead of rebuilting
-_gen_zshmarks_named_dirs(){
+function _gen_zshmarks_named_dirs(){
 	 if [[  -f "$ZM_NAMED_DIRS" ]]; then
 			rm "$ZM_NAMED_DIRS"
 	 fi
@@ -53,7 +53,7 @@ _gen_zshmarks_named_dirs(){
 	 return 
 }
 
-_gen_zshmarks_named_files(){
+function _gen_zshmarks_named_files(){
 	 if [[  -f "$ZM_NAMED_FIlES" ]]; then
 			rm "$ZM_NAMED_FIlES"
 	 fi
@@ -85,7 +85,7 @@ fi
 [ -f "$ZM_NAMED_FIlES" ] && source "$ZM_NAMED_FIlES" 
 
 
-_zshmarks_move_to_trash(){
+function _zshmarks_move_to_trash(){
 	 local file_path="$1"
 	 if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
 			label=`date +%s`
@@ -157,7 +157,7 @@ function zm() {
 	source "$ZM_NAMED_DIRS"
 }
 
-__zshmarks_zgrep() {
+function __zshmarks_zgrep() {
 	 local outvar="$1"; shift
 	 local pattern="$1"
 	 local filename="$2"
@@ -263,12 +263,12 @@ function zmrm()  {
 	 fi
 }
 
-_zshmarks_clear_all(){
+function _zshmarks_clear_all(){
 	 _zshmarks_move_to_trash "$ZM_DIRS_FILE"
 }
 
 
-__ask_to_overwrite_zm_dir() {
+function __ask_to_overwrite_zm_dir() {
 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
 	 [ ! $# -ge 1 ] && echo "$usage" && return 1 
 
@@ -342,7 +342,7 @@ zle     -N    _fzf_zm_jump
 # }
 # zle     -N    _fzf_zmfj
 
-_ezoom() {
+function _ezoom() {
 	 # echo "zsh/functions.sh: 1: 76 $1"
 	 # echo "zsh/functions.sh: 2: 77 $2"
 	 if [ -z "$2" ]; then
@@ -354,16 +354,11 @@ _ezoom() {
 }
 
 # zmjz() {
-zm_jump_n_source() {
+function zm_jump_n_source() {
 	 zmj "$1" "$2"
 	 # source "$SHELLRC"
 	 source ~"$1"
 }
-
-# _ezoomzsh() {
-#		ezoom "$1" "$2"
-#		source "$SHELLRC"
-# }
 
 # jump to maked file
 # function __zmfj() {
@@ -483,7 +478,7 @@ function zmf() {
 
 
 
-__zm_checkclash(){
+function __zm_checkclash(){
 	 # usage='usage: ${FUNCNAME[0]} zm_clash_fail  $zm_name $ZM_X_FILE'
 
 	 local clash_fail="$1"; shift
@@ -503,20 +498,18 @@ __zm_checkclash(){
 			fi
 	 }
 
-__zm_checkhashclash(){
-	 local hash_already_exists=$(hash -dm "$zm_name")
-	 # echo "zshmarks/init.zsh: 511 hash_already_exists: $hash_already_exists"
-	 if [[ -n $hash_already_exists ]]; then
-			printf "${RED} ~$zm_name clashes. Named hash: $hash_already_exists ${NOCOLOR}\n"
-			echo 'If you created this, you can remove it and run again, but this could have been set by another program on your machine. If you did not create it, I would just choose another name.'
-			eval "$clash_fail=true"
-			return 1
-			fi
-	 }
+	 __zm_checkhashclash(){
+			local hash_already_exists=$(hash -dm "$zm_name")
+			if [[ -n $hash_already_exists ]]; then
+				 printf "${RED} ~$zm_name clashes. Named hash: $hash_already_exists ${NOCOLOR}\n"
+				 echo 'If you created this, you can remove it and run again, but this could have been set by another program on your machine. If you did not create it, I would just choose another name.'
+				 eval "$clash_fail=true"
+				 return 1
+				 fi
+			}
 
-	 # check dir marks for collision
+	 # check marks for collision
 	 if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
-			# if [[ $1 == "-f" ]];then
 			if [[ $zm_path == $ZM_FILES_FILE ]];then
 				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark file?: $clash (y/n)? "
@@ -527,7 +520,6 @@ __zm_checkhashclash(){
 				 __asktodelete "$clash"
 			fi
 			fi
-			# __zm_checkhashclash "$zm_name"
 			__zm_checkhashclash 
 	 }
 
