@@ -1,10 +1,46 @@
 Zmarks
 ========
 
-A fork of [Zshmarks (by Jocelyn Mallon)](https://github.com/jocelynmallon/zshmarks), a simple command line bookmarking plugin
+A fork of [Zshmarks (by Jocelyn Mallon)](https://github.com/jocelynmallon/zshmarks)
 
 How to install
 --------------
+`git clone http://github.com/rmagillxyz/zmarks ~/.config/zsh`
+and install [fzf](https://github.com/junegunn/fzf#installation)
+
+then add `source "$HOME/.config/zsh/zshmarks/init.zsh"` to your `.zshrc`
+
+Commands/Usage:
+--------------
+
+* zmj - used to 'jump' (cd or $EDITOR) to the given bookmark directory or file. 
+        zmj 'foo'
+
+* zm - used to create a new bookmark for your current working directory
+
+        cd 'some_dir'
+        zm 'foo'
+
+* zmrm - used to delete a bookmark
+
+        zmrm 'foo'
+
+* zms - prints a list of all saved bookmarks, or print the information for a single, specific bookmark
+
+        showmarks 'foo'
+        $HOME/foo
+
+Additional commands:
+-------------------
+
+* _zm_clear_all - clear all 
+* _zm_clear_all_dirs - clear all directories
+* _zm_clear_all_files - clear all files
+* 
+
+
+
+
 
 oh-my-zsh
 ---------
@@ -48,26 +84,6 @@ zplug
 Add the following to your .zshrc file somewhere after you source zplug.
 
         zplug "rmagillxyz/zmarks"
-
-Commands/Usage:
-------
-
-* zmj - used to 'jump' (cd or $EDITOR) to the given bookmark directory or file. 
-        zmj 'foo'
-
-* zm - used to create a new bookmark for your current working directory
-
-        cd 'some_dir'
-        zm 'foo'
-
-* zmrm - used to delete a bookmark
-
-        zmrm 'foo'
-
-* zms - prints a list of all saved bookmarks, or print the information for a single, specific bookmark
-
-        showmarks 'foo'
-        $HOME/foo
 
 Notes/Tips:
 -----------

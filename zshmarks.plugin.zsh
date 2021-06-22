@@ -4,10 +4,14 @@
 #        FILE:  zsharks.plugin.zsh
 #        AUTHOR: Robert Magill
 #        FORKED_FROM:  Jocelyn Mallon
-#        VERSION: 0.6
+#        VERSION: 0.7
 #        DEPENDS: fzf
 # ------------------------------------------------------------------------------
-fpath=("$ZDOTDIR/zshmarks/functions" $fpath)
+if [[ -z $ZDOTDIR ]];then
+	 fpath=("$HOME/.config/zsh/zshmarks/functions" $fpath)
+else
+	 fpath=("$ZDOTDIR/zshmarks/functions" $fpath)
+fi
 
 # dir="${foo%%|*}"
 # zm="${foo##*|}"
@@ -83,7 +87,7 @@ fi
 [ -f "$ZM_NAMED_FIlES" ] && source "$ZM_NAMED_FIlES" 
 
 
-function _zshmarks_move_to_trash(){
+function __zm_move_to_trash(){
 	 local file_path="$1"
 	 if [[ $(uname) == "Linux"* || $(uname) == "FreeBSD"*  ]]; then
 			label=`date +%s`
@@ -247,7 +251,7 @@ function zmrm()  {
 				 zm_array=(${zm_array[@]/$zm_line})
 				 eval "printf '%s\n' \"\${zm_array[@]}\"" >! $file_path
 
-				 _zshmarks_move_to_trash "${file_path}.bak" 
+				 __zm_move_to_trash "${file_path}.bak" 
 
 						# generate new named dir to sync with marks
 						hash -d -r  # rebuild hash table
@@ -258,9 +262,19 @@ function zmrm()  {
 	 fi
 }
 
-function _zshmarks_clear_all(){
-	 _zshmarks_move_to_trash "$ZM_DIRS_FILE"
+function _zm_clear_all(){
+	 __zm_move_to_trash "$ZM_DIRS_FILE"
+	 __zm_move_to_trash "$ZM_FILES_FILE"
 }
+
+function _zm_clear_all_dirs(){
+	 __zm_move_to_trash "$ZM_DIRS_FILE"
+}
+
+function _zm_clear_all_files(){
+	 __zm_move_to_trash "$ZM_FILES_FILE"
+}
+
 
 function __ask_to_overwrite_zm_dir() {
 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
