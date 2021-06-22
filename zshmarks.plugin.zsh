@@ -41,7 +41,7 @@ ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
 ## could just remove one instead of rebuilting
 function _gen_zshmarks_named_dirs(){
 	 if [[  -f "$ZM_NAMED_DIRS" ]]; then
-			rm "$ZM_NAMED_DIRS"
+			\rm -f "$ZM_NAMED_DIRS"
 	 fi
 	 while read line
 	 do
@@ -55,7 +55,7 @@ function _gen_zshmarks_named_dirs(){
 
 function _gen_zshmarks_named_files(){
 	 if [[  -f "$ZM_NAMED_FIlES" ]]; then
-			rm "$ZM_NAMED_FIlES"
+			\rm -f "$ZM_NAMED_FIlES"
 	 fi
 	 while read line
 	 do
@@ -66,8 +66,6 @@ function _gen_zshmarks_named_files(){
 	 done < "$ZM_FILES_FILE"
 	 return 
 }
-
-
 
 # Check if $ZMARKS_DIR is a symlink.
 if [[ -L "$ZM_DIRS_FILE" ]]; then
@@ -113,10 +111,8 @@ function zm() {
 			cur_dir="\$HOME${cur_dir#$HOME}"
 	 fi
 
-
 		# Store the zmark as directory|name
 		zm="$cur_dir|$zm_name"
-
 
 	# TODO: this could be sped up sorting and using a search algorithm
 	for line in $(cat $ZM_DIRS_FILE) 
@@ -239,10 +235,9 @@ function zmrm()  {
 			zm_search="*\|${zm_name}"
 			if [[ -z ${zm_array[(r)$zm_search]} ]]; then
 				 if [[ $file_path == $ZM_DIRS_FILE ]]; then
-						# name not found in dirs, run again with try files
-						# zmfd "$zm_name" 
+						# name not found in dirs, run again with files
+						# TODO would it be better to check the named hash for file or dir and not run through all? 
 						zmrm "$zm_name" "$ZM_FILES_FILE"
-						# zmrm "$1" "$ZM_FILES_FILE"
 				 else
 						eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
 				 fi
@@ -258,7 +253,7 @@ function zmrm()  {
 						hash -d -r  # rebuild hash table
 						_gen_zshmarks_named_dirs 1> /dev/null
 						_gen_zshmarks_named_files 1> /dev/null
-						echo "Deleted and synced named dirs"
+						echo "Deleted and synced named hashes"
 			fi
 	 fi
 }
@@ -266,7 +261,6 @@ function zmrm()  {
 function _zshmarks_clear_all(){
 	 _zshmarks_move_to_trash "$ZM_DIRS_FILE"
 }
-
 
 function __ask_to_overwrite_zm_dir() {
 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
@@ -309,52 +303,38 @@ _fzf_zm_jump(){
 }
 zle     -N    _fzf_zm_jump
 
-# dir="${foo%%|*}"
-# bm="${foo##*|}"
-
-
 _fzf_zm_dir_jump(){
 	local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
- 	 local dir="${zm%%|*}"
-   # echo "zshmarks/init.zsh: 237 dir: $dir"
- 	 eval "cd ${dir}"
- 	 # eval "ls ${dir}"
- 	 ls
-   echo -e "\n"
-   zle reset-prompt
+	 if [[ -n $zm ]];then 
+			local dir="${zm%%|*}"
+			eval "cd ${dir}"
+			ls
+			echo -e "\n"
+			zle reset-prompt
+	 fi
 }
 zle     -N    _fzf_zm_dir_jump
 
 _fzf_zm_file_jump(){
-    local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
-		 # local file="${zm%%|*}"
-		 local bm_name="${zm##*|}"
-		 echo "zshmarks/init.zsh: 281 bm: $bm"
-		 _zm_file_jump "$bm_name"
-    # echo "zshmarks/init.zsh: 237 dir: $dir"
-		 # eval "cd ${dir}"
-		 # eval "ls ${dir}"
-		 ls
-    echo -e "\n"
-    zle reset-prompt
+   local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
+	 if [[ -n $zm ]];then 
+		 local file="${zm%%|*}"
+		 # could use BUFFER and ezoom here
+		eval "\"$EDITOR\" \"$file\""
+	 fi
 }
 zle     -N    _fzf_zm_file_jump
 
 function _ezoom() {
-	 # echo "zsh/functions.sh: 1: 76 $1"
-	 # echo "zsh/functions.sh: 2: 77 $2"
 	 if [ -z "$2" ]; then
 			"$EDITOR" "$1"
-			# "$EDITOR" +/"--end--" "$1"	
 	 else
 			"$EDITOR" +/"$2" "$1"	
 	 fi
 }
 
-# zmjz() {
 function zm_jump_n_source() {
 	 zmj "$1" "$2"
-	 # source "$SHELLRC"
 	 source ~"$1"
 }
 

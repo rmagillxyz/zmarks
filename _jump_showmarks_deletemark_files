@@ -1,0 +1,23 @@
+#compdef _zm_file_jump
+#autoload
+
+local zm_file=$(<"$ZMARKS_DIR/zm_files")
+local zm_array; zm_array=(${(f)zm_file});
+local zm_name zm_path zm_line
+zmarks=()
+for zm_line in $zm_array; do
+	if [[ "$zm_line" == *"|"* ]] ; then
+		zm_path="${zm_line%%|*}"
+		zm_path="${zm_path/\$HOME/\~}"
+		zm_name="${zm_line#*|}"
+		zmarks+="${zm_name}:${zm_path}"
+	fi
+done
+
+_arguments \
+	'*:: :->subcmds' && return 0
+
+if (( CURRENT == 1 )); then
+	_describe -t commands 'Zmarks' zmarks
+	return
+fi
