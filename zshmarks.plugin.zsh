@@ -327,20 +327,21 @@ zle     -N    _fzf_zm_jump
 # -- zm edit functions -- 
 
 # works but _fzf_zm_jump now deals with both. may add back in the future if could be useful
-# _fzf_zmfj(){
-#    local zm=$(cat $ZM_FILES_FILE| fzf-tmux)
-#		 # local file="${zm%%|*}"
-#		 local bm_name="${zm##*|}"
-#		 echo "zshmarks/init.zsh: 281 bm: $bm"
-#		 zmfj "$bm_name"
-#    # echo "zshmarks/init.zsh: 237 dir: $dir"
-#		 # eval "cd ${dir}"
-#		 # eval "ls ${dir}"
-#		 ls
-#    echo -e "\n"
-#    zle reset-prompt
-# }
-# zle     -N    _fzf_zmfj
+
+_fzf_zm_file_jump(){
+    local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
+		 # local file="${zm%%|*}"
+		 local bm_name="${zm##*|}"
+		 echo "zshmarks/init.zsh: 281 bm: $bm"
+		 _zm_file_jump "$bm_name"
+    # echo "zshmarks/init.zsh: 237 dir: $dir"
+		 # eval "cd ${dir}"
+		 # eval "ls ${dir}"
+		 ls
+    echo -e "\n"
+    zle reset-prompt
+}
+zle     -N    _fzf_zm_file_jump
 
 function _ezoom() {
 	 # echo "zsh/functions.sh: 1: 76 $1"
@@ -360,24 +361,24 @@ function zm_jump_n_source() {
 	 source ~"$1"
 }
 
-# jump to maked file
-# function __zmfj() {
-# 	 local editmark_name=$1
-# 	 local editmark
-# 	 if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
-# 			echo "Invalid name, please provide a valid zmark name. For example:"
-# 			echo "zmj foo [pattern]"
-# 			echo
-# 			echo "To mark a directory:"
-# 			echo "zm <name>"
-# 			echo "To mark a file:"
-# 			echo "zmf <name>"
-# 			return 1
-# 	 else
-# 			local filename="${editmark%%|*}"
-# 			_ezoom "$filename" "$2"
-# 	 fi
-# }
+# jump to marked file
+function _zm_file_jump() {
+	 local editmark_name=$1
+	 local editmark
+	 if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
+			echo "Invalid name, please provide a valid zmark name. For example:"
+			echo "zmj foo [pattern]"
+			echo
+			echo "To mark a directory:"
+			echo "zm <name>"
+			echo "To mark a file:"
+			echo "zmf <name>"
+			return 1
+	 else
+			local filename="${editmark%%|*}"
+			_ezoom "$filename" "$2"
+	 fi
+}
 
 
 function zmf() {
