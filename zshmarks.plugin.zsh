@@ -114,12 +114,6 @@ function zm() {
 	 fi
 
 
-	 # local zm_clash_fail=false
-	 local zm_clash_fail
-	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
-
-	 [[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
-
 		# Store the zmark as directory|name
 		zm="$cur_dir|$zm_name"
 
@@ -149,6 +143,10 @@ function zm() {
 				return 1
 		 fi
 	done
+
+	local zm_clash_fail
+	__zm_checkclash zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
+	[[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
 
 	# no duplicates, make mark
 	echo $zm >> $ZM_DIRS_FILE
@@ -290,7 +288,7 @@ __ask_to_overwrite_zm_dir() {
 	 fi
 }
 
-# _fzf_zmj(){
+# _fzf_zm_jump(){
 # 	local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
 #		 local dir="${zm%%|*}"
 #    # echo "zshmarks/init.zsh: 237 dir: $dir"
@@ -301,7 +299,7 @@ __ask_to_overwrite_zm_dir() {
 #    zle reset-prompt
 # }
 
-_fzf_zmj(){
+_fzf_zm_jump(){
 	 local zm=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
 	 local dest="${zm%%|*}"
 	 [[ -z "$dest" ]] && zle reset-prompt && return 1
@@ -320,7 +318,7 @@ _fzf_zmj(){
 	 fi
 	 zle reset-prompt
 }
-zle     -N    _fzf_zmj
+zle     -N    _fzf_zm_jump
 
 # dir="${foo%%|*}"
 # bm="${foo##*|}"
@@ -328,7 +326,7 @@ zle     -N    _fzf_zmj
 
 # -- zm edit functions -- 
 
-# works but _fzf_zmj now deals with both. may add back in the future if could be useful
+# works but _fzf_zm_jump now deals with both. may add back in the future if could be useful
 # _fzf_zmfj(){
 #    local zm=$(cat $ZM_FILES_FILE| fzf-tmux)
 #		 # local file="${zm%%|*}"
@@ -343,9 +341,6 @@ zle     -N    _fzf_zmj
 #    zle reset-prompt
 # }
 # zle     -N    _fzf_zmfj
-
-
-
 
 _ezoom() {
 	 # echo "zsh/functions.sh: 1: 76 $1"
@@ -504,13 +499,15 @@ __zm_checkclash(){
 				 zmrm "$zm"
 			else
 				 eval "$clash_fail=true"
-				 echo "zshmarks/init.zsh: 544 clash_fail: $clash_fail"
 				 return 1
 			fi
 	 }
 
 __zm_checkhashclash(){
+	 # local hash_already_exists=$(echo ~"$zm_name" 2> /dev/null)
 	 local hash_already_exists=$(echo ~"$zm_name")
+	 echo "zshmarks/init.zsh: 511 hash_already_exists: $hash_already_exists"
+	 # local hash_already_exists='foo'
 	 if [[ -n $hash_already_exists ]]; then
 			# printf "${RED}Named hash clash: $hash_already_exists ${NOCOLOR}\n"
 			printf "${RED} ~$zm_name clashes. Named hash: $zm_name=$hash_already_exists ${NOCOLOR}\n"
