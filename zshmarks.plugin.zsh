@@ -47,28 +47,34 @@ function _gen_zshmarks_named_dirs(){
 	 if [[  -f "$ZM_NAMED_DIRS" ]]; then
 			\rm -f "$ZM_NAMED_DIRS"
 	 fi
-	 while read line
-	 do
-			dir="${line%%|*}"
-			bm="${line##*|}"
-			echo "~$bm"
-			echo "hash -d $bm=$dir" >> "$ZM_NAMED_DIRS"
-	 done < "$ZM_DIRS_FILE"
-	 return 
+
+	 if [[  -f "$ZM_DIRS_FILE" ]]; then
+			while read line
+			do
+				 dir="${line%%|*}"
+				 bm="${line##*|}"
+				 echo "~$bm"
+				 echo "hash -d $bm=$dir" >> "$ZM_NAMED_DIRS"
+			done < "$ZM_DIRS_FILE"
+			return 
+	 fi
 }
 
 function _gen_zshmarks_named_files(){
 	 if [[  -f "$ZM_NAMED_FIlES" ]]; then
 			\rm -f "$ZM_NAMED_FIlES"
 	 fi
-	 while read line
-	 do
-			dir="${line%%|*}"
-			bm="${line##*|}"
-			echo "~$bm"
-			echo "hash -d $bm=$dir" >> "$ZM_NAMED_FIlES"
-	 done < "$ZM_FILES_FILE"
-	 return 
+
+	 if [[  -f "$ZM_FILES_FILE" ]]; then
+			while read line
+			do
+				 dir="${line%%|*}"
+				 bm="${line##*|}"
+				 echo "~$bm"
+				 echo "hash -d $bm=$dir" >> "$ZM_NAMED_FIlES"
+			done < "$ZM_FILES_FILE"
+			return 
+	 fi
 }
 
 # Check if $ZMARKS_DIR is a symlink.
