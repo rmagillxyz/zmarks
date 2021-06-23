@@ -275,7 +275,6 @@ function _zm_clear_all_files(){
 	 __zm_move_to_trash "$ZM_FILES_FILE"
 }
 
-
 function __ask_to_overwrite_zm_dir() {
 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
 	 [ ! $# -ge 1 ] && echo "$usage" && return 1 
@@ -348,7 +347,7 @@ function _ezoom() {
 }
 
 function zm_jump_n_source() {
-	 zmj "$1" "$2"
+	 _zm_file_jump "$1" "$2"
 	 source ~"$1"
 }
 

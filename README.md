@@ -21,6 +21,8 @@ Commands/Usage:
         cd 'some_dir'
         zm 'foo'
 
+* zmf - used to create a new file bookmark
+ 
 * zmrm - used to delete a bookmark
 
         zmrm 'foo'
@@ -33,10 +35,18 @@ Commands/Usage:
 Additional commands:
 -------------------
 
-* _zm_clear_all - clear all 
+* zm_jump_n_source - jump to zsh file and source on save/quit  
+* _zm_dir_jump - only checks and completes with directories
+* _zm_file_jump - only checks and completes with files 
+* _zm_clear_all - clear all (directories and files)
 * _zm_clear_all_dirs - clear all directories
 * _zm_clear_all_files - clear all files
-* 
+
+FZF bindings: 
+------------
+_fzf_zm_jump (directories and files)
+_fzf_zm_dir_jump
+_fzf_zm_file_jump
 
 
 
