@@ -8,7 +8,7 @@ How to install
 `git clone http://github.com/rmagillxyz/zmarks ~/.config/zsh`
 and install [fzf](https://github.com/junegunn/fzf#installation)
 
-then add `source "$HOME/.config/zsh/zshmarks/init.zsh"` to your `.zshrc`
+then add `source "$HOME/.config/zsh/zmarks/init.zsh"` to your `.zshrc`
 
 Commands/Usage:
 --------------

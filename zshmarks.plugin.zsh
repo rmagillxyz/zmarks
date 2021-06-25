@@ -8,9 +8,9 @@
 #        DEPENDS: fzf
 # ------------------------------------------------------------------------------
 if [[ -z $ZDOTDIR ]];then
-	 fpath=("$HOME/.config/zsh/zshmarks/functions" $fpath)
+	 fpath=("$HOME/.config/zsh/zmarks/functions" $fpath)
 else
-	 fpath=("$ZDOTDIR/zshmarks/functions" $fpath)
+	 fpath=("$ZDOTDIR/zmarks/functions" $fpath)
 fi
 
 # dir="${foo%%|*}"
@@ -18,7 +18,7 @@ fi
 RED='\033[0;31m'
 NOCOLOR='\033[0m'
 
-# echo "zshmarks/zshmarks.plugin.zsh: 16 EDITOR : $EDITOR "
+# echo "zmarks/zmarks.plugin.zsh: 16 EDITOR : $EDITOR "
 if [[ -z $EDITOR ]]; then
 	 echo "set \$EDITOR environment variable to choose editor"
 	 echo "defaulting to nvim or vim"
@@ -43,7 +43,7 @@ ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
 
 
 ## could just remove one instead of rebuilting
-function _gen_zshmarks_named_dirs(){
+function _gen_zmarks_named_dirs(){
 	 if [[  -f "$ZM_NAMED_DIRS" ]]; then
 			\rm -f "$ZM_NAMED_DIRS"
 	 fi
@@ -60,7 +60,7 @@ function _gen_zshmarks_named_dirs(){
 	 fi
 }
 
-function _gen_zshmarks_named_files(){
+function _gen_zmarks_named_files(){
 	 if [[  -f "$ZM_NAMED_FIlES" ]]; then
 			\rm -f "$ZM_NAMED_FIlES"
 	 fi
@@ -85,8 +85,8 @@ fi
 if [[ ! -f $ZM_DIRS_FILE ]]; then
 	 touch $ZM_DIRS_FILE
 else 
-	 _gen_zshmarks_named_dirs 1> /dev/null
-	 _gen_zshmarks_named_files 1> /dev/null
+	 _gen_zmarks_named_dirs 1> /dev/null
+	 _gen_zmarks_named_files 1> /dev/null
 fi
 
 [ -f "$ZM_NAMED_DIRS" ] && source "$ZM_NAMED_DIRS" 
@@ -163,7 +163,7 @@ function zm() {
 	source "$ZM_NAMED_DIRS"
 }
 
-function __zshmarks_zgrep() {
+function __zmarks_zgrep() {
 	 local outvar="$1"; shift
 	 local pattern="$1"
 	 local filename="$2"
@@ -182,8 +182,8 @@ function __zshmarks_zgrep() {
 function zmj() {
 	 local zm_name=$1
 	 local zm
-	 if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
-			if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
+	 if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+			if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
 				 echo "Invalid name, please provide a valid zmark name. For example:"
 				 echo "zmj foo [pattern]"
 				 echo
@@ -211,12 +211,12 @@ function zms() {
 	 # local zm_file="$(<$ZM_DIRS_FILE <$ZM_FILES_FILE)"
 	 local zm_file=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
 	 local zm_array; zm_array=(${(f)zm_file});
-	 # echo "zshmarks/init.zsh: 226 zm_array: $zm_array"
+	 # echo "zmarks/init.zsh: 226 zm_array: $zm_array"
 	 local zm_name zm_path zm_line
 	 if [[ $# -eq 1 ]]; then
 			zm_name="*\|${1}"
 			zm_line=${zm_array[(r)$zm_name]}
-			echo "zshmarks/zshmarks.plugin.zsh: 226 zm_line: $zm_line"
+			echo "zmarks/zmarks.plugin.zsh: 226 zm_line: $zm_line"
 			zm_path="${zm_line%%|*}"
 			zm_path="${zm_path/\$HOME/~}"
 			printf "%s \n" $zm_path
@@ -261,8 +261,8 @@ function zmrm()  {
 
 						# generate new named dir to sync with marks
 						hash -d -r  # rebuild hash table
-						_gen_zshmarks_named_dirs 1> /dev/null
-						_gen_zshmarks_named_files 1> /dev/null
+						_gen_zmarks_named_dirs 1> /dev/null
+						_gen_zmarks_named_files 1> /dev/null
 						echo "Deleted and synced named hashes"
 			fi
 	 fi
@@ -307,7 +307,7 @@ _fzf_zm_jump(){
 	 [[ -z "$dest" ]] && zle reset-prompt && return 1
 
 	 # could also use zgrep here
-	 # if ! __zshmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+	 # if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 	 # TODO why do I need eval here?
 	 if [ -d $(eval "echo $dest") ]; then
 			echo "we gotta dir"
@@ -361,7 +361,7 @@ function zm_jump_n_source() {
 function _zm_file_jump() {
 	 local editmark_name=$1
 	 local editmark
-	 if ! __zshmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
+	 if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
 			echo "Invalid name, please provide a valid zmark name. For example:"
 			echo "zmj foo [pattern]"
 			echo
@@ -380,7 +380,7 @@ function _zm_file_jump() {
 function _zm_dir_jump() {
 	 local zmark_name=$1
 	 local zmark
-	 if ! __zshmarks_zgrep zmark "\\|$zmark_name\$" "$ZM_DIRS_FILE"; then
+	 if ! __zmarks_zgrep zmark "\\|$zmark_name\$" "$ZM_DIRS_FILE"; then
 			echo "Invalid directory zmark name, please provide a valid zmark name. For example:"
 			echo "_zm_dir_jump foo [pattern]"
 			echo
@@ -419,11 +419,11 @@ function zmf() {
 			cur_dir="$(pwd)"
 			zm_file_path="$cur_dir"
 			zm_file_path+="/$zm_name"
-			echo "zshmarks/init.zsh: 385 zm_file_path: $zm_file_path"
+			echo "zmarks/init.zsh: 385 zm_file_path: $zm_file_path"
 
 	 elif [[ -z $zm_file_path ]]; then
 			zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
-			echo "zshmarks/init.zsh: 409 zm_file_path: $zm_file_path"
+			echo "zmarks/init.zsh: 409 zm_file_path: $zm_file_path"
 			if [[ -z "$zm_file_path" ]]; then
 				 return 1
 			fi
@@ -450,7 +450,7 @@ function zmf() {
 			 read answer
 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
 					zmrm "$overwrite"
-					echo "zshmarks/init.zsh: 494 zm_file_path: $zm_file_path"
+					echo "zmarks/init.zsh: 494 zm_file_path: $zm_file_path"
 					zmf "$replacement" "$zm_file_path"
 			 else
 					return 1
@@ -526,7 +526,7 @@ function __zm_checkclash(){
 			}
 
 	 # check marks for collision
-	 if  __zshmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
+	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
 			if [[ $zm_path == $ZM_FILES_FILE ]];then
 				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark file?: $clash (y/n)? "
