@@ -7,11 +7,15 @@
 #        VERSION: 0.7
 #        DEPENDS: fzf
 # ------------------------------------------------------------------------------
-if [[ -z $ZDOTDIR ]];then
-	 fpath=("$HOME/.config/zsh/zmarks/functions" $fpath)
-else
-	 fpath=("$ZDOTDIR/zmarks/functions" $fpath)
-fi
+
+
+ [[ -d $ZDOTDIR ]] && fpath=("$ZDOTDIR/zmarks/functions" $fpath)
+
+# if [[ -z $ZDOTDIR ]];then
+# 	 fpath=("$HOME/.config/zsh/zmarks/functions" $fpath)
+# else
+# 	 fpath=("$ZDOTDIR/zmarks/functions" $fpath)
+# fi
 
 # dir="${foo%%|*}"
 # zm="${foo##*|}"

@@ -5,7 +5,9 @@ A fork of [Zshmarks (by Jocelyn Mallon)](https://github.com/jocelynmallon/zshmar
 
 How to install
 --------------
-`git clone http://github.com/rmagillxyz/zmarks ~/.config/zsh`
+Make sure ZDOTDIR environment variable is set.
+
+`git clone http://github.com/rmagillxyz/zmarks ~/.config/zsh $ZDOTDIR`
 and install [fzf](https://github.com/junegunn/fzf#installation)
 
 then add `source "$HOME/.config/zsh/zmarks/init.zsh"` to your `.zshrc`
