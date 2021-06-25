@@ -40,10 +40,14 @@ if [[ -z $ZMARKS_DIR ]] ; then
 	 export ZMARKS_DIR="$HOME/.local/share/zsh"
 fi
 
+# echo "zmarks/init.zsh: 43 ZMARKS_DIR: $ZMARKS_DIR"
 ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
 ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
+# echo "zmarks/init.zsh: 48 ZM_FILES_FILE: $ZM_FILES_FILE"
+touch "$ZM_FILES_FILE"
+touch "$ZM_DIRS_FILE"
 
 
 ## could just remove one instead of rebuilting
@@ -52,7 +56,6 @@ function _gen_zmarks_named_dirs(){
 			\rm -f "$ZM_NAMED_DIRS"
 	 fi
 
-	 if [[  -f "$ZM_DIRS_FILE" ]]; then
 			while read line
 			do
 				 dir="${line%%|*}"
@@ -61,7 +64,6 @@ function _gen_zmarks_named_dirs(){
 				 echo "hash -d $bm=$dir" >> "$ZM_NAMED_DIRS"
 			done < "$ZM_DIRS_FILE"
 			return 
-	 fi
 }
 
 function _gen_zmarks_named_files(){
@@ -69,7 +71,6 @@ function _gen_zmarks_named_files(){
 			\rm -f "$ZM_NAMED_FIlES"
 	 fi
 
-	 if [[  -f "$ZM_FILES_FILE" ]]; then
 			while read line
 			do
 				 dir="${line%%|*}"
@@ -78,7 +79,6 @@ function _gen_zmarks_named_files(){
 				 echo "hash -d $bm=$dir" >> "$ZM_NAMED_FIlES"
 			done < "$ZM_FILES_FILE"
 			return 
-	 fi
 }
 
 # Check if $ZMARKS_DIR is a symlink.
@@ -86,12 +86,19 @@ if [[ -L "$ZM_DIRS_FILE" ]]; then
 	 ZM_DIRS_FILE=$(readlink $ZM_DIRS_FILE)
 fi
 
-if [[ ! -f $ZM_DIRS_FILE ]]; then
-	 touch $ZM_DIRS_FILE
-else 
-	 _gen_zmarks_named_dirs 1> /dev/null
-	 _gen_zmarks_named_files 1> /dev/null
+if [[ -L "$ZM_FILES_FILE" ]]; then
+	 ZM_FILES_FILE=$(readlink $ZM_FILES_FILE)
 fi
+
+# if [[ ! -f $ZM_DIRS_FILE  ]]; then
+# 	 touch $ZM_DIRS_FILE
+# else 
+# 	 _gen_zmarks_named_dirs 1> /dev/null
+# 	 _gen_zmarks_named_files 1> /dev/null
+# fi
+
+# _gen_zmarks_named_dirs 1> /dev/null
+# _gen_zmarks_named_files 1> /dev/null
 
 [ -f "$ZM_NAMED_DIRS" ] && source "$ZM_NAMED_DIRS" 
 [ -f "$ZM_NAMED_FIlES" ] && source "$ZM_NAMED_FIlES" 
@@ -114,6 +121,7 @@ function __zm_move_to_trash(){
 	 fi
 }
 
+# mark_dir
 function zm() {
 	 local zm_name=$1
 	 if [[ -z $zm_name ]]; then
@@ -171,7 +179,9 @@ function __zmarks_zgrep() {
 	 local outvar="$1"; shift
 	 local pattern="$1"
 	 local filename="$2"
+	 echo "zmarks/init.zsh: 174 filename: $filename"
 	 [[ ! -f $filename ]] && return
+	 echo "past return zmarks/init.zsh: 174 filename: $filename"
 	 local file_contents="$(<"$filename")"
 	 local file_lines; file_lines=(${(f)file_contents})
 
@@ -401,7 +411,7 @@ function _zm_dir_jump() {
 	 fi
 }
 
-
+# mark_file
 function zmf() {
 	 local zm_name="$1"
 
@@ -532,7 +542,8 @@ function __zm_checkclash(){
 
 	 # check marks for collision
 	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
-			if [[ $zm_path == $ZM_FILES_FILE ]];then
+			# TODO BUG: true when file ZM_FILES_FILE does not exist. may be fixed
+	 		if [[ $zm_path == $ZM_FILES_FILE ]];then
 				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
 				 echo -n "delete zmark file?: $clash (y/n)? "
 				 __asktodelete "$clash"
