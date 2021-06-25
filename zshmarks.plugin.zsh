@@ -179,11 +179,11 @@ function __zmarks_zgrep() {
 	 local outvar="$1"; shift
 	 local pattern="$1"
 	 local filename="$2"
-	 echo "zmarks/init.zsh: 174 filename: $filename"
-	 [[ ! -f $filename ]] && return
-	 echo "past return zmarks/init.zsh: 174 filename: $filename"
+	 # There was a BUG here, but now files should always exist
+	 # [[ ! -f $filename ]] && return
 	 local file_contents="$(<"$filename")"
 	 local file_lines; file_lines=(${(f)file_contents})
+
 
 	 for line in "${file_lines[@]}"; do
 			if [[ "$line" =~ "$pattern" ]]; then
