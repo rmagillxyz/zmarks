@@ -167,6 +167,7 @@ function __zmarks_zgrep() {
 	 local outvar="$1"; shift
 	 local pattern="$1"
 	 local filename="$2"
+	 [[ ! -f $filename ]] && return
 	 local file_contents="$(<"$filename")"
 	 local file_lines; file_lines=(${(f)file_contents})
 
