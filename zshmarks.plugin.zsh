@@ -44,7 +44,10 @@ fi
 ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
-ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
+ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
+
+# ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
+
 # echo "zmarks/init.zsh: 48 ZM_FILES_FILE: $ZM_FILES_FILE"
 touch "$ZM_FILES_FILE"
 touch "$ZM_DIRS_FILE"
@@ -425,7 +428,7 @@ function zmf() {
 	 local zm_clash_fail
 	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
 
-	 [[ -n $zm_clash_fail ]] && return 1
+	 [[ -n $zm_clash_fail ]] && return 2
 
 	 local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
 
@@ -449,6 +452,7 @@ function zmf() {
 		if [[ "$zm_file_path" =~ ^"$HOME"(/|$) ]]; then
 			 zm_file_path="\$HOME${zm_file_path#$HOME}"
 		fi
+
 		# Store the zm as directory|name
 		zm="$zm_file_path|$zm_name"
 
@@ -473,7 +477,8 @@ function zmf() {
 		}
 
 	# TODO: this could be sped up sorting and using a search algorithm
-	# refactor into function to deal with fils and dirs
+	# refactor into function to deal with files and dirs
+	# check for duplicates
 	for line in $(cat $ZM_FILES_FILE) 
 	do
 
@@ -499,13 +504,16 @@ function zmf() {
 		 fi
 	done
 
-	# no duplicates, make zm
-	echo $zm >> "$ZM_FILES_FILE"
-	echo "zmark file '$zm_name' saved"
+	if [[ -n "$zm_name" && -n "$zm_file_path" ]]; then
+		 echo $zm >> "$ZM_FILES_FILE"
+		 echo "zmark file '$zm_name' saved"
 
-	echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_DIRS"
-	echo "Created named file ~$zm_name"
-	source "$ZM_NAMED_FIlES"
+		 echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_DIRS"
+		 echo "Created named file ~$zm_name"
+		 source "$ZM_NAMED_FIlES"
+	else
+		 echo "something went wrong. Mark or path is not assigned"
+	fi
 }
 
 
