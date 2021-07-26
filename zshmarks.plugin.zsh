@@ -508,7 +508,8 @@ function zmf() {
 		 echo $zm >> "$ZM_FILES_FILE"
 		 echo "zmark file '$zm_name' saved"
 
-		 echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_DIRS"
+		 # echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
+		 echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
 		 echo "Created named file ~$zm_name"
 		 source "$ZM_NAMED_FIlES"
 	else
