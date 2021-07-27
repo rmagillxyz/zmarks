@@ -6,6 +6,7 @@ A fork of [Zshmarks (by Jocelyn Mallon)](https://github.com/jocelynmallon/zshmar
 How to install
 --------------
 Make sure ZDOTDIR environment variable is set.
+Only works with neovim/vim as default editor
 
 `git clone http://github.com/rmagillxyz/zmarks ~/.config/zsh $ZDOTDIR`
 and install [fzf](https://github.com/junegunn/fzf#installation)

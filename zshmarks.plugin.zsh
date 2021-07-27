@@ -363,11 +363,22 @@ _fzf_zm_file_jump(){
 zle     -N    _fzf_zm_file_jump
 
 function _ezoom() {
-	 if [ -z "$2" ]; then
-			"$EDITOR" "$1"
-	 else
-			"$EDITOR" +/"$2" "$1"	
+	 if [[ -z $2 ]]; then
+			has_zoom_mark = grep '__ezoom__' "$filename"
+			if [[ -n $has_zoom_mark ]]; then
+				"$EDITOR" "$filename" "__ezoom__"
+			else
+				"$EDITOR" "$filename"
+			fi
+		 else
+				"$EDITOR" "$filename" "$2"
 	 fi
+
+	 # if [ -z "$2" ]; then
+	 # 			"$EDITOR" "$1"
+	 # else
+	 # 			"$EDITOR" +/"$2" "$1"	
+	 # fi
 }
 
 function zm_jump_n_source() {
