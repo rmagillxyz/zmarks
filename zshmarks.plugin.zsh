@@ -210,11 +210,13 @@ function zmj() {
 				 echo "zmf <name>"
 				 return 1
 			else
+				 echo 'DEBUG zmj: found file'
 				 local filename="${zm%%|*}"
 				 zmoom "$filename" "$2"
 			fi
 
 	 else
+			echo 'DEBUG zmj: found dir'
 			local dir="${zm%%|*}"
 			eval "cd \"${dir}\""
 			eval "ls \"${dir}\""
@@ -382,32 +384,41 @@ zle     -N    _fzf_zm_file_jump
 # 	 # fi
 # }
 
+# TODO
+# could just get rid of this and source any files which resize in ZDOTDIR immediately
 function zm_jump_n_source() {
-	 zmoom "$1" "$2"
+	 # zmoom "$1" "$2"
+	 zmj "$1" "$2"
 	 source ~"$1"
 }
 
 # jump to marked file
 # function _zm_file_jump() {
 function zmoom() {
-	 local editmark_name=$1
-	 local editmark
+	 # local editmark_name=$1
+	 local filename=$1
+	 # echo "zmarks/init.zsh: 396 editmark_name: $editmark_name"
+	 # echo "zmarks/init.zsh: 396 editmark_name: ~$editmark_name"
+	 # local editmark
 	 # add arg here to prevent checking twice if already checked by zmj
-	 if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
-			echo 'zmoom'
-			echo "Invalid name, please provide a valid zmark name. For example:"
-			echo "zmj foo [pattern]"
-			echo
-			echo "To mark a directory:"
-			echo "zm <name>"
-			echo "To mark a file:"
-			echo "zmf <name>"
-			return 1
-	 else
-			local filename="${editmark%%|*}"
+	 # if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
+	 # if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
+	 # 			echo 'zmoom'
+	 # 			echo "Invalid name, please provide a valid zmark name. For example:"
+	 # 			echo "zmj foo [pattern]"
+	 # 			echo
+	 # 			echo "To mark a directory:"
+	 # 			echo "zm <name>"
+	 # 			echo "To mark a file:"
+	 # 			echo "zmf <name>"
+	 # 			return 1
+	 # else
+			# local filename="${editmark%%|*}"
 			# zmoom "$filename" "$2"
 			if [[ -z $2 ]]; then
-				 has_zoom_mark = grep "$ZOOM_MARK" "$filename"
+				 echo 'check for has_zoom_mark'
+				 has_zoom_mark=$(grep "$ZOOM_MARK" "$filename")
+				 echo "zmarks/init.zsh: 421 has_zoom_mark : $has_zoom_mark "
 				 if [[ -n $has_zoom_mark ]]; then
 					 # "$EDITOR" "$filename" "$ZOOM_MARK"
 					 "$EDITOR" +/"$ZOOM_MARK" "$filename"	
@@ -418,10 +429,29 @@ function zmoom() {
 					 # "$EDITOR" "$filename" "$2"
 					 "$EDITOR" +/"$2" "$filename"	
 			fi
-
-
-	 fi
+	 # fi
 }
+
+# function zmoom() {
+# 	 local editmark_name=$1
+# 	 echo "zmarks/init.zsh: 431 editmark_name: $editmark_name"
+# 	 local editmark
+# 	 echo "zmarks/init.zsh: 433 editmark: $editmark"
+# 	 echo "zmarks/init.zsh: 432 ZM_FILES_FILE: $ZM_FILES_FILE"
+# 	 if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
+# 			echo "Invalid name, please provide a valid zmark name. For example:"
+# 			echo "zmj foo [pattern]"
+# 			echo
+# 			echo "To mark a directory:"
+# 			echo "zm <name>"
+# 			echo "To mark a file:"
+# 			echo "zmf <name>"
+# 			return 1
+# 	 else
+# 			local filename="${editmark%%|*}"
+# 			_ezoom "$filename" "$2"
+# 	 fi
+# }
 
 # jump to marked dir
 function _zm_dir_jump() {
