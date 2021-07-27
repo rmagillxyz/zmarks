@@ -384,12 +384,6 @@ zle     -N    _fzf_zm_file_jump
 # 	 # fi
 # }
 
-# TODO
-# could just get rid of this and source any files which resize in ZDOTDIR immediately
-function zm_jump_n_source() {
-	 zmj "$1" "$2"
-	 source ~"$1"
-}
 
 # jump to marked file
 function zmoom() {
@@ -415,6 +409,34 @@ function zmvi() {
 	zmoom $(which $FILENAME) $2
 }
 
+# TODO
+# could just get rid of this and source any files which resize in ZDOTDIR immediately
+function zm_jump_n_source() {
+	 _zm_file_jump "$1" "$2"
+	 source ~"$1"
+}
+
+# works, but not currently being used
+# jump to marked file
+function _zm_file_jump() {
+	 local editmark_name=$1
+	 local editmark
+	 if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
+			echo "Invalid name, please provide a valid zmark name. For example:"
+			echo "zmj foo [pattern]"
+			echo
+			echo "To mark a directory:"
+			echo "zm <name>"
+			echo "To mark a file:"
+			echo "zmf <name>"
+			return 1
+	 else
+			local filename="${editmark%%|*}"
+			_ezoom "$filename" "$2"
+	 fi
+}
+
+# works, but not currently being used
 # jump to marked dir
 function _zm_dir_jump() {
 	 local zmark_name=$1
