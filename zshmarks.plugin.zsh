@@ -197,6 +197,11 @@ function __zmarks_zgrep() {
 }
 
 function zmj() {
+	 if [[ -z $1 ]];then
+			cd ~
+			return 
+	 fi
+
 	 local zm_name=$1
 	 local zm
 	 if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
