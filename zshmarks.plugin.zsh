@@ -44,9 +44,7 @@ fi
 ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
-ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
-
-# ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
+ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
 
 # echo "zmarks/init.zsh: 48 ZM_FILES_FILE: $ZM_FILES_FILE"
 touch "$ZM_FILES_FILE"
@@ -103,8 +101,8 @@ fi
 # _gen_zmarks_named_dirs 1> /dev/null
 # _gen_zmarks_named_files 1> /dev/null
 
-[ -f "$ZM_NAMED_DIRS" ] && source "$ZM_NAMED_DIRS" 
-[ -f "$ZM_NAMED_FIlES" ] && source "$ZM_NAMED_FIlES" 
+ [ -f $ZM_NAMED_DIRS ] && source "$ZM_NAMED_DIRS" 
+ [ -f $ZM_NAMED_FIlES ] && source "$ZM_NAMED_FIlES" 
 
 
 function __zm_move_to_trash(){
