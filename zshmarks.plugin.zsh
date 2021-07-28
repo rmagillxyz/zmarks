@@ -196,6 +196,7 @@ function __zmarks_zgrep() {
 	 return 1
 }
 
+# jump
 function zmj() {
 	 if [[ -z $1 ]];then
 			cd ~
@@ -215,20 +216,20 @@ function zmj() {
 				 echo "zmf <name>"
 				 return 1
 			else
-				 echo 'DEBUG zmj: found file'
+				 # echo 'DEBUG zmj: found file'
 				 local filename="${zm%%|*}"
 				 zmoom "$filename" "$2"
 			fi
 
 	 else
-			echo 'DEBUG zmj: found dir'
+			# echo 'DEBUG zmj: found dir'
 			local dir="${zm%%|*}"
 			eval "cd \"${dir}\""
 			eval "ls \"${dir}\""
 	 fi
 }
 
-# Show a list of the zmarks
+# Show a list of all the zmarks
 function zms() {
 	 # is zm_file is the contents of the file stored in a var
 	 # local zm_file="$(<${2:-$ZM_DIRS_FILE})"
@@ -254,7 +255,7 @@ function zms() {
 	 fi
 }
 
-# Delete a zm
+# remove a zm
 function zmrm()  {
 	 local zm_name="$1"
 	 local file_path="${2:-$ZM_DIRS_FILE}"
@@ -292,16 +293,16 @@ function zmrm()  {
 	 fi
 }
 
-function _zm_clear_all(){
+function __zm_clear_all(){
 	 __zm_move_to_trash "$ZM_DIRS_FILE"
 	 __zm_move_to_trash "$ZM_FILES_FILE"
 }
 
-function _zm_clear_all_dirs(){
+function __zm_clear_all_dirs(){
 	 __zm_move_to_trash "$ZM_DIRS_FILE"
 }
 
-function _zm_clear_all_files(){
+function __zm_clear_all_files(){
 	 __zm_move_to_trash "$ZM_FILES_FILE"
 }
 
@@ -325,6 +326,7 @@ function __ask_to_overwrite_zm_dir() {
 	 fi
 }
 
+# zsh fzf jump binding (all)
 _fzf_zm_jump(){
 	 local zm=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
 	 local dest="${zm%%|*}"
@@ -346,6 +348,7 @@ _fzf_zm_jump(){
 }
 zle     -N    _fzf_zm_jump
 
+# zsh fzf jump binding (dirs)
 _fzf_zm_dir_jump(){
 	local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
 	 if [[ -n $zm ]];then 
@@ -358,6 +361,7 @@ _fzf_zm_dir_jump(){
 }
 zle     -N    _fzf_zm_dir_jump
 
+# zsh fzf jump binding (files)
 _fzf_zm_file_jump(){
    local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
 	 if [[ -n $zm ]];then 
@@ -437,7 +441,8 @@ function _zm_file_jump() {
 			return 1
 	 else
 			local filename="${editmark%%|*}"
-			_ezoom "$filename" "$2"
+			# _ezoom "$filename" "$2"
+			zmoom "$filename" "$2"
 	 fi
 }
 
