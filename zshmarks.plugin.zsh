@@ -44,7 +44,7 @@ fi
 export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 export ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 export ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
-export ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
+export ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
 export ZMOOM_MARK="__zmoom__"
 
 # TODO should i just touch these or check if they exist and touch? 
