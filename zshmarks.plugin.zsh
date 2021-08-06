@@ -45,11 +45,14 @@ export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 export ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 export ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
 export ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
-export ZOOM_MARK="__zmoom__"
+export ZMOOM_MARK="__zmoom__"
 
+# TODO should i just touch these or check if they exist and touch? 
 # echo "zmarks/init.zsh: 48 ZM_FILES_FILE: $ZM_FILES_FILE"
 touch "$ZM_FILES_FILE"
 touch "$ZM_DIRS_FILE"
+touch "$ZM_NAMED_FILES"
+touch "$ZM_NAMED_DIRS"
 
 
 ## could just remove one instead of rebuilting
@@ -377,7 +380,7 @@ zle     -N    _fzf_zm_file_jump
 # 	 if [[ -z $2 ]]; then
 # 			has_zoom_mark = grep '__zmoom__' "$filename"
 # 			if [[ -n $has_zoom_mark ]]; then
-# 				"$EDITOR" "$filename" "$ZOOM_MARK"
+# 				"$EDITOR" "$filename" "$ZMOOM_MARK"
 # 			else
 # 				"$EDITOR" "$filename"
 # 			fi
@@ -399,10 +402,10 @@ function zmoom() {
 	 local filename=$1
 			if [[ -z $2 ]]; then
 				 echo 'check for has_zoom_mark'
-				 has_zoom_mark=$(grep "$ZOOM_MARK" "$filename")
+				 has_zoom_mark=$(grep "$ZMOOM_MARK" "$filename")
 				 echo "zmarks/init.zsh: 421 has_zoom_mark : $has_zoom_mark "
 				 if [[ -n $has_zoom_mark ]]; then
-					 "$EDITOR" +/"$ZOOM_MARK" "$filename"	
+					 "$EDITOR" +/"$ZMOOM_MARK" "$filename"	
 				 else
 					 "$EDITOR" "$filename"
 				 fi
