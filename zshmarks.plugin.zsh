@@ -41,11 +41,11 @@ if [[ -z $ZMARKS_DIR ]] ; then
 fi
 
 # echo "zmarks/init.zsh: 43 ZMARKS_DIR: $ZMARKS_DIR"
-ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
-ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
-ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
-ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
-ZOOM_MARK="__zmoom__"
+export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
+export ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
+export ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
+export ZM_NAMED_FIlES="$ZMARKS_DIR/zm_named_files"
+export ZOOM_MARK="__zmoom__"
 
 # echo "zmarks/init.zsh: 48 ZM_FILES_FILE: $ZM_FILES_FILE"
 touch "$ZM_FILES_FILE"
@@ -562,6 +562,8 @@ function zmf() {
 		 echo "zmark file '$zm_name' saved"
 
 		 # echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
+		 # TODO zmf ZM_NAMED_FILES is empty here!!! ZM_NAMED_FILES
+		 echo "zmarks/init.zsh: 565 ZM_NAMED_FILES: $ZM_NAMED_FILES"
 		 echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
 		 echo "Created named file ~$zm_name"
 		 source "$ZM_NAMED_FIlES"
