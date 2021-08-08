@@ -27,9 +27,9 @@ if [[ -z $EDITOR ]]; then
 	 echo "set \$EDITOR environment variable to choose editor"
 	 echo "defaulting to nvim or vim"
 	 if [[ -n $(command -v nvim) ]]; then 
-			export EDITOR="$(command -v nvim)"
+			EDITOR="$(command -v nvim)"
 	 else
-			export EDITOR="$(command -v vim)"
+			EDITOR="$(command -v vim)"
 	 fi
 fi
 
@@ -37,15 +37,15 @@ fi
 # Allows for a user-configured ZMARKS_DIR.
 if [[ -z $ZMARKS_DIR ]] ; then
 	 [[ ! -d "$HOME/.local/share/zsh" ]] && mkdir -p "$HOME/.local/share/zsh" 
-	 export ZMARKS_DIR="$HOME/.local/share/zsh"
+	 ZMARKS_DIR="$HOME/.local/share/zsh"
 fi
 
 # echo "zmarks/init.zsh: 43 ZMARKS_DIR: $ZMARKS_DIR"
-export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
-export ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
-export ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
-export ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
-export ZMOOM_MARK="__zmoom__"
+ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
+ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
+ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
+ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
+ZMOOM_MARK="__zmoom__"
 
 # TODO should i just touch these or check if they exist and touch? 
 # echo "zmarks/init.zsh: 48 ZM_FILES_FILE: $ZM_FILES_FILE"
@@ -72,8 +72,8 @@ function _gen_zmarks_named_dirs(){
 }
 
 function _gen_zmarks_named_files(){
-	 if [[  -f "$ZM_NAMED_FIlES" ]]; then
-			\rm -f "$ZM_NAMED_FIlES"
+	 if [[  -f "$ZM_NAMED_FILES" ]]; then
+			\rm -f "$ZM_NAMED_FILES"
 	 fi
 
 			while read line
@@ -81,7 +81,7 @@ function _gen_zmarks_named_files(){
 				 dir="${line%%|*}"
 				 bm="${line##*|}"
 				 echo "~$bm"
-				 echo "hash -d $bm=$dir" >> "$ZM_NAMED_FIlES"
+				 echo "hash -d $bm=$dir" >> "$ZM_NAMED_FILES"
 			done < "$ZM_FILES_FILE"
 			return 
 }
@@ -106,7 +106,7 @@ fi
 # _gen_zmarks_named_files 1> /dev/null
 
  [ -f $ZM_NAMED_DIRS ] && source "$ZM_NAMED_DIRS" 
- [ -f $ZM_NAMED_FIlES ] && source "$ZM_NAMED_FIlES" 
+ [ -f $ZM_NAMED_FILES ] && source "$ZM_NAMED_FILES" 
 
 
 function __zm_move_to_trash(){
@@ -569,7 +569,7 @@ function zmf() {
 		 echo "zmarks/init.zsh: 565 ZM_NAMED_FILES: $ZM_NAMED_FILES"
 		 echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
 		 echo "Created named file ~$zm_name"
-		 source "$ZM_NAMED_FIlES"
+		 source "$ZM_NAMED_FILES"
 	else
 		 echo "something went wrong. Mark or path is not assigned"
 	fi
