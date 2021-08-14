@@ -154,9 +154,7 @@ function zm() {
 
 		 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
 
-				printf "${RED}zmark name is already being used: \n
-				$zm_name 	 $(zms $zm_name)${NOCOLOR}\n 
-				"
+				printf "${RED}zmark name is already being used:\n$zm_name\t$(zms $zm_name)${NOCOLOR}\n"
 
 				echo -n "Remove $zm_name?  (y/n)? "
 				 read answer
@@ -167,11 +165,23 @@ function zm() {
 				 fi
 
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
-				echo "zmark path already existed"
-				echo "old: $line"
-				echo "new: $new_zm_line"
+
+				# TODO create function which takes a raw zmark line as input and ouputs formatted line or overwrites arguments passed
+				local zm_clashed_path="${line%%|*}"
+					# zm_clashed_path="${zm_clashed_path/\$HOME/\~}"
+					zm_clashed_path="${zm_clashed_path/\$HOME/~}"
+					zm_clashed_path_name="${line#*|}"
+					echo "zmarks/init.zsh: 175 zm_clashed_path_name: $zm_clashed_path_name"
+					# zm_clash_formatted+="${zm_clashed_path_name}:${zm_clashed_path}"
+
+				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t$zm_clashed_path${NOCOLOR}\n"
+
+				# echo "old: $line"
+				# echo "new: $new_zm_line"
 				local bm="${line##*|}"
-				__ask_to_overwrite_zm_dir $bm $zm_name 
+				echo "zmarks/init.zsh: 185 bm: $bm"
+				# __ask_to_overwrite_zm_dir $bm $zm_name 
+				__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name 
 				return 1
 		 fi
 	done
