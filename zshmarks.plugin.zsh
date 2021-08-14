@@ -482,7 +482,8 @@ function zmf() {
 	 fi
 
 	 local zm_clash_fail
-	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
+	 # __zm_checkclash zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
+	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
 
 	 [[ -n $zm_clash_fail ]] && return 2
 
@@ -581,8 +582,11 @@ function __zm_checkclash(){
 	 # usage='usage: ${FUNCNAME[0]} zm_clash_fail  $zm_name $ZM_X_FILE'
 
 	 local clash_fail="$1"; shift
+	 echo "zmarks/init.zsh: 584 clash_fail: $clash_fail"
 	 local zm_name="$1"
+	 echo "zmarks/init.zsh: 586 zm_name: $zm_name"
 	 local zm_path="$2"
+	 echo "zmarks/init.zsh: 588 zm_path: $zm_path"
 
 	 local clash
 
@@ -605,7 +609,7 @@ function __zm_checkclash(){
 				 eval "$clash_fail=true"
 				 return 1
 				 fi
-			}
+	 }
 
 	 # check marks for collision
 	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
