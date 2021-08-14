@@ -181,7 +181,8 @@ function zm() {
 				local bm="${line##*|}"
 				echo "zmarks/init.zsh: 185 bm: $bm"
 				# __ask_to_overwrite_zm_dir $bm $zm_name 
-				__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name 
+				# __ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name $cur_dir
+				__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name
 				return 1
 		 fi
 	done
@@ -332,11 +333,20 @@ function __ask_to_overwrite_zm_dir() {
 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement>'
 	 [ ! $# -ge 1 ] && echo "$usage" && return 1 
 
-	 local overwrite=$1
-	 local replacement=$1
-	 [[  $# == 2 ]] && replacement=$2
-	 echo "overwrite: $overwrite"
-	 echo "replacement: $replacement"
+	 local overwrite="$1"
+	 local replacement
+	 [[  $# -gt 1 ]] && replacement="$2" || replacement="$1"
+
+# 	 local overwrite="$1 	$(zms $1)"
+# 	 local replacement="$1	${3/\$HOME/~}"
+
+
+	 printf "overwrite: $overwrite\t$(zms $overwrite)\n"
+	 printf "replacement: $replacement\t${cur_dir/\$HOME/~}\n"
+
+					
+	 # echo "overwrite: $overwrite"
+	 # echo "replacement: $replacement"
 
 	 echo -n "overwrite mark $1 (y/n)? "
 	 read answer
