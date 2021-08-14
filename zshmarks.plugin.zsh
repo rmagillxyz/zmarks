@@ -129,9 +129,11 @@ function __zm_move_to_trash(){
 # mark_dir
 function zm() {
 	 local zm_name=$1
+	 echo "zmarks/init.zsh: 132 zm_name: $zm_name"
 	 if [[ -z $zm_name ]]; then
 			zm_name="${PWD##*/}"
 	 fi
+	 echo "zmarks/init.zsh: 136 zm_name: $zm_name"
 	 cur_dir="$(pwd)"
 	 # Replace /home/uname with $HOME
 	 if [[ "$cur_dir" =~ ^"$HOME"(/|$) ]]; then
@@ -139,7 +141,7 @@ function zm() {
 	 fi
 
 		# Store the zmark as directory|name
-		zm="$cur_dir|$zm_name"
+		local new_zm_line="$cur_dir|$zm_name"
 
 	# TODO: this could be sped up sorting and using a search algorithm
 	for line in $(cat $ZM_DIRS_FILE) 
@@ -151,16 +153,27 @@ function zm() {
 		 fi 
 
 		 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
-				echo "zmark name already existed"
-				echo "old: $line"
-				echo "new: $zm"
-				__ask_to_overwrite_zm_dir $zm_name 
-				return 1
+
+				printf "${RED}zmark name is already being used: $zm_name ${NOCOLOR}\n"
+
+				echo -n "Remove $zm_name?  (y/n)? "
+				 read answer
+				 if  [ "$answer" != "${answer#[Yy]}" ];then 
+						zmrm $zm_name
+						zm $zm_name
+						return 
+				 fi
+
+				# echo "zmark name already existed"
+# 				echo "old: $line"
+# 				echo "new: $new_zm_line"
+# 				__ask_to_overwrite_zm_dir $zm_name 
+# 				return 1
 
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
 				echo "zmark dir already existed"
 				echo "old: $line"
-				echo "new: $zm"
+				echo "new: $new_zm_line"
 				local bm="${line##*|}"
 				__ask_to_overwrite_zm_dir $bm $zm_name 
 				return 1
@@ -172,8 +185,8 @@ function zm() {
 	[[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
 
 	# no duplicates, make mark
-	echo $zm >> $ZM_DIRS_FILE
-	echo "zm '$zm_name' saved"
+	echo $new_zm_line >> $ZM_DIRS_FILE
+	echo "zmark '$zm_name' saved"
 
 	echo "hash -d $zm_name=$cur_dir" >> "$ZM_NAMED_DIRS"
 	echo "Created named dir ~$zm_name"
