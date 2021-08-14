@@ -154,7 +154,9 @@ function zm() {
 
 		 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
 
-				printf "${RED}zmark name is already being used: $zm_name ${NOCOLOR}\n"
+				printf "${RED}zmark name is already being used: \n
+				$zm_name 	 $(zms $zm_name)${NOCOLOR}\n 
+				"
 
 				echo -n "Remove $zm_name?  (y/n)? "
 				 read answer
@@ -164,14 +166,8 @@ function zm() {
 						return 
 				 fi
 
-				# echo "zmark name already existed"
-# 				echo "old: $line"
-# 				echo "new: $new_zm_line"
-# 				__ask_to_overwrite_zm_dir $zm_name 
-# 				return 1
-
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
-				echo "zmark dir already existed"
+				echo "zmark path already existed"
 				echo "old: $line"
 				echo "new: $new_zm_line"
 				local bm="${line##*|}"
@@ -257,7 +253,7 @@ function zms() {
 	 if [[ $# -eq 1 ]]; then
 			zm_name="*\|${1}"
 			zm_line=${zm_array[(r)$zm_name]}
-			echo "zmarks/zmarks.plugin.zsh: 226 zm_line: $zm_line"
+			# echo "zmarks/zmarks.plugin.zsh: 226 zm_line: $zm_line"
 			zm_path="${zm_line%%|*}"
 			zm_path="${zm_path/\$HOME/~}"
 			printf "%s \n" $zm_path
