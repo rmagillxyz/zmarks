@@ -243,28 +243,36 @@ function zmj() {
 
 # Show a list of all the zmarks
 function zms() {
-	 # is zm_file is the contents of the file stored in a var
-	 # local zm_file="$(<${2:-$ZM_DIRS_FILE})"
-	 # local zm_file="$(<$ZM_DIRS_FILE <$ZM_FILES_FILE)"
+	 # zm_file is the contents of the file stored in a var
 	 local zm_file=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
 	 local zm_array; zm_array=(${(f)zm_file});
-	 # echo "zmarks/init.zsh: 226 zm_array: $zm_array"
 	 local zm_name zm_path zm_line
+
 	 if [[ $# -eq 1 ]]; then
 			zm_name="*\|${1}"
 			zm_line=${zm_array[(r)$zm_name]}
-			# echo "zmarks/zmarks.plugin.zsh: 226 zm_line: $zm_line"
-			zm_path="${zm_line%%|*}"
-			zm_path="${zm_path/\$HOME/~}"
-			printf "%s \n" $zm_path
+			__zm_printformattedline "$zm_line"
 	 else
 			for zm_line in $zm_array; do
-				 zm_path="${zm_line%%|*}"
-				 zm_path="${zm_path/\$HOME/~}"
-				 zm_name="${zm_line#*|}"
-				 printf "%s\t\t%s\n" "$zm_name" "$zm_path"
+				 echo 'printing formatted line'
+				 __zm_printformattedline "$zm_line"
 			done
 	 fi
+}
+
+# TODO write format function for hash -d from line
+__zm_printformattedline(){
+	 local zm_line="$1"
+	 local zm_path="${zm_line%%|*}"
+	 local zm_path="${zm_path/\$HOME/~}"
+	 local zm_name="${zm_line#*|}"
+	 printf "%s\t\t--  %s\n" "$zm_name" "$zm_path"
+
+# 	 if [[ "$#" -gt 1 ]]; then
+# 				 eval "$2=\"$zm_path\""
+# 				 eval "$3=\"$zm_name\""
+# 	 fi
+
 }
 
 # remove a zm
@@ -543,7 +551,7 @@ function zmf() {
 			 fi
 		}
 
-	# TODO: this could be sped up sorting and using a search algorithm
+	# TODO: this could be sped up by sorting and using a search algorithm
 	# refactor into function to deal with files and dirs
 	# check for duplicates
 	for line in $(cat $ZM_FILES_FILE) 
