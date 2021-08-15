@@ -307,6 +307,9 @@ __zm_line_parse(){
 			$(basename $0)  zm_line path_variable_to_set name_variable_to_set 
 	 "
 	 local zm_line="$1"
+	 local outpath outname
+	 outpath="$2"
+	 outname="$3"
 	 echo "zmarks/init.zsh: 310 zm_line: $zm_line"
 	 local zm_path="${zm_line%%|*}"
 	 local zm_path="${zm_path/\$HOME/~}"
@@ -316,11 +319,14 @@ __zm_line_parse(){
 
 	 if [[ "$#" -eq 3 ]]; then
 			echo 'correct # args __zm_line_parse'
-			# eval "$2=\"$zm_path\""
-			# eval "$3=\"$zm_name\""
 
-			eval "$2"'=$zm_path'
-			eval "$3=\"$zm_name\""
+			eval "$outpath=\"$zm_path\""
+			eval "$outname=\"$zm_name\""
+			echo "zmarks/init.zsh: 325 outname: $outname"
+
+# 			eval "$2"'=$zm_path'
+# 			eval "$3=\"$zm_name\""
+
 	 else
 			echo "$USAGE"
 	 fi
@@ -334,11 +340,12 @@ __zm_line_printf() {
 
 	 local zm_line="$1"
 	 echo "zmarks/init.zsh: 329 zm_line: $zm_line"
-	 local zm_path zm_name
-	 __zm_line_parse $zm_line zm_path zm_name
-	 echo "zmarks/init.zsh: 332 zm_path : $zm_path "
-	 echo "zmarks/init.zsh: 332 zm_name: $zm_name"
-	 printf "%s\t\t--  %s\n" "$zm_name" "$zm_path"
+	 local path name
+	 __zm_line_parse "$zm_line" path name
+	 # __zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
+	 echo "zmarks/init.zsh: 332 path : $path"
+	 echo "zmarks/init.zsh: 332 name: $name"
+	 printf "%s\t\t--  %s\n" "$name" "$path"
 }
 
 # remove a zm
