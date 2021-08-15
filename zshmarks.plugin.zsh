@@ -165,14 +165,13 @@ function zm() {
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
 
 				local formattedout zm_clashed_path zm_clashed_path_name
-				 __zm_parse_zm_line -n "$line" zm_clashed_path zm_clashed_path_name
+				 __zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
 
+				 echo "zmarks/init.zsh: 169 zm_clashed_path: $zm_clashed_path"
+				 echo "zmarks/init.zsh: 170 zm_clashed_path_name: $zm_clashed_path_name"
 
 	 				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t--  $zm_clashed_path${NOCOLOR}\n"
 				
-
-				# printf "\n${RED}zmark path is already being used:__zm_parse_zm_line $line zm_clashed_path zm_clashed_path_name${NOCOLOR}\n"
-
 				__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name
 				return 1
 		 fi
@@ -252,54 +251,94 @@ function zms() {
 
 	 if [[ $# -eq 1 ]]; then
 			zm_name="*\|${1}"
+			echo "zmarks/init.zsh: 254 zm_name: $zm_name"
 			zm_line=${zm_array[(r)$zm_name]}
-			__zm_parse_zm_line "$zm_line"
+			echo "zmarks/init.zsh: 255 zm_line: $zm_line"
+			__zm_line_printf "$zm_line"
 	 else
 			for zm_line in $zm_array; do
 				 # echo 'printing formatted line'
-				 __zm_parse_zm_line "$zm_line"
+				 __zm_line_printf "$zm_line"
 			done
 	 fi
 }
 
 # TODO write format function for hash -d from line
 
-# this works, but it is ugly and confusing. Prob should split this into two functions 
-__zm_parse_zm_line(){
-	 function usage {
-				   echo -e 'zmark line required\n'
-					 echo "$(basename $0) [ -n, --no-output ] zm_line [ path_variable_to_set ] [ name_variable_to_set ]"
-	 }
+# __zm_parse_zm_line(){
+# 	 function usage {
+# 				   echo -e 'zmark line required\n'
+# 					 echo "$(basename $0) [ -n, --no-output ] zm_line [ path_variable_to_set ] [ name_variable_to_set ]"
+# 	 }
 
-	 if [[ "$#" -lt 1 ]]; then
-			usage
-	 fi
+# 	 if [[ "$#" -lt 1 ]]; then
+# 			usage
+# 	 fi
 
-	 local OUTPUT='true' 
+# 	 local OUTPUT='true' 
 
-	 echo "\$1: $1"
-	 if [[ "$1" == '-n' || "$1" == '--no-ouput' ]]; then
-		 OUTPUT='false'
-		 shift
-	 fi
+# 	 echo "\$1: $1"
+# 	 if [[ "$1" == '-n' || "$1" == '--no-ouput' ]]; then
+# 		 OUTPUT='false'
+# 		 shift
+# 	 fi
 
-	 echo "zmarks/init.zsh: 285 OUTPUT: $OUTPUT"
+# 	 echo "zmarks/init.zsh: 285 OUTPUT: $OUTPUT"
 
+# 	 local zm_line="$1"
+# 	 local zm_path="${zm_line%%|*}"
+# 	 local zm_path="${zm_path/\$HOME/~}"
+# 	 local zm_name="${zm_line#*|}"
+
+# 	 if [[ "$#" -gt 1 ]]; then
+# 			echo 'evaluating path and name'
+# 				 eval "$2=\"$zm_path\""
+# 				 eval "$3=\"$zm_name\""
+# 	 fi
+
+# 	 if [[ OUTPUT == 'true' ]];then
+# 			echo 'zm_printformattedline: OUTPUT: true'
+# 	 	 printf "%s\t\t--  %s\n" "$zm_name" "$zm_path"
+# 	 fi
+# }
+
+__zm_line_parse(){
+	 USAGE="
+			$(basename $0)  zm_line path_variable_to_set name_variable_to_set 
+	 "
 	 local zm_line="$1"
+	 echo "zmarks/init.zsh: 310 zm_line: $zm_line"
 	 local zm_path="${zm_line%%|*}"
 	 local zm_path="${zm_path/\$HOME/~}"
+	 echo "zmarks/init.zsh: 313 zm_path: $zm_path"
 	 local zm_name="${zm_line#*|}"
+	 echo "zmarks/init.zsh: 315 zm_name: $zm_name"
 
-	 if [[ "$#" -gt 1 ]]; then
-			echo 'evaluating path and name'
-				 eval "$2=\"$zm_path\""
-				 eval "$3=\"$zm_name\""
+	 if [[ "$#" -eq 3 ]]; then
+			echo 'correct # args __zm_line_parse'
+			# eval "$2=\"$zm_path\""
+			# eval "$3=\"$zm_name\""
+
+			eval "$2"'=$zm_path'
+			eval "$3=\"$zm_name\""
+	 else
+			echo "$USAGE"
+	 fi
+}
+
+__zm_line_printf() {
+	 USAGE="$(basename $0) zm_line"
+	 if [[ ! "$#" -eq 1 ]]; then
+			echo "$USAGE"
 	 fi
 
-	 if [[ OUTPUT == 'true' ]];then
-			echo 'zm_printformattedline: OUTPUT: true'
-	 	 printf "%s\t\t--  %s\n" "$zm_name" "$zm_path"
-	 fi
+	 local zm_line="$1"
+	 echo "zmarks/init.zsh: 329 zm_line: $zm_line"
+	 local zm_path zm_name
+	 __zm_line_parse $zm_line zm_path zm_name
+	 echo "zmarks/init.zsh: 332 zm_path : $zm_path "
+	 echo "zmarks/init.zsh: 332 zm_name: $zm_name"
+	 printf "%s\t\t--  %s\n" "$zm_name" "$zm_path"
 }
 
 # remove a zm
@@ -359,11 +398,12 @@ function __ask_to_overwrite_zm_dir() {
 	 [ ! $# -ge 1 ] && echo "$usage" && return 1 
 
 	 local overwrite="$1"
+	 echo "zmarks/init.zsh: 389 overwrite: $overwrite"
 	 local replacement
 	 [[  $# -gt 1 ]] && replacement="$2" || replacement="$1"
 
-	 # printf "overwrite: $overwrite\t-- $(zms $overwrite)\n"
-	 printf "overwrite: $(zms $overwrite)"
+	 echo -e "overwrite: $(zms $overwrite)\n"
+	 # printf "overwrite: %s\n" $overwrite
 	 printf "replacement: $replacement\t-- ${cur_dir/\$HOME/~}\n"
 
 	 echo -n "overwrite mark $1 (y/n)? "
