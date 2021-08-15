@@ -272,18 +272,18 @@ __zm_line_parse(){
 	 "
 	 local zm_line="$1"
 	 local outpath outname
-	 outpath="$2"
-	 outname="$3"
+	 # outpath="$2"
+	 # outname="$3"
 	 echo "zmarks/init.zsh: 310 zm_line: $zm_line"
-	 local zm_parsed_path="${zm_line%%|*}"
-	 local zm_parsed_path="${zm_parsed_path/\$HOME/~}"
-	 echo "zmarks/init.zsh: 313 zm_parsed_path: $zm_parsed_path"
-	 local zm_parsed_name="${zm_line#*|}"
-	 echo "zmarks/init.zsh: 315 zm_parsed_name: $zm_parsed_name"
+	 local outpath="${zm_line%%|*}"
+	 local outpath="${outpath/\$HOME/~}"
+	 echo "zmarks/init.zsh: 313 outpath: $outpath"
+	 local outname="${zm_line#*|}"
+	 echo "zmarks/init.zsh: 315 outname: $outname"
 
 	 if [[ "$#" -eq 3 ]]; then
-			eval "$outpath=\"$zm_parsed_path\""
-			eval "$outname=\"$zm_parsed_name\""
+			eval "$2=\"$outpath\""
+			eval "$3=\"$outname\""
 			echo "zmarks/init.zsh: 325 outname: $outname"
 	 else
 			echo "$USAGE"
@@ -368,8 +368,9 @@ function __ask_to_overwrite_zm_dir() {
 	 local replacement
 	 [[  $# -gt 1 ]] && replacement="$2" || replacement="$1"
 
-	 echo -e "overwrite: $(zms $overwrite)\n"
+	 echo -e "overwrite: $(zms $overwrite)"
 	 # printf "overwrite: %s\n" $overwrite
+	 # printf "overwrite: %s\n" $(zms $overwrite)
 	 printf "replacement: $replacement\t-- ${cur_dir/\$HOME/~}\n"
 
 	 echo -n "overwrite mark $1 (y/n)? "
