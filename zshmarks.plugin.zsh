@@ -165,11 +165,18 @@ function zm() {
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
 
 				# TODO create function which takes a raw zmark line as input and ouputs formatted line or overwrites arguments passed
-				local zm_clashed_path="${line%%|*}"
-					zm_clashed_path="${zm_clashed_path/\$HOME/~}"
-					zm_clashed_path_name="${line#*|}"
+				# local zm_clashed_path="${line%%|*}"
+				# 	zm_clashed_path="${zm_clashed_path/\$HOME/~}"
+				# 	zm_clashed_path_name="${line#*|}"
+				local formattedout zm_clashed_path zm_clashed_path_name
+__zm_printformattedline "$line" zm_clashed_path zm_clashed_path_name
+				# formattedout=$(__zm_printformattedline "$line" zm_clashed_path zm_clashed_path_name)
+					echo "zmarks/init.zsh: 174 zm_clashed_path: $zm_clashed_path"
+					echo "zmarks/init.zsh: 174 zm_clashed_path_name: $zm_clashed_path_name"
 
-				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t-- $zm_clashed_path${NOCOLOR}\n"
+
+				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t--  $zm_clashed_path${NOCOLOR}\n"
+				# printf "${RED}zmark path is already being used:\n$formattedout${NOCOLOR}\n"
 
 				__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name
 				return 1
@@ -254,7 +261,7 @@ function zms() {
 			__zm_printformattedline "$zm_line"
 	 else
 			for zm_line in $zm_array; do
-				 echo 'printing formatted line'
+				 # echo 'printing formatted line'
 				 __zm_printformattedline "$zm_line"
 			done
 	 fi
@@ -268,10 +275,11 @@ __zm_printformattedline(){
 	 local zm_name="${zm_line#*|}"
 	 printf "%s\t\t--  %s\n" "$zm_name" "$zm_path"
 
-# 	 if [[ "$#" -gt 1 ]]; then
-# 				 eval "$2=\"$zm_path\""
-# 				 eval "$3=\"$zm_name\""
-# 	 fi
+	 if [[ "$#" -gt 1 ]]; then
+			echo 'evaluating path and name'
+				 eval "$2=\"$zm_path\""
+				 eval "$3=\"$zm_name\""
+	 fi
 
 }
 
@@ -334,7 +342,8 @@ function __ask_to_overwrite_zm_dir() {
 	 local replacement
 	 [[  $# -gt 1 ]] && replacement="$2" || replacement="$1"
 
-	 printf "overwrite: $overwrite\t-- $(zms $overwrite)\n"
+	 # printf "overwrite: $overwrite\t-- $(zms $overwrite)\n"
+	 printf "overwrite: $(zms $overwrite)"
 	 printf "replacement: $replacement\t-- ${cur_dir/\$HOME/~}\n"
 
 	 echo -n "overwrite mark $1 (y/n)? "
