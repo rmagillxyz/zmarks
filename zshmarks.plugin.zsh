@@ -40,7 +40,6 @@ if [[ -z $ZMARKS_DIR ]] ; then
 	 ZMARKS_DIR="$HOME/.local/share/zsh"
 fi
 
-# echo "zmarks/init.zsh: 43 ZMARKS_DIR: $ZMARKS_DIR"
 ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
@@ -48,7 +47,6 @@ ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
 ZMOOM_MARK="__zmoom__"
 
 # TODO should i just touch these or check if they exist and touch? 
-# echo "zmarks/init.zsh: 48 ZM_FILES_FILE: $ZM_FILES_FILE"
 touch "$ZM_FILES_FILE"
 touch "$ZM_DIRS_FILE"
 touch "$ZM_NAMED_FILES"
@@ -167,9 +165,6 @@ function zm() {
 				local formattedout zm_clashed_path zm_clashed_path_name
 				 __zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
 
-				 echo "zmarks/init.zsh: 169 zm_clashed_path: $zm_clashed_path"
-				 echo "zmarks/init.zsh: 170 zm_clashed_path_name: $zm_clashed_path_name"
-
 	 				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t--  $zm_clashed_path${NOCOLOR}\n"
 				
 				__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name
@@ -251,9 +246,7 @@ function zms() {
 
 	 if [[ $# -eq 1 ]]; then
 			zm_name="*\|${1}"
-			echo "zmarks/init.zsh: 254 zm_name: $zm_name"
 			zm_line=${zm_array[(r)$zm_name]}
-			echo "zmarks/init.zsh: 255 zm_line: $zm_line"
 			__zm_line_printf "$zm_line"
 	 else
 			for zm_line in $zm_array; do
@@ -272,19 +265,13 @@ __zm_line_parse(){
 	 "
 	 local zm_line="$1"
 	 local outpath outname
-	 # outpath="$2"
-	 # outname="$3"
-	 echo "zmarks/init.zsh: 310 zm_line: $zm_line"
 	 local outpath="${zm_line%%|*}"
 	 local outpath="${outpath/\$HOME/~}"
-	 echo "zmarks/init.zsh: 313 outpath: $outpath"
 	 local outname="${zm_line#*|}"
-	 echo "zmarks/init.zsh: 315 outname: $outname"
 
 	 if [[ "$#" -eq 3 ]]; then
 			eval "$2=\"$outpath\""
 			eval "$3=\"$outname\""
-			echo "zmarks/init.zsh: 325 outname: $outname"
 	 else
 			echo "$USAGE"
 	 fi
@@ -297,13 +284,8 @@ __zm_line_printf() {
 	 fi
 
 	 local zm_line="$1"
-	 echo "zmarks/init.zsh: 329 zm_line: $zm_line"
 	 local path name
-	 eval 'path=$RANDOM'
-	 eval 'name=$RANDOM'
 	 __zm_line_parse "$zm_line" path name
-	 echo "zmarks/init.zsh: 332 path : $path"
-	 echo "zmarks/init.zsh: 332 name: $name"
 	 printf "%s\t\t--  %s\n" "$name" "$path"
 }
 
@@ -364,7 +346,6 @@ function __ask_to_overwrite_zm_dir() {
 	 [ ! $# -ge 1 ] && echo "$usage" && return 1 
 
 	 local overwrite="$1"
-	 echo "zmarks/init.zsh: 389 overwrite: $overwrite"
 	 local replacement
 	 [[  $# -gt 1 ]] && replacement="$2" || replacement="$1"
 
@@ -455,9 +436,7 @@ zle     -N    _fzf_zm_file_jump
 function zmoom() {
 	 local filename=$1
 			if [[ -z $2 ]]; then
-				 echo 'check for has_zoom_mark'
 				 has_zoom_mark=$(grep "$ZMOOM_MARK" "$filename")
-				 echo "zmarks/init.zsh: 421 has_zoom_mark : $has_zoom_mark "
 				 if [[ -n $has_zoom_mark ]]; then
 					 "$EDITOR" +/"$ZMOOM_MARK" "$filename"	
 				 else
@@ -548,11 +527,9 @@ function zmf() {
 			cur_dir="$(pwd)"
 			zm_file_path="$cur_dir"
 			zm_file_path+="/$zm_name"
-			echo "zmarks/init.zsh: 385 zm_file_path: $zm_file_path"
 
 	 elif [[ -z $zm_file_path ]]; then
 			zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
-			echo "zmarks/init.zsh: 409 zm_file_path: $zm_file_path"
 			if [[ -z "$zm_file_path" ]]; then
 				 return 1
 			fi
@@ -580,7 +557,6 @@ function zmf() {
 			 read answer
 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
 					zmrm "$overwrite"
-					echo "zmarks/init.zsh: 494 zm_file_path: $zm_file_path"
 					zmf "$replacement" "$zm_file_path"
 			 else
 					return 1
@@ -621,7 +597,6 @@ function zmf() {
 
 		 # echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
 		 # TODO zmf ZM_NAMED_FILES is empty here!!! ZM_NAMED_FILES
-		 echo "zmarks/init.zsh: 565 ZM_NAMED_FILES: $ZM_NAMED_FILES"
 		 echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
 		 echo "Created named file ~$zm_name"
 		 source "$ZM_NAMED_FILES"
@@ -636,11 +611,8 @@ function __zm_checkclash(){
 	 # usage='usage: ${FUNCNAME[0]} zm_clash_fail  $zm_name $ZM_X_FILE'
 
 	 local clash_fail="$1"; shift
-	 echo "zmarks/init.zsh: 584 clash_fail: $clash_fail"
 	 local zm_name="$1"
-	 echo "zmarks/init.zsh: 586 zm_name: $zm_name"
 	 local zm_path="$2"
-	 echo "zmarks/init.zsh: 588 zm_path: $zm_path"
 
 	 local clash
 
