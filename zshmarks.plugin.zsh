@@ -84,6 +84,17 @@ function _gen_zmarks_named_files(){
 			return 
 }
 
+function zm_rebuild_hash_table(){
+	 # generate new named dir to sync with marks
+	 hash -d -r  # rebuild hash table
+	 _gen_zmarks_named_dirs 1> /dev/null
+	 _gen_zmarks_named_files 1> /dev/null
+	 # echo 'rebuild hash table'
+	 # echo "Deleted and synced named hashes"
+}
+
+zm_rebuild_hash_table
+
 # Check if $ZMARKS_DIR is a symlink.
 if [[ -L "$ZM_DIRS_FILE" ]]; then
 	 ZM_DIRS_FILE=$(readlink $ZM_DIRS_FILE)
@@ -318,12 +329,8 @@ function zmrm()  {
 
 				 __zm_move_to_trash "${file_path}.bak" 
 
-						# generate new named dir to sync with marks
-						hash -d -r  # rebuild hash table
-						echo 'rebuild hash table'
-						_gen_zmarks_named_dirs 1> /dev/null
-						_gen_zmarks_named_files 1> /dev/null
-						echo "Deleted and synced named hashes"
+				 zm_rebuild_hash_table
+				 echo "Synced named hashes"
 			fi
 	 fi
 }
