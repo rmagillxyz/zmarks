@@ -265,75 +265,33 @@ function zms() {
 
 # TODO write format function for hash -d from line
 
-# __zm_parse_zm_line(){
-# 	 function usage {
-# 				   echo -e 'zmark line required\n'
-# 					 echo "$(basename $0) [ -n, --no-output ] zm_line [ path_variable_to_set ] [ name_variable_to_set ]"
-# 	 }
-
-# 	 if [[ "$#" -lt 1 ]]; then
-# 			usage
-# 	 fi
-
-# 	 local OUTPUT='true' 
-
-# 	 echo "\$1: $1"
-# 	 if [[ "$1" == '-n' || "$1" == '--no-ouput' ]]; then
-# 		 OUTPUT='false'
-# 		 shift
-# 	 fi
-
-# 	 echo "zmarks/init.zsh: 285 OUTPUT: $OUTPUT"
-
-# 	 local zm_line="$1"
-# 	 local zm_path="${zm_line%%|*}"
-# 	 local zm_path="${zm_path/\$HOME/~}"
-# 	 local zm_name="${zm_line#*|}"
-
-# 	 if [[ "$#" -gt 1 ]]; then
-# 			echo 'evaluating path and name'
-# 				 eval "$2=\"$zm_path\""
-# 				 eval "$3=\"$zm_name\""
-# 	 fi
-
-# 	 if [[ OUTPUT == 'true' ]];then
-# 			echo 'zm_printformattedline: OUTPUT: true'
-# 	 	 printf "%s\t\t--  %s\n" "$zm_name" "$zm_path"
-# 	 fi
-# }
 
 __zm_line_parse(){
 	 USAGE="
-			$(basename $0)  zm_line path_variable_to_set name_variable_to_set 
+			${FUNCNAME[0]}  zm_line path_variable_to_set name_variable_to_set 
 	 "
 	 local zm_line="$1"
 	 local outpath outname
 	 outpath="$2"
 	 outname="$3"
 	 echo "zmarks/init.zsh: 310 zm_line: $zm_line"
-	 local zm_path="${zm_line%%|*}"
-	 local zm_path="${zm_path/\$HOME/~}"
-	 echo "zmarks/init.zsh: 313 zm_path: $zm_path"
-	 local zm_name="${zm_line#*|}"
-	 echo "zmarks/init.zsh: 315 zm_name: $zm_name"
+	 local zm_parsed_path="${zm_line%%|*}"
+	 local zm_parsed_path="${zm_parsed_path/\$HOME/~}"
+	 echo "zmarks/init.zsh: 313 zm_parsed_path: $zm_parsed_path"
+	 local zm_parsed_name="${zm_line#*|}"
+	 echo "zmarks/init.zsh: 315 zm_parsed_name: $zm_parsed_name"
 
 	 if [[ "$#" -eq 3 ]]; then
-			echo 'correct # args __zm_line_parse'
-
-			eval "$outpath=\"$zm_path\""
-			eval "$outname=\"$zm_name\""
+			eval "$outpath=\"$zm_parsed_path\""
+			eval "$outname=\"$zm_parsed_name\""
 			echo "zmarks/init.zsh: 325 outname: $outname"
-
-# 			eval "$2"'=$zm_path'
-# 			eval "$3=\"$zm_name\""
-
 	 else
 			echo "$USAGE"
 	 fi
 }
 
 __zm_line_printf() {
-	 USAGE="$(basename $0) zm_line"
+	 USAGE="${FUNCNAME[0]} zm_line"
 	 if [[ ! "$#" -eq 1 ]]; then
 			echo "$USAGE"
 	 fi
@@ -341,8 +299,9 @@ __zm_line_printf() {
 	 local zm_line="$1"
 	 echo "zmarks/init.zsh: 329 zm_line: $zm_line"
 	 local path name
+	 eval 'path=$RANDOM'
+	 eval 'name=$RANDOM'
 	 __zm_line_parse "$zm_line" path name
-	 # __zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
 	 echo "zmarks/init.zsh: 332 path : $path"
 	 echo "zmarks/init.zsh: 332 name: $name"
 	 printf "%s\t\t--  %s\n" "$name" "$path"
