@@ -15,7 +15,7 @@ for zm_line in $zm_array; do
 		zm_path="${zm_path/\$HOME/\~}"
 		zm_name="${zm_line#*|}"
 		zmarks+="${zm_name}:${zm_path}"
-		echo "zmarks/_jump_showmarks_deletemark: 18 zmarks: $zmarks"
+		# echo "zmarks/_jump_showmarks_deletemark: 18 zmarks: $zmarks"
 	fi
 done
 

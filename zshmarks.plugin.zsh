@@ -173,7 +173,7 @@ function zm() {
 
 		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
 
-				local formattedout zm_clashed_path zm_clashed_path_name
+				local zm_clashed_path zm_clashed_path_name
 				 __zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
 
 	 				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t--  $zm_clashed_path${NOCOLOR}\n"
