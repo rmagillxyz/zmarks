@@ -455,10 +455,19 @@ function zmoom() {
 }
 
 # TODO add command comletion 
-# use zmoom on command
+# add checks to for type and file to only allow editable commands
+# add check for path to any file or path which exists
 function zmvi() {
-	FILENAME=$1
-	zmoom $(which $FILENAME) $2
+	local cmd pattern c_path 
+	cmd="$1"
+	pattern="$2"
+	c_path=$(command -v $cmd)
+	echo "zmarks/init.zsh: 465 c_path: $c_path"
+	if [[ -z "$c_path" ]];then
+		 echo 'script not in path'
+	else
+	 	zmoom "$c_path" "$pattern"
+	fi
 }
 
 # TODO
