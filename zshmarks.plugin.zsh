@@ -61,10 +61,12 @@ function _gen_zmarks_named_dirs(){
 
 			while read line
 			do
-				 dir="${line%%|*}"
-				 bm="${line##*|}"
-				 echo "~$bm"
-				 echo "hash -d $bm=$dir" >> "$ZM_NAMED_DIRS"
+				 if [[ -n "$line" ]]; then
+						dir="${line%%|*}"
+						bm="${line##*|}"
+						echo "~$bm"
+						echo "hash -d $bm=$dir" >> "$ZM_NAMED_DIRS"
+				 fi
 			done < "$ZM_DIRS_FILE"
 			return 
 }
@@ -76,10 +78,12 @@ function _gen_zmarks_named_files(){
 
 			while read line
 			do
-				 dir="${line%%|*}"
-				 bm="${line##*|}"
-				 echo "~$bm"
-				 echo "hash -d $bm=$dir" >> "$ZM_NAMED_FILES"
+				 if [[ -n "$line" ]]; then
+						dir="${line%%|*}"
+						bm="${line##*|}"
+						echo "~$bm"
+						echo "hash -d $bm=$dir" >> "$ZM_NAMED_FILES"
+				 fi
 			done < "$ZM_FILES_FILE"
 			return 
 }
