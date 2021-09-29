@@ -44,7 +44,7 @@ ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
 ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
-ZMOOM_MARK="__zm_zoom__"
+ZM_ZOOM_MARK="__zm_zoom__"
 
 # TODO should i just touch these or check if they exist and touch? 
 touch "$ZM_FILES_FILE"
@@ -52,6 +52,52 @@ touch "$ZM_DIRS_FILE"
 touch "$ZM_NAMED_FILES"
 touch "$ZM_NAMED_DIRS"
 
+function zm(){
+	 
+	 function main(){
+
+	 POSITIONAL=()
+	 while [[ $# -gt 0 ]]
+	 do
+	 key="$1"
+
+	 case $key in
+
+			 -j|--jump)
+			 shift
+			 zm_jump "$@"
+			 echo "you are here: $PWD "
+			 return
+
+			 ;;
+
+			 -s|--show)
+			 shift
+			 ;;
+			 
+			 -f|--mark-file)
+			 shift # past argument
+			 ;;
+			 
+			 -d|--mark-dir)
+			 shift
+			 ;;
+
+			 -rm|--remove)
+			 shift 
+			 ;;
+			 -h|--help)
+			 usage
+			 exit
+	 esac
+	 done
+
+	 set -- "${POSITIONAL[@]}" # restore positional parameters
+
+	 }
+
+
+# }
 
 ## could just remove one instead of rebuilting
 function _gen_zmarks_named_dirs(){
@@ -240,7 +286,7 @@ function zm_jump() {
 			else
 				 # echo 'DEBUG zm_jump: found file'
 				 local filename="${zm%%|*}"
-				 zmoom "$filename" "$2"
+				 zm_zoom "$filename" "$2"
 			fi
 
 	 else
@@ -249,6 +295,7 @@ function zm_jump() {
 			eval "cd \"${dir}\""
 			eval "ls \"${dir}\""
 	 fi
+	 return 
 }
 
 # Show a list of all the zmarks
@@ -390,7 +437,7 @@ _fzf_zm_jump(){
 			echo -e "\n"
 	 else
 			echo "we gotta file"
-			eval "zmoom \"$dest\""
+			eval "zm_zoom \"$dest\""
 	 fi
 	 zle reset-prompt
 }
@@ -414,18 +461,18 @@ _fzf_zm_file_jump(){
    local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
 	 if [[ -n $zm ]];then 
 		 local file="${zm%%|*}"
-		 # could use BUFFER and zmoom here
+		 # could use BUFFER and zm_zoom here
 		eval "\"$EDITOR\" \"$file\""
 	 fi
 }
 zle     -N    _fzf_zm_file_jump
 
-# function zmoom() {
+# function zm_zoom() {
 # 	 # if [[ -z  ]]
 # 	 if [[ -z $2 ]]; then
 # 			has_zoom_mark = grep '__zm_zoom__' "$filename"
 # 			if [[ -n $has_zoom_mark ]]; then
-# 				"$EDITOR" "$filename" "$ZMOOM_MARK"
+# 				"$EDITOR" "$filename" "$ZM_ZOOM_MARK"
 # 			else
 # 				"$EDITOR" "$filename"
 # 			fi
@@ -446,9 +493,9 @@ zle     -N    _fzf_zm_file_jump
 function zm_zoom() {
 	 local filename=$1
 			if [[ -z $2 ]]; then
-				 has_zoom_mark=$(grep "$ZMOOM_MARK" "$filename")
+				 has_zoom_mark=$(grep "$ZM_ZOOM_MARK" "$filename")
 				 if [[ -n $has_zoom_mark ]]; then
-					 "$EDITOR" +/"$ZMOOM_MARK" "$filename"	
+					 "$EDITOR" +/"$ZM_ZOOM_MARK" "$filename"	
 				 else
 					 "$EDITOR" "$filename"
 				 fi
@@ -469,7 +516,7 @@ function zm_vi() {
 	if [[ -z "$c_path" ]];then
 		 echo 'script not in path'
 	else
-	 	zmoom "$c_path" "$pattern"
+	 	zm_zoom "$c_path" "$pattern"
 	fi
 }
 
@@ -497,7 +544,7 @@ function _zm_file_jump() {
 	 else
 			local filename="${editmark%%|*}"
 			# _ezoom "$filename" "$2"
-			zmoom "$filename" "$2"
+			zm_zoom "$filename" "$2"
 	 fi
 }
 
@@ -674,3 +721,5 @@ function __zm_checkclash(){
 
 
 
+ main "$@"
+}
