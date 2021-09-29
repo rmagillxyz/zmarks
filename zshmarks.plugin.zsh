@@ -263,7 +263,7 @@ function zm(){
 
 			if [[ $# -eq 1 ]]; then
 				 zm_name="*\|${1}"
-				 zm_line=${zm_array[(r)$zm_name]}
+				 zm_line=${zm_array[(r)$zm_name*]}
 				 __zm_line_printf "$zm_line"
 			else
 				 for zm_line in $zm_array; do
