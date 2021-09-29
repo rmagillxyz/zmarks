@@ -629,7 +629,22 @@ function zm(){
 	 }
 
 
-			USAGE="$(basename $0) [ -j, --jump MARK ] [ -s, --show <MARK> ] [ -f, --mark-file <MARK> ] [ -d, --mark-dir <MARK> ] [ -h --help ]"
+			# USAGE="$(basename $0) [ -j, --jump MARK ] [ -s, --show <MARK> ] [ -f, --mark-file <MARK> ] [ -d, --mark-dir <MARK> ] [ -h --help ]"
+			
+			# usage(){
+			# 	    echo -e "\nUsage: zm [OPTION]... [MARK]...\n  -j, --jump MARK \n  -s, --show <MARK> \n  -f, --mark-file <MARK> \n  -d, --mark-dir <MARK> \n  -h --help \n"
+			# }
+			
+			usage(){
+	    echo "Usage: zm [OPTION]... [MARK]...
+  -j, --jump MARK \t\t\t Jump to directory or jump into file.
+  -s, --show <MARK> \t\t\t Will try to match or show all if not specified.   
+  -f, --mark-file <MARK> \t\t Mark file. Will use fzf to select from files in current dir if not specified.  
+  -d, --mark-dir <MARK> \t\t Mark directory. Will use current directory name if not specified. 
+  -h --help \t\t\t\t Show this message.
+	"
+			}
+
 
 			if [[ $# -gt 0 ]]; then
 				 key="$1"
@@ -638,9 +653,9 @@ function zm(){
 
 						 -j|--jump)
 								shift
-								[[  $# -lt 1  ]] && usage && return 
+								# [[  $# -lt 1  ]] && usage && return 
 								zm_jump "$@"
-								echo "you are here: $PWD "
+								# echo "you are here: $PWD "
 								return
 						 ;;
 
@@ -669,14 +684,16 @@ function zm(){
 						 ;;
 
 						 -h|--help)
-							 echo "$USAGE"
+							 # echo "$USAGE"
+							 usage
 							 return
 						 ;; 
 
 				 esac
 
 			else
-				 echo "$USAGE"
+				 # echo "$USAGE"
+				 usage
 				 return
 			fi
 
