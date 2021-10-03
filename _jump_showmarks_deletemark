@@ -1,35 +1,68 @@
 #compdef zm
-#autoload
 
-_arguments \
-	'*:: :->subcmds' && return 0
+_zm(){
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+ 
+    _arguments \
+        '1: :->action'\
+        '*: :->mark'
+ 
+    case $state in
+    action)
+        _arguments '1:Actions:(-j -s -h)'
+    ;;
+    *)
+        case $words[2] in
+        -j)
+            compadd "$@" Paris Lyon Marseille
+        ;;
+        Germany)
+            compadd "$@" Berlin Munich Dresden
+        ;;
+        Italy)
+            compadd "$@" Rome Napoli Palermo
+        ;;
+        *)
+            _files 
+        esac
+    esac
+}
 
-if (( CURRENT == 1 )); then
-	 baseopts=("-j:jump" "-s:show" "-f:mark file" "-d:mark directory" "-h:help")
-	_describe -t commands 'Zmarks' baseopts
-	return
-fi
-
-local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
-local zm_array; zm_array=(${(f)zm_file});
-local zm_name zm_path zm_line
-zmarks=()
-for zm_line in $zm_array; do
-	if [[ "$zm_line" == $2"|"$2 ]] ; then
-		zm_path="${zm_line%%|$2}"
-		zm_path="${zm_path/\$HOME/\~}"
-		zm_name="${zm_line#$2|}"
-		zmarks+="${zm_name}:${zm_path}"
-		# echo "zmarks/_jump_showmarks_deletemark: 18 zmarks: $zmarks"
-	fi
-done
+_zm "$@"
+ 
 
 
-_arguments -n \
-	'*:: :->subcmds' && return 0
+
+# _arguments \
+# 	'*:: :->subcmds' && return 0
+
+# if (( CURRENT == 1 )); then
+# 	 baseopts=("-j:jump" "-s:show" "-f:mark file" "-d:mark directory" "-h:help")
+# 	_describe -t commands 'Zmarks' baseopts
+# 	return
+# fi
+
+# local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
+# local zm_array; zm_array=(${(f)zm_file});
+# local zm_name zm_path zm_line
+# zmarks=()
+# for zm_line in $zm_array; do
+# 	if [[ "$zm_line" == $2"|"$2 ]] ; then
+# 		zm_path="${zm_line%%|$2}"
+# 		zm_path="${zm_path/\$HOME/\~}"
+# 		zm_name="${zm_line#$2|}"
+# 		zmarks+="${zm_name}:${zm_path}"
+# 		# echo "zmarks/_jump_showmarks_deletemark: 18 zmarks: $zmarks"
+# 	fi
+# done
 
 
-if (( CURRENT == 2 )); then
-	_describe -t commands 'Zmarks' zmarks
-	return
-fi
+# _arguments -n \
+# 	'*:: :->subcmds' && return 0
+
+
+# if (( CURRENT == 2 )); then
+# 	_describe -t commands 'Zmarks' zmarks
+# 	return
+# fi
