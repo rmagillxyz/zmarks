@@ -6,47 +6,30 @@ _arguments \
 
 if (( CURRENT == 1 )); then
 	 baseopts=("-j:jump" "-s:show" "-f:mark file" "-d:mark directory" "-h:help")
-	 # opts+="'-j':'jump'"
-	 # opts+="'-s':'show'"
-	 # opts="-j:jump "
-	 # opts="-j:jump -s:show "
-	 # opts+=" -s:show "
-	 # echo "zmarks/_jump_showmarks_deletemark: 26 opts: $opts"
 	_describe -t commands 'Zmarks' baseopts
 	return
 fi
 
-# _describe "1: :(-j:jump)"
-# _describe "1: :(-s:show)"
+local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
+local zm_array; zm_array=(${(f)zm_file});
+local zm_name zm_path zm_line
+zmarks=()
+for zm_line in $zm_array; do
+	if [[ "$zm_line" == $2"|"$2 ]] ; then
+		zm_path="${zm_line%%|$2}"
+		zm_path="${zm_path/\$HOME/\~}"
+		zm_name="${zm_line#$2|}"
+		zmarks+="${zm_name}:${zm_path}"
+		# echo "zmarks/_jump_showmarks_deletemark: 18 zmarks: $zmarks"
+	fi
+done
 
-# local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
-# local zm_array; zm_array=(${(f)zm_file});
-# local zm_name zm_path zm_line
-# zmarks=()
-# for zm_line in $zm_array; do
-# 	if [[ "$zm_line" == *"|"* ]] ; then
-# 		zm_path="${zm_line%%|*}"
-# 		zm_path="${zm_path/\$HOME/\~}"
-# 		zm_name="${zm_line#*|}"
-# 		zmarks+="${zm_name}:${zm_path}"
-# 		# echo "zmarks/_jump_showmarks_deletemark: 18 zmarks: $zmarks"
-# 	fi
-# done
 
-# _arguments \
-# 	'*:: :->subcmds' && return 0
+_arguments -n \
+	'*:: :->subcmds' && return 0
 
-# # echo "zmarks/_jump_showmarks_deletemark: 21 CURRENT : $CURRENT "
-# if (( CURRENT == 1 )); then
-# 	 opts=()
-# 	 opts+="-j:jump"
-# 	 opts+="-rm:remove"
-# 	 echo "zmarks/_jump_showmarks_deletemark: 26 opts: $opts"
-# 	_describe -t commands 'Zmarks' opts
-# 	return
-# fi
 
-# # if (( CURRENT == 2 )); then
-# # 	_describe -t commands 'Zmarks' zmarks
-# # 	return
-# # fi
+if (( CURRENT == 2 )); then
+	_describe -t commands 'Zmarks' zmarks
+	return
+fi
