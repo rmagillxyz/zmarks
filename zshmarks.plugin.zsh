@@ -170,8 +170,7 @@ touch "$ZM_NAMED_DIRS"
 					 echo -n "Remove $zm_name?  (y/n)? "
 						read answer
 						if  [ "$answer" != "${answer#[Yy]}" ];then 
-							 _zm_remove $zm_name
-							 zm $zm_name
+							 _zm_remove "$zm_name"  && _zm_mark_dir "$zm_name"
 							 return 
 						fi
 
@@ -193,7 +192,7 @@ touch "$ZM_NAMED_DIRS"
 
 		 # no duplicates, make mark
 		 echo $new_zm_line >> $ZM_DIRS_FILE
-		 echo "zmark '$zm_name' saved"
+		 echo "directory zmark '$zm_name' saved"
 
 		 echo "hash -d $zm_name=$cur_dir" >> "$ZM_NAMED_DIRS"
 		 echo "Created named dir ~$zm_name"
@@ -330,18 +329,21 @@ touch "$ZM_NAMED_DIRS"
 						else
 							 # eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
 							 eval "printf '%s\n' \"'${zm_name}' not found.\""
+							 return 1
 						fi
 				 else
 						\cp "${file_path}" "${file_path}.bak"
 						zm_line=${zm_array[(r)$zm_search]}
 						zm_array=(${zm_array[@]/$zm_line})
-						eval "printf '%s\n' \"\${zm_array[@]}\"" >! $file_path
+						# eval "printf '%s\n' \"\${zm_array[@]}\"" >! $file_path
+						eval "printf '%s\n' \"\${zm_array[@]}\"" > $file_path
 
 						__zm_move_to_trash "${file_path}.bak" 
 
 						zm_rebuild_hash_table
 						echo "$zm_name removed"
 						echo "Synced named hashes"
+						return 
 				 fi
 			fi
 	 }
@@ -375,8 +377,8 @@ touch "$ZM_NAMED_DIRS"
 			echo -n "overwrite mark $1 (y/n)? "
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ];then 
-				 _zm_remove $1
-				 zm $2
+				 _zm_remove "$1" && _zm_mark_dir "$2"
+				 return
 			else
 				 return 1
 			fi

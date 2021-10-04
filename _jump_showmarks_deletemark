@@ -2,20 +2,6 @@
 #autoload
 typeset -A opt_args
 
-_arguments '-j[jump to dir or file]:_jump:_zm_all' \
-	 '-f[jump to file]:_file_jump:_zm_files' \
-	 '-d[jump to dir]:_show:_zm_dirs' \
-	 '-s[show all marks or matching pattern]:_show:_zm_all' \
-	 '-r[remove mark]:_remove:_zm_list' \
-	 '-F[mark file]:_file_mark:_files' \
-	 '-D[mark dir]:_dir_mark' 
-
-# _zm_mark_opt(){
-# 	 _arguments -s -- \ 
-# 			'-md[mark dir]:_dir_mark' \
-# 			'-mf[jump to dir]:_show:_files' \
-# }
-
 _zm_files(){
 	 local zm_file=$(<"$ZMARKS_DIR/zm_files")
 	 _zm_list $zm_file
@@ -52,3 +38,16 @@ _zm_list(){
 	 _describe -t zmarks 'zmarks' zmarks && ret=0
 }
 
+_zm_pwd(){
+	 _arguments 1:(`basename $PWD`)
+}
+
+_arguments \
+	 '-j[jump to dir or file]: :_zm_all' \
+	 '-f[jump to file]: :_zm_files' \
+	 '-d[jump to dir]: :_zm_dirs' \
+	 '-s[show all marks or matching pattern]: :_zm_all' \
+	 '-r[remove mark]: :_zm_all' \
+	 '-F[mark file]: :_files' \
+	 '-D[mark dir]: :(`basename $(pwd)`)' \
+	 '-h[help]'
