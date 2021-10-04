@@ -3,9 +3,9 @@
 typeset -A opt_args
 
 _arguments '-j[jump to dir or file]:_jump:_zm_all' \
-	 '-f[jump to file]:_file_jump:_zm_list' \
-	 '-d[jump to dir]:_show:_zm_list' \
-	 '-s[show all marks or matching pattern]:_show:_zm_list' \
+	 '-f[jump to file]:_file_jump:_zm_files' \
+	 '-d[jump to dir]:_show:_zm_dirs' \
+	 '-s[show all marks or matching pattern]:_show:_zm_all' \
 	 '-r[remove mark]:_remove:_zm_list' \
 	 '-F[mark file]:_file_mark:_files' \
 	 '-D[mark dir]:_dir_mark' 

@@ -487,7 +487,7 @@ touch "$ZM_NAMED_DIRS"
 	 function _zm_mark_file() {
 			local zm_name="$1"
 
-			local zm_file_path="$2"
+			local zm_file_name_cwd="$2"
 
 			if [[ -z $zm_name ]]; then
 				 echo 'zmark name required'
@@ -501,22 +501,29 @@ touch "$ZM_NAMED_DIRS"
 			[[ -n $zm_clash_fail ]] && return 2
 
 			local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
+			local filenotincwd=$(\ls $(pwd) | grep -x "$zm_file_name_cwd")
 
-			if [[ -z $zm_file_path && -n $exactmatchfromdir ]]; then
+			if [[ -n $zm_file_name_cwd && -z $filenotincwd   ]]; then
+						printf "${RED}$zm_file_name_cwd not found in current directory ${NOCOLOR}\n"
+						return 1
+			fi
+
+			if [[ -z $zm_file_name_cwd && -n $exactmatchfromdir ]]; then
 				 #could use find here
 				 cur_dir="$(pwd)"
 				 zm_file_path="$cur_dir"
 				 zm_file_path+="/$zm_name"
 
-			elif [[ -z $zm_file_path ]]; then
+			elif [[ -z $zm_file_name_cwd ]]; then
 				 zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
 				 if [[ -z "$zm_file_path" ]]; then
+						echo 'abort'
 						return 1
 				 fi
 			fi
 
 
-			 # Replace /home/uname with $HOME
+			 # Replace /home/$USER with $HOME
 			 if [[ "$zm_file_path" =~ ^"$HOME"(/|$) ]]; then
 					zm_file_path="\$HOME${zm_file_path#$HOME}"
 			 fi
