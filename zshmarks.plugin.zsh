@@ -140,7 +140,7 @@ touch "$ZM_NAMED_DIRS"
 			fi
 	 }
 
-	 function zm_mark_dir() {
+	 function _zm_mark_dir() {
 			local zm_name=$1
 			if [[ -z $zm_name ]]; then
 				 zm_name="${PWD##*/}"
@@ -165,12 +165,12 @@ touch "$ZM_NAMED_DIRS"
 
 				if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
 
-					 printf "\n${RED}zmark name is already being used:\n$(zm_show $zm_name)${NOCOLOR}\n"
+					 printf "\n${RED}zmark name is already being used:\n$(_zm_show $zm_name)${NOCOLOR}\n"
 
 					 echo -n "Remove $zm_name?  (y/n)? "
 						read answer
 						if  [ "$answer" != "${answer#[Yy]}" ];then 
-							 zm_rm $zm_name
+							 _zm_remove $zm_name
 							 zm $zm_name
 							 return 
 						fi
@@ -220,7 +220,7 @@ touch "$ZM_NAMED_DIRS"
 	 }
 
 	 # jump
-	 function zm_jump() {
+	 function _zm_jump() {
 			if [[ -z $1 ]];then
 				 cd ~
 				 return 
@@ -230,22 +230,25 @@ touch "$ZM_NAMED_DIRS"
 			local zm
 			if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 				 if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
-						echo "Invalid name, please provide a valid zmark name. For example:"
-						echo "zm_jump foo [pattern]"
+						echo "Invalid name, please provide a valid file or directory zmark name. For example:"
+						# echo "_zm_jump foo [pattern]"
+						echo "zm -j <MARK> [PATTERN]"
 						echo
 						echo "To mark a directory:"
-						echo "zm <name>"
+						# echo "zm <NAME>"
+						echo "zm -m <NAME>"
 						echo "To mark a file:"
-						echo "zmf <name>"
+						# echo "zmf <NAME>"
+						echo "zm -d  <NAME>"
 						return 1
 				 else
-						# echo 'DEBUG zm_jump: found file'
+						# echo 'DEBUG _zm_jump: found file'
 						local filename="${zm%%|*}"
 						zm_zoom "$filename" "$2"
 				 fi
 
 			else
-				 # echo 'DEBUG zm_jump: found dir'
+				 # echo 'DEBUG _zm_jump: found dir'
 				 local dir="${zm%%|*}"
 				 eval "cd \"${dir}\""
 				 eval "ls \"${dir}\""
@@ -254,7 +257,7 @@ touch "$ZM_NAMED_DIRS"
 	 }
 
 	 # Show a list of all the zmarks
-	 function zm_show() {
+	 function _zm_show() {
 			# zm_file is the contents of the file stored in a var
 			local zm_file=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
 			local zm_array; zm_array=(${(f)zm_file});
@@ -306,12 +309,12 @@ touch "$ZM_NAMED_DIRS"
 	 }
 
 	 # remove a zm
-	 function zm_rm()  {
+	 function _zm_remove()  {
 			local zm_name="$1"
 			local file_path="${2:-$ZM_DIRS_FILE}"
 			if [[ -z $zm_name ]]; then
 				 printf "%s \n" "Please provide a name for your zm to delete. For example:"
-				 printf "\t%s \n" "zm_rm foo"
+				 printf "\t%s \n" "_zm_remove foo"
 				 return 1
 			else
 				 local zm_line zm_search
@@ -322,7 +325,7 @@ touch "$ZM_NAMED_DIRS"
 						if [[ $file_path == $ZM_DIRS_FILE ]]; then
 							 # name not found in dirs, run again with files
 							 # TODO would it be better to check the named hash for file or dir and not run through all? 
-							 zm_rm "$zm_name" "$ZM_FILES_FILE"
+							 _zm_remove "$zm_name" "$ZM_FILES_FILE"
 						else
 							 eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
 						fi
@@ -361,15 +364,15 @@ touch "$ZM_NAMED_DIRS"
 			local replacement
 			[[  $# -gt 1 ]] && replacement="$2" || replacement="$1"
 
-			echo -e "overwrite: $(zm_show $overwrite)"
+			echo -e "overwrite: $(_zm_show $overwrite)"
 			# printf "overwrite: %s\n" $overwrite
-			# printf "overwrite: %s\n" $(zm_show $overwrite)
+			# printf "overwrite: %s\n" $(_zm_show $overwrite)
 			printf "replacement: $replacement\t-- ${cur_dir/\$HOME/~}\n"
 
 			echo -n "overwrite mark $1 (y/n)? "
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ];then 
-				 zm_rm $1
+				 _zm_remove $1
 				 zm $2
 			else
 				 return 1
@@ -443,7 +446,7 @@ touch "$ZM_NAMED_DIRS"
 			local editmark
 			if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
 				 echo "Invalid name, please provide a valid zmark name. For example:"
-				 echo "zm_jump foo [pattern]"
+				 echo "_zm_jump foo [pattern]"
 				 echo
 				 echo "To mark a directory:"
 				 echo "zm <name>"
@@ -478,7 +481,7 @@ touch "$ZM_NAMED_DIRS"
 			fi
 	 }
 
-	 function zm_mark_file() {
+	 function _zm_mark_file() {
 			local zm_name="$1"
 
 			local zm_file_path="$2"
@@ -530,7 +533,7 @@ touch "$ZM_NAMED_DIRS"
 					echo -n "overwrite mark $1 (y/n)? "
 					read answer
 					if  [ "$answer" != "${answer#[Yy]}" ];then 
-						 zm_rm "$overwrite"
+						 _zm_remove "$overwrite"
 						 zmf "$replacement" "$zm_file_path"
 					else
 						 return 1
@@ -594,7 +597,7 @@ touch "$ZM_NAMED_DIRS"
 				 local zm="${clash##*|}"
 				 read answer
 				 if  [ "$answer" != "${answer#[Yy]}" ];then 
-						zm_rm "$zm"
+						_zm_remove "$zm"
 				 else
 						eval "$clash_fail=true"
 						return 1
@@ -662,32 +665,44 @@ function zm(){
 						 -j|--jump)
 								shift
 								# [[  $# -lt 1  ]] && usage && return 
-								zm_jump "$@"
+								_zm_jump "$@"
 								# echo "you are here: $PWD "
 								return
 						 ;;
 
 						 -s|--show)
 								shift
-								zm_show "$@"
+								_zm_show "$@"
 								return
 						 ;;
 						 
-						 -f|--mark-file)
+						 -mf|--mark-file)
 								shift 
-								zm_mark_file "$@"
+								_zm_mark_file "$@"
 								return
 						 ;;
 						 
-						 -d|--mark-dir)
+						 -md|--mark-dir)
 								shift 
-								zm_mark_dir "$@"
+								_zm_mark_dir "$@"
+								return
+						 ;;
+						 
+						 -d|--dir-jump)
+								shift 
+								_zm_dir_jump "$@"
+								return
+						 ;;
+						 
+						 -f|--file-jump)
+								shift 
+								_zm_file_jump "$@"
 								return
 						 ;;
 
-						 -rm|--remove)
+						 -r|--remove)
 								shift 
-								zm_rm "$@"
+								_zm_remove "$@"
 								return
 						 ;;
 
