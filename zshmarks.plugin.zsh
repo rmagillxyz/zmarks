@@ -89,16 +89,15 @@ touch "$ZM_NAMED_DIRS"
 				 return 
 	 }
 
-	 function zm_rebuild_hash_table(){
+function _zm_rebuild_hash_table(){
 			# generate new named dir to sync with marks
 			hash -d -r  # rebuild hash table
 			_gen_zmarks_named_dirs 1> /dev/null
 			_gen_zmarks_named_files 1> /dev/null
 			# echo 'rebuild hash table'
 			# echo "Deleted and synced named hashes"
-	 }
-
-	 zm_rebuild_hash_table
+}
+_zm_rebuild_hash_table
 
 	 # Check if $ZMARKS_DIR is a symlink.
 	 if [[ -L "$ZM_DIRS_FILE" ]]; then
@@ -243,7 +242,7 @@ touch "$ZM_NAMED_DIRS"
 				 else
 						# echo 'DEBUG _zm_jump: found file'
 						local filename="${zm%%|*}"
-						zm_zoom "$filename" "$2"
+						_zm_zoom "$filename" "$2"
 				 fi
 
 			else
@@ -340,7 +339,7 @@ touch "$ZM_NAMED_DIRS"
 
 						__zm_move_to_trash "${file_path}.bak" 
 
-						zm_rebuild_hash_table
+						_zm_rebuild_hash_table
 						echo "$zm_name removed"
 						echo "Synced named hashes"
 						return 
@@ -384,7 +383,7 @@ touch "$ZM_NAMED_DIRS"
 			fi
 	 }
 
-	 # function zm_zoom() {
+	 # function _zm_zoom() {
 	 # 	 # if [[ -z  ]]
 	 # 	 if [[ -z $2 ]]; then
 	 # 			has_zoom_mark = grep '__zm_zoom__' "$filename"
@@ -407,7 +406,7 @@ touch "$ZM_NAMED_DIRS"
 
 
 	 # jump to marked file
-	 function zm_zoom() {
+	 function _zm_zoom() {
 			local filename=$1
 				 if [[ -z $2 ]]; then
 						has_zoom_mark=$(grep "$ZM_ZOOM_MARK" "$filename")
@@ -424,7 +423,7 @@ touch "$ZM_NAMED_DIRS"
 	 # TODO add command comletion 
 	 # add checks to for type and file to only allow editable commands
 	 # add check for path to any file or path which exists
-	 function zm_vi() {
+	 function _zm_vi() {
 		 local cmd pattern c_path 
 		 cmd="$1"
 		 pattern="$2"
@@ -433,13 +432,13 @@ touch "$ZM_NAMED_DIRS"
 		 if [[ -z "$c_path" ]];then
 				echo 'script not in path'
 		 else
-			 zm_zoom "$c_path" "$pattern"
+			 _zm_zoom "$c_path" "$pattern"
 		 fi
 	 }
 
 	 # TODO
 	 # could just get rid of this and source any files which reside in ZDOTDIR immediately
-	 function zm_jump_n_source() {
+	 function _zm_jump_n_source() {
 			_zm_file_jump "$1" "$2"
 			source ~"$1"
 	 }
@@ -461,7 +460,7 @@ touch "$ZM_NAMED_DIRS"
 			else
 				 local filename="${editmark%%|*}"
 				 # _ezoom "$filename" "$2"
-				 zm_zoom "$filename" "$2"
+				 _zm_zoom "$filename" "$2"
 			fi
 	 }
 
@@ -754,7 +753,7 @@ _fzf_zm_jump(){
 			echo -e "\n"
 	 else
 			echo "we gotta file"
-			eval "zm_zoom \"$dest\""
+			eval "_zm_zoom \"$dest\""
 	 fi
 	 zle reset-prompt
 }
@@ -778,8 +777,9 @@ _fzf_zm_file_jump(){
    local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
 	 if [[ -n $zm ]];then 
 		 local file="${zm%%|*}"
-		 # could use BUFFER and zm_zoom here
-		eval "\"$EDITOR\" \"$file\""
+		 # could use BUFFER and _zm_zoom here
+		# eval "\"$EDITOR\" \"$file\""
+		eval "_zm_zoom \"$file\""
 	 fi
 }
 zle     -N    _fzf_zm_file_jump
