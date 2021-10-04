@@ -11,8 +11,9 @@ typeset -A opt_args
 # local options; options=('-j:make jump:_zm_list' '-s:show:_zm_list')
 # 	 _describe -t options 'option' options  && ret=0
 
-_arguments  '-j[jump to file or dir]:_jump:_zm_list' \
-	 '-s:show:(show mark)' \
+_arguments  '-j[jump to dir or file]:_jump:_zm_list' \
+	 '-s[show all marks or matching pattern]:_show:_zm_list' \
+	 '-r[remove mark]:_remove:_zm_list' 
 
 # 			local options; options=(
 # 			"-j:jump" "-s:show" "-f:mark file" "-d:mark directory" "-h:help"
