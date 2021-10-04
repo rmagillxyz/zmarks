@@ -52,7 +52,6 @@ touch "$ZM_DIRS_FILE"
 touch "$ZM_NAMED_FILES"
 touch "$ZM_NAMED_DIRS"
 
-function zm(){
 
 
 	 ## could just remove one instead of rebuilting
@@ -645,6 +644,8 @@ function zm(){
 	"
 			}
 
+
+function zm(){
 
 			if [[ $# -gt 0 ]]; then
 				 key="$1"
