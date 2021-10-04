@@ -2,29 +2,41 @@
 #autoload
 typeset -A opt_args
 
-# _arguments -C \
-# 	 '1:option:->options' \
-# 	 '2:zmarks:->zmarks_lists' \
-# 	 '*:: :->args' \
-# 	 && ret=0
-
-# local options; options=('-j:make jump:_zm_list' '-s:show:_zm_list')
-# 	 _describe -t options 'option' options  && ret=0
-
-_arguments  '-j[jump to dir or file]:_jump:_zm_list' \
+_arguments '-j[jump to dir or file]:_jump:_zm_all' \
+	 '-f[jump to file]:_file_jump:_zm_list' \
+	 '-d[jump to dir]:_show:_zm_list' \
 	 '-s[show all marks or matching pattern]:_show:_zm_list' \
-	 '-r[remove mark]:_remove:_zm_list' 
+	 '-r[remove mark]:_remove:_zm_list' \
+	 '-F[mark file]:_file_mark:_files' \
+	 '-D[mark dir]:_dir_mark' 
 
-# 			local options; options=(
-# 			"-j:jump" "-s:show" "-f:mark file" "-d:mark directory" "-h:help"
-# 			)
+# _zm_mark_opt(){
+# 	 _arguments -s -- \ 
+# 			'-md[mark dir]:_dir_mark' \
+# 			'-mf[jump to dir]:_show:_files' \
+# }
 
-			# _describe -t options 'option' options && ret=0
-	 
+_zm_files(){
+	 local zm_file=$(<"$ZMARKS_DIR/zm_files")
+	 _zm_list $zm_file
+}
 
-			_zm_list(){
+_zm_dirs(){
+	 local zm_file=$(<"$ZMARKS_DIR/zm_dirs")
+	 _zm_list $zm_file
+}
 
+_zm_all(){
+	 # echo 'zm_all called'
 	 local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
+	 # echo "zmarks/_jump_showmarks_deletemark: 23 zm_file: $zm_file"
+	 _zm_list $zm_file
+}
+
+_zm_list(){
+	 # echo 'zm_list called'
+	 local zm_file="$1"
+	 # echo "zmarks/_jump_showmarks_deletemark: 31 zm_file: $zm_file"
 	 local zm_array; zm_array=(${(f)zm_file});
 	 local zm_name zm_path zm_line
 	 zmarks=()
@@ -38,4 +50,5 @@ _arguments  '-j[jump to dir or file]:_jump:_zm_list' \
 		 fi
 	 done
 	 _describe -t zmarks 'zmarks' zmarks && ret=0
-			}
+}
+
