@@ -4,8 +4,8 @@ typeset -A opt_args
 _arguments -c \
 	 '1:option:->options' \
 	 '2:zmarks:->zmarks_lists' \
-	 '*:: :->args' \
 	 && ret=0
+	 # '*:: :->args' \
 
 case "$state" in
 	 (options)
@@ -15,17 +15,51 @@ case "$state" in
 	 
 	 _describe -t options 'option' options && ret=0
 	 ;;
-(zmarks_lists) 
-	 local zmarks; zmarks=(
-	 'controller:creates a new controller'
-      'mailer:creates a new mailer'
-      'migration:creates a new migration'
-      'model:creates a new model'
-      'project:create a new Padrino app'
-      'plugin:add plugin to your app'
-)
+	 (zmarks_lists) 
 
-_describe -t zmarks 'zmarks' zmarks && ret=0
+			echo "words[1]: $words[1]"
+			echo "words[2]: $words[2]"
+			echo "words[3]: $words[3]"
+
+	 local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
+	 local zm_array; zm_array=(${(f)zm_file});
+	 local zm_name zm_path zm_line
+	 zmarks=()
+	 for zm_line in $zm_array; do
+		 if [[ "$zm_line" == *"|"* ]] ; then
+			 zm_path="${zm_line%%|*}"
+			 zm_path="${zm_path/\$HOME/\~}"
+			 zm_name="${zm_line#*|}"
+			 zmarks+="${zm_name}:${zm_path}"
+			 # echo "zmarks/_jump_showmarks_deletemark: 18 zmarks: $zmarks"
+		 fi
+	 done
+
+# 			local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
+# 			local zm_array; zm_array=(${(f)zm_file});
+# 			local zm_name zm_path zm_line
+# 			zmarks=()
+# 			for zm_line in $zm_array; do
+# 				if [[ "$zm_line" == $2"|"$2 ]] ; then
+# 					zm_path="${zm_line%%|$2}"
+# 					zm_path="${zm_path/\$HOME/\~}"
+# 					zm_name="${zm_line#$2|}"
+# 					zmarks+="${zm_name}:${zm_path}"
+# 				fi
+# 			done
+
+			echo "zmarks/_jump_showmarks_deletemark: 33 zmarks: $zmarks"
+			_describe -t zmarks 'zmarks' zmarks && ret=0
+
+# 	 local zmarks; zmarks=(
+# 	 'controller:creates a new controller'
+#       'mailer:creates a new mailer'
+#       'migration:creates a new migration'
+#       'model:creates a new model'
+#       'project:create a new Padrino app'
+#       'plugin:add plugin to your app'
+# )
+
 ;;
   (args)
     case $line[2] in
