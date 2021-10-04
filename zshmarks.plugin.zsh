@@ -634,6 +634,13 @@ touch "$ZM_NAMED_DIRS"
 			# 	    echo -e "\nUsage: zm [OPTION]... [MARK]...\n  -j, --jump MARK \n  -s, --show <MARK> \n  -f, --mark-file <MARK> \n  -d, --mark-dir <MARK> \n  -h --help \n"
 			# }
 			
+			# usage(){
+			# 	echo  "
+			# 	 -j jump to file or dir
+			# 	 -s <MARK> \t\t\t Will try to match or show all if not specified.   
+			# 	"
+			# }
+			
 			usage(){
 	    echo "Usage: zm [OPTION]... [MARK]...
   -j, --jump MARK \t\t\t Jump to directory or jump into file.

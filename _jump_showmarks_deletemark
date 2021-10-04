@@ -1,25 +1,27 @@
 #compdef zm
+#autoload
 typeset -A opt_args
 
-_arguments -C \
-	 '1:option:->options' \
-	 '2:zmarks:->zmarks_lists' \
-	 '*:: :->args' \
-	 && ret=0
+# _arguments -C \
+# 	 '1:option:->options' \
+# 	 '2:zmarks:->zmarks_lists' \
+# 	 '*:: :->args' \
+# 	 && ret=0
 
-case "$state" in
-	 (options)
-			local options; options=(
-			"-j:jump" "-s:show" "-f:mark file" "-d:mark directory" "-h:help"
-			)
-			_describe -t options 'option' options && ret=0
-	 ;;
+# local options; options=('-j:make jump:_zm_list' '-s:show:_zm_list')
+# 	 _describe -t options 'option' options  && ret=0
 
-	 (zmarks_lists) 
+_arguments  '-j[jump to file or dir]:_jump:_zm_list' \
+	 '-s:show:(show mark)' \
 
-# 			echo "words[1]: $words[1]"
-# 			echo "words[2]: $words[2]"
-# 			echo "words[3]: $words[3]"
+# 			local options; options=(
+# 			"-j:jump" "-s:show" "-f:mark file" "-d:mark directory" "-h:help"
+# 			)
+
+			# _describe -t options 'option' options && ret=0
+	 
+
+			_zm_list(){
 
 	 local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
 	 local zm_array; zm_array=(${(f)zm_file});
@@ -35,96 +37,4 @@ case "$state" in
 		 fi
 	 done
 	 _describe -t zmarks 'zmarks' zmarks && ret=0
-;;
-#   (args)
-#     case $line[2] in
-
-# 			echo "line[1]: $line[1]"
-# 			echo "line[2]: $line[2]"
-# 			echo "line[3]: $line[3]"
-
-# 			return 0
-
-#       (controller)
-#         _arguments \
-#           '-d:remove all generated files' \
-#           '-n:specify the application' \
-#           '-r:specify the root'
-#           ret=0
-#       ;;
-
-    # esac
-esac
-
-return 1
-
-# local -a baseopts
-# baseopts=("-j:jump" "-s:show" "-f:mark file" "-d:mark directory" "-h:help")
-# # _arguments '1:Actions:_describe -t commands Actions' baseopts
-# # _arguments '1:Actions:->subcmds' && return 0
-
-# if (( CURRENT == 1 )); then
-# 	_describe -t commands 'baseopts' baseopts
-# fi
-
-# return 0
-# }
-
-# _zm
-
-# #         # _arguments '1:Actions:(-j -s -h)'
-# #     ;;
-# #     *)
-# #         case $words[2] in
-# #         -j)
-# #             compadd "$@" Paris Lyon Marseille
-# #         ;;
-# #         Germany)
-# #             compadd "$@" Berlin Munich Dresden
-# #         ;;
-# #         Italy)
-# #             compadd "$@" Rome Napoli Palermo
-# #         ;;
-# #         *)
-# #             _files 
-# #         esac
-# #     esac
-# # }
-
-# # _zm "$@"
- 
-
-
-
-# # # _arguments \
-# # # 	'*:: :->subcmds' && return 0
-
-# # # if (( CURRENT == 1 )); then
-# # # 	 baseopts=("-j:jump" "-s:show" "-f:mark file" "-d:mark directory" "-h:help")
-# # # 	_describe -t commands 'Zmarks' baseopts
-# # # 	return
-# # # fi
-
-# # # local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
-# # # local zm_array; zm_array=(${(f)zm_file});
-# # # local zm_name zm_path zm_line
-# # # zmarks=()
-# # # for zm_line in $zm_array; do
-# # # 	if [[ "$zm_line" == $2"|"$2 ]] ; then
-# # # 		zm_path="${zm_line%%|$2}"
-# # # 		zm_path="${zm_path/\$HOME/\~}"
-# # # 		zm_name="${zm_line#$2|}"
-# # # 		zmarks+="${zm_name}:${zm_path}"
-# # # 		# echo "zmarks/_jump_showmarks_deletemark: 18 zmarks: $zmarks"
-# # # 	fi
-# # # done
-
-
-# # # _arguments -n \
-# # # 	'*:: :->subcmds' && return 0
-
-
-# # # if (( CURRENT == 2 )); then
-# # # 	_describe -t commands 'Zmarks' zmarks
-# # # 	return
-# # # fi
+			}
