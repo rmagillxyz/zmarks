@@ -313,8 +313,9 @@ touch "$ZM_NAMED_DIRS"
 			local zm_name="$1"
 			local file_path="${2:-$ZM_DIRS_FILE}"
 			if [[ -z $zm_name ]]; then
-				 printf "%s \n" "Please provide a name for your zm to delete. For example:"
-				 printf "\t%s \n" "_zm_remove foo"
+				 printf "%s \n" "Please provide a mark name to remove. For example:"
+				 # printf "\t%s \n" "_zm_remove foo"
+				 printf "\t%s \n" "zm -r foo"
 				 return 1
 			else
 				 local zm_line zm_search
@@ -327,7 +328,8 @@ touch "$ZM_NAMED_DIRS"
 							 # TODO would it be better to check the named hash for file or dir and not run through all? 
 							 _zm_remove "$zm_name" "$ZM_FILES_FILE"
 						else
-							 eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
+							 # eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
+							 eval "printf '%s\n' \"'${zm_name}' not found.\""
 						fi
 				 else
 						\cp "${file_path}" "${file_path}.bak"
@@ -338,6 +340,7 @@ touch "$ZM_NAMED_DIRS"
 						__zm_move_to_trash "${file_path}.bak" 
 
 						zm_rebuild_hash_table
+						echo "$zm_name removed"
 						echo "Synced named hashes"
 				 fi
 			fi
@@ -646,11 +649,13 @@ touch "$ZM_NAMED_DIRS"
 			
 			usage(){
 	    echo "Usage: zm [OPTION]... [MARK]...
+  -d, --dir-jump <DIR-MARK> \t\t\t Jump to directory mark. 
+  -D, --mark-dir [MARK-NAME] \t\t Mark directory. Will use current directory name if not specified. 
+  -f, --file-jump <FILE-MARK> [PATTERN] \t\t\t Jump to file mark and search for optional pattern. 
+  -F, --mark-file <MARK-NAME> [FILE] \t\t Mark file. Will use fzf to select from files in current dir if not specified.  
   -j, --jump MARK \t\t\t Jump to directory or jump into file.
   -s, --show <MARK> \t\t\t Will try to match or show all if not specified.   
-  -f, --mark-file <MARK> \t\t Mark file. Will use fzf to select from files in current dir if not specified.  
-  -d, --mark-dir <MARK> \t\t Mark directory. Will use current directory name if not specified. 
-  -h --help \t\t\t\t Show this message.
+  -h 	--help \t\t\t\t Show this message.
 	"
 			}
 
@@ -661,42 +666,42 @@ function zm(){
 				 key="$1"
 
 				 case $key in
-
-						 -j|--jump)
-								shift
-								# [[  $# -lt 1  ]] && usage && return 
-								_zm_jump "$@"
-								# echo "you are here: $PWD "
-								return
-						 ;;
-
-						 -s|--show)
-								shift
-								_zm_show "$@"
-								return
-						 ;;
-						 
-						 -mf|--mark-file)
-								shift 
-								_zm_mark_file "$@"
-								return
-						 ;;
-						 
-						 -md|--mark-dir)
-								shift 
-								_zm_mark_dir "$@"
-								return
-						 ;;
 						 
 						 -d|--dir-jump)
 								shift 
 								_zm_dir_jump "$@"
 								return
 						 ;;
-						 
+
+						 -D|--mark-dir)
+								shift 
+								_zm_mark_dir "$@"
+								return
+						 ;; 
+
+						 -F|--mark-file)
+								shift 
+								_zm_mark_file "$@"
+								return
+						 ;;
+												 
 						 -f|--file-jump)
 								shift 
 								_zm_file_jump "$@"
+								return
+						 ;;
+ 
+						 -j|--jump)
+								shift
+								# [[  $# -lt 1  ]] && usage && return 
+								_zm_jump "$@"
+								# echo "you are here: $PWD "
+								return
+						 ;; 
+
+						 -s|--show)
+								shift
+								_zm_show "$@"
 								return
 						 ;;
 
