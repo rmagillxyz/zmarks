@@ -199,13 +199,11 @@ function __zmarks_zgrep() {
 	 local outvar="$1"; shift
 	 local pattern="$1"
 	 local filename="$2"
-	 # There was a BUG here, but now files should always exist
-	 # [[ ! -f $filename ]] && return
 	 local file_contents="$(<"$filename")"
-	 local file_lines; file_lines=(${(f)file_contents})
+	 local contents_array; contents_array=(${(f)file_contents})
 
 
-	 for line in "${file_lines[@]}"; do
+	 for line in "${contents_array[@]}"; do
 			if [[ "$line" =~ "$pattern" ]]; then
 				 eval "$outvar=\"$line\""
 				 return 0
@@ -252,17 +250,16 @@ function _zm_jump() {
 
 # Show a list of all the zmarks
 function _zm_show() {
-	 # zm_file is the contents of the file stored in a var
-	 local zm_file=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
-	 local zm_array; zm_array=(${(f)zm_file});
+	 local file_contents=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
+	 local contents_array; contents_array=(${(f)file_contents});
 	 local zm_name zm_line
 
 	 if [[ $# -eq 1 ]]; then
 			zm_name="*\|${1}"
-			zm_line=${zm_array[(r)$zm_name*]}
+			zm_line=${contents_array[(r)$zm_name*]}
 			__zm_line_printf "$zm_line"
 	 else
-			for zm_line in $zm_array; do
+			for zm_line in $contents_array; do
 				 # echo 'printing formatted line'
 				 __zm_line_printf "$zm_line"
 			done
@@ -303,7 +300,7 @@ function __zm_line_printf() {
 
 function _zm_remove()  {
 	 local zm_name="$1"
-	 local file_path="${2:-$ZM_DIRS_FILE}"
+	 local zm_file="${2:-$ZM_DIRS_FILE}"
 	 if [[ -z $zm_name ]]; then
 			printf "%s \n" "Please provide a mark name to remove. For example:"
 			# printf "\t%s \n" "_zm_remove foo"
@@ -311,11 +308,11 @@ function _zm_remove()  {
 			return 1
 	 else
 			local zm_line zm_search
-			local zm_file="$(<"$file_path")"
-			local zm_array; zm_array=(${(f)zm_file});
+			local file_contents="$(<"$zm_file")"
+			local zm_array; zm_array=(${(f)file_contents});
 			zm_search="*\|${zm_name}"
 			if [[ -z ${zm_array[(r)$zm_search]} ]]; then
-				 if [[ $file_path == $ZM_DIRS_FILE ]]; then
+				 if [[ $zm_file == $ZM_DIRS_FILE ]]; then
 						# name not found in dirs, run again with files
 						# TODO would it be better to check the named hash for file or dir and not run through all? 
 						_zm_remove "$zm_name" "$ZM_FILES_FILE"
@@ -325,13 +322,13 @@ function _zm_remove()  {
 						return 1
 				 fi
 			else
-				 \cp "${file_path}" "${file_path}.bak"
+				 \cp "${zm_file}" "${zm_file}.bak"
 				 zm_line=${zm_array[(r)$zm_search]}
 				 zm_array=(${zm_array[@]/$zm_line})
-				 # eval "printf '%s\n' \"\${zm_array[@]}\"" >! $file_path
-				 eval "printf '%s\n' \"\${zm_array[@]}\"" > $file_path
+				 eval "printf '%s\n' \"\${zm_array[@]}\"" >! $zm_file
+				 # eval "printf '%s\n' \"\${zm_array[@]}\"" > $zm_file
 
-				 __zm_move_to_trash "${file_path}.bak" 
+				 __zm_move_to_trash "${zm_file}.bak" 
 
 				 _zm_rebuild_hash_table
 				 echo "$zm_name removed"
@@ -454,7 +451,6 @@ function _zm_dir_jump() {
 
 function _zm_mark_file() {
 	 local zm_name="$1"
-
 	 local zm_file_path="$2"
 
 	 if [[ -z $zm_name ]]; then
@@ -487,6 +483,7 @@ function _zm_mark_file() {
 # 						return 1
 # 			fi
 
+			# if mark name matches file from cwd, automatically use that file path
 			local exactmatchfromcwd=$(\ls $(pwd) | grep -x "$zm_name")
 			if [[ -z $zm_file_path && -n $exactmatchfromcwd ]]; then
 				 #could use find here
@@ -589,10 +586,10 @@ function __zm_checkclash(){
 	 local clash
 
 	 __checktoremove(){
-			local zm="${clash##*|}"
+			local zm_name="${clash##*|}"
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ];then 
-				 _zm_remove "$zm"
+				 _zm_remove "$zm_name"
 			else
 				 eval "$clash_fail=true"
 				 return 1
