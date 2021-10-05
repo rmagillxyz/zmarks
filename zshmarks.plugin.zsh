@@ -33,20 +33,18 @@ if [[ -z $EDITOR ]]; then
 	 fi
 fi
 
-# Set ZMARKS_DIR if it doesn't exist to the default.
-# Allows for a user-configured ZMARKS_DIR.
+# Allows for a user to configure ZMARKS_DIR location.
 if [[ -z $ZMARKS_DIR ]] ; then
 	 [[ ! -d "$HOME/.local/share/zsh" ]] && mkdir -p "$HOME/.local/share/zsh" 
 	 ZMARKS_DIR="$HOME/.local/share/zsh"
 fi
 
-ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
-ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
-ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
-ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
-ZM_ZOOM_MARK="__zm_zoom__"
+export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
+export ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
+export ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
+export ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
+export ZM_ZOOM_MARK="__zm_zoom__"
 
-# TODO should i just touch these or check if they exist and touch? 
 touch "$ZM_FILES_FILE"
 touch "$ZM_DIRS_FILE"
 touch "$ZM_NAMED_FILES"
@@ -55,48 +53,47 @@ touch "$ZM_NAMED_DIRS"
 
 
 	 ## could just remove one instead of rebuilting
-	 function _gen_zmarks_named_dirs(){
-			if [[  -f "$ZM_NAMED_DIRS" ]]; then
-				 \rm -f "$ZM_NAMED_DIRS"
-			fi
+function _zm_gen_named_dirs(){
+	 if [[  -f "$ZM_NAMED_DIRS" ]]; then
+			\rm -f "$ZM_NAMED_DIRS"
+	 fi
 
-				 while read line
-				 do
-						if [[ -n "$line" ]]; then
-							 dir="${line%%|*}"
-							 bm="${line##*|}"
-							 echo "~$bm"
-							 echo "hash -d $bm=$dir" >> "$ZM_NAMED_DIRS"
-						fi
-				 done < "$ZM_DIRS_FILE"
-				 return 
-	 }
+			while read line
+			do
+				 if [[ -n "$line" ]]; then
+						dir="${line%%|*}"
+						bm="${line##*|}"
+						echo "~$bm"
+						echo "hash -d $bm=$dir" >> "$ZM_NAMED_DIRS"
+				 fi
+			done < "$ZM_DIRS_FILE"
+			return 
+}
 
-	 function _gen_zmarks_named_files(){
-			if [[  -f "$ZM_NAMED_FILES" ]]; then
-				 \rm -f "$ZM_NAMED_FILES"
-			fi
+function _zm_gen_named_files(){
+	 if [[  -f "$ZM_NAMED_FILES" ]]; then
+			\rm -f "$ZM_NAMED_FILES"
+	 fi
 
-				 while read line
-				 do
-						if [[ -n "$line" ]]; then
-							 dir="${line%%|*}"
-							 bm="${line##*|}"
-							 echo "~$bm"
-							 echo "hash -d $bm=$dir" >> "$ZM_NAMED_FILES"
-						fi
-				 done < "$ZM_FILES_FILE"
-				 return 
-	 }
+			while read line
+			do
+				 if [[ -n "$line" ]]; then
+						dir="${line%%|*}"
+						bm="${line##*|}"
+						echo "~$bm"
+						echo "hash -d $bm=$dir" >> "$ZM_NAMED_FILES"
+				 fi
+			done < "$ZM_FILES_FILE"
+			return 
+}
 
 function _zm_rebuild_hash_table(){
 			# generate new named dir to sync with marks
 			hash -d -r  # rebuild hash table
-			_gen_zmarks_named_dirs 1> /dev/null
-			_gen_zmarks_named_files 1> /dev/null
-			# echo 'rebuild hash table'
-			# echo "Deleted and synced named hashes"
+			_zm_gen_named_dirs 1> /dev/null
+			_zm_gen_named_files 1> /dev/null
 }
+
 _zm_rebuild_hash_table
 
 # Check if $ZMARKS_DIR is a symlink.
@@ -108,19 +105,8 @@ if [[ -L "$ZM_FILES_FILE" ]]; then
 	 ZM_FILES_FILE=$(readlink $ZM_FILES_FILE)
 fi
 
-# if [[ ! -f $ZM_DIRS_FILE  ]]; then
-# 	 touch $ZM_DIRS_FILE
-# else 
-# 	 _gen_zmarks_named_dirs 1> /dev/null
-# 	 _gen_zmarks_named_files 1> /dev/null
-# fi
-
-# _gen_zmarks_named_dirs 1> /dev/null
-# _gen_zmarks_named_files 1> /dev/null
-
- [ -f $ZM_NAMED_DIRS ] && source "$ZM_NAMED_DIRS" 
- [ -f $ZM_NAMED_FILES ] && source "$ZM_NAMED_FILES" 
-
+[ -f $ZM_NAMED_DIRS ] && source "$ZM_NAMED_DIRS" 
+[ -f $ZM_NAMED_FILES ] && source "$ZM_NAMED_FILES" 
 
 function __zm_move_to_trash(){
 	 local file_path="$1"
@@ -144,46 +130,47 @@ function _zm_mark_dir() {
 	 if [[ -z $zm_name ]]; then
 			zm_name="${PWD##*/}"
 	 fi
+
 	 cur_dir="$(pwd)"
-	 # Replace /home/uname with $HOME
+	 # Replace /home/$USER with $HOME
 	 if [[ "$cur_dir" =~ ^"$HOME"(/|$) ]]; then
 			cur_dir="\$HOME${cur_dir#$HOME}"
 	 fi
 
-		# Store the zmark as directory|name
-		local new_zm_line="$cur_dir|$zm_name"
+	 # Store the zmark as directory|name
+	 local new_zm_line="$cur_dir|$zm_name"
 
-	# TODO: this could be sped up sorting and using a search algorithm
-	for line in $(cat $ZM_DIRS_FILE) 
-	do
+	 # TODO: this could be sped up sorting and using a search algorithm
+	 for line in $(cat $ZM_DIRS_FILE) 
+	 do
 
-		 if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
-				echo "umm, you already have this EXACT dir zmark, bro" 
-				return 
-		 fi 
+	 	 if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
+	 			echo "umm, you already have this EXACT dir zmark, bro" 
+	 			return 
+	 	 fi 
 
-		 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
+	 	 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
 
-				printf "\n${RED}zmark name is already being used:\n$(_zm_show $zm_name)${NOCOLOR}\n"
+	 			printf "\n${RED}zmark name is already being used:\n$(_zm_show $zm_name)${NOCOLOR}\n"
 
-				echo -n "Remove $zm_name?  (y/n)? "
-				 read answer
-				 if  [ "$answer" != "${answer#[Yy]}" ];then 
-						_zm_remove "$zm_name"  && _zm_mark_dir "$zm_name"
-						return 
-				 fi
+	 			echo -n "Remove $zm_name?  (y/n)? "
+	 			 read answer
+	 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
+	 					_zm_remove "$zm_name"  && _zm_mark_dir "$zm_name"
+	 					return 
+	 			 fi
 
-		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
+	 	 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
 
-				local zm_clashed_path zm_clashed_path_name
-				 __zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
+	 			local zm_clashed_path zm_clashed_path_name
+	 			 __zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
 
-					printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t--  $zm_clashed_path${NOCOLOR}\n"
-				
-				__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name
-				return 1
-		 fi
-	done
+	 				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t--  $zm_clashed_path${NOCOLOR}\n"
+	 			
+	 			__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name
+	 			return 1
+	 	 fi
+	 done
 
 	local zm_clash_fail
 	__zm_checkclash zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
@@ -217,7 +204,6 @@ function __zmarks_zgrep() {
 	 return 1
 }
 
-# jump
 function _zm_jump() {
 	 if [[ -z $1 ]];then
 			cd ~
@@ -275,7 +261,6 @@ function _zm_show() {
 
 # TODO write format function for hash -d from line
 
-
 __zm_line_parse(){
 	 USAGE="
 			${FUNCNAME[0]}  zm_line path_variable_to_set name_variable_to_set 
@@ -294,7 +279,7 @@ __zm_line_parse(){
 	 fi
 }
 
-__zm_line_printf() {
+function __zm_line_printf() {
 	 USAGE="${FUNCNAME[0]} zm_line"
 	 if [[ ! "$#" -eq 1 ]]; then
 			echo "$USAGE"
@@ -306,7 +291,6 @@ __zm_line_printf() {
 	 printf "%s\t\t--  %s\n" "$name" "$path"
 }
 
-# remove a zm
 function _zm_remove()  {
 	 local zm_name="$1"
 	 local file_path="${2:-$ZM_DIRS_FILE}"
@@ -369,8 +353,6 @@ function __ask_to_overwrite_zm_dir() {
 	 [[  $# -gt 1 ]] && replacement="$2" || replacement="$1"
 
 	 echo -e "overwrite: $(_zm_show $overwrite)"
-	 # printf "overwrite: %s\n" $overwrite
-	 # printf "overwrite: %s\n" $(_zm_show $overwrite)
 	 printf "replacement: $replacement\t-- ${cur_dir/\$HOME/~}\n"
 
 	 echo -n "overwrite mark $1 (y/n)? "
@@ -408,21 +390,20 @@ function __ask_to_overwrite_zm_dir() {
 # jump to marked file
 function _zm_zoom() {
 	 local filename=$1
-			if [[ -z $2 ]]; then
-				 has_zoom_mark=$(grep "$ZM_ZOOM_MARK" "$filename")
-				 if [[ -n $has_zoom_mark ]]; then
-					 "$EDITOR" +/"$ZM_ZOOM_MARK" "$filename"	
-				 else
-					 "$EDITOR" "$filename"
-				 fi
-				else
-					 "$EDITOR" +/"$2" "$filename"	
+	 if [[ -z $2 ]]; then
+			has_zoom_mark=$(grep "$ZM_ZOOM_MARK" "$filename")
+			if [[ -n $has_zoom_mark ]]; then
+				"$EDITOR" +/"$ZM_ZOOM_MARK" "$filename"	
+			else
+				"$EDITOR" "$filename"
 			fi
+		 else
+				"$EDITOR" +/"$2" "$filename"	
+	 fi
 }
 
 # TODO add command comletion 
 # add checks to for type and file to only allow editable commands
-# add check for path to any file or path which exists
 function _zm_vi() {
 	local cmd pattern c_path 
 	cmd="$1"
@@ -443,8 +424,7 @@ function _zm_jump_n_source() {
 	 source ~"$1"
 }
 
-# works, but not currently being used
-# jump to marked file
+# jump to file mark
 function _zm_file_jump() {
 	 local editmark_name=$1
 	 local editmark
@@ -464,8 +444,7 @@ function _zm_file_jump() {
 	 fi
 }
 
-# works, but not currently being used
-# jump to marked dir
+# jump to dir mark
 function _zm_dir_jump() {
 	 local zmark_name=$1
 	 local zmark
@@ -627,10 +606,12 @@ function __zm_checkclash(){
 
 	 # check marks for collision
 	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
-			# TODO BUG: true when file ZM_FILES_FILE does not exist. may be fixed
+			# TODO BUG: true when file ZM_FILES_FILE does not exist. 
+			# may be fixed
 			if [[ $zm_path == $ZM_FILES_FILE ]];then
-				 printf "${RED}name clashes with zmark file: $clash${NOCOLOR}\n"
-				 echo -n "delete zmark file?: $clash (y/n)? "
+				 printf "${RED}name clashes with marked file: $clash${NOCOLOR}\n"
+				 # echo -n "delete zmark?: $clash (y/n)? "
+				 echo -n "delete '$zm_name' mark? (y/n)?"
 				 __asktodelete "$clash"
 			else
 				 printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
@@ -640,20 +621,6 @@ function __zm_checkclash(){
 			fi
 			__zm_checkhashclash 
 }
-
-
-	 # USAGE="$(basename $0) [ -j, --jump MARK ] [ -s, --show <MARK> ] [ -f, --mark-file <MARK> ] [ -d, --mark-dir <MARK> ] [ -h --help ]"
-	 
-	 # usage(){
-	 # 	    echo -e "\nUsage: zm [OPTION]... [MARK]...\n  -j, --jump MARK \n  -s, --show <MARK> \n  -f, --mark-file <MARK> \n  -d, --mark-dir <MARK> \n  -h --help \n"
-	 # }
-	 
-	 # usage(){
-	 # 	echo  "
-	 # 	 -j jump to file or dir
-	 # 	 -s <MARK> \t\t\t Will try to match or show all if not specified.   
-	 # 	"
-	 # }
 
 
 function zm(){
