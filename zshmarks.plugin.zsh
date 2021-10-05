@@ -455,7 +455,7 @@ function _zm_dir_jump() {
 function _zm_mark_file() {
 	 local zm_name="$1"
 
-	 local zm_file_name_cwd="$2"
+	 local zm_file_path="$2"
 
 	 if [[ -z $zm_name ]]; then
 			echo 'zmark name required'
@@ -478,27 +478,34 @@ function _zm_mark_file() {
 
 	 [[ -n $zm_clash_fail ]] && return 2
 
-	 local exactmatchfromdir=$(\ls $(pwd) | grep -x "$zm_name")
-	 local filenotincwd=$(\ls $(pwd) | grep -x "$zm_file_name_cwd")
 
-	 if [[ -n $zm_file_name_cwd && -z $filenotincwd   ]]; then
-				 printf "${RED}$zm_file_name_cwd not found in current directory ${NOCOLOR}\n"
-				 return 1
-	 fi
 
-	 if [[ -z $zm_file_name_cwd && -n $exactmatchfromdir ]]; then
-			#could use find here
-			cur_dir="$(pwd)"
-			zm_file_path="$cur_dir"
-			zm_file_path+="/$zm_name"
+# 			local filenotincwd=$(\ls $(pwd) | grep -x "$zm_file_path")
+# 			if [[ -n $zm_file_path && -z $filenotincwd   ]]; then
+# 						# printf "${RED}$zm_file_path not found in current directory ${NOCOLOR}\n"
+# 						printf "${RED}$zm_file_path not found${NOCOLOR}\n"
+# 						return 1
+# 			fi
 
-	 elif [[ -z $zm_file_name_cwd ]]; then
-			zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
-			if [[ -z "$zm_file_path" ]]; then
-				 echo 'abort'
-				 return 1
+			local exactmatchfromcwd=$(\ls $(pwd) | grep -x "$zm_name")
+			if [[ -z $zm_file_path && -n $exactmatchfromcwd ]]; then
+				 #could use find here
+				 cur_dir="$(pwd)"
+				 zm_file_path="$cur_dir"
+				 zm_file_path+="/$zm_name"
+
+			elif [[ -n $zm_file_path ]] && [[ -f $(readlink -f $zm_file_path) ]]; then
+				 zm_file_path=$(readlink -f $zm_file_path)
+				 echo "zmarks/init.zsh: 499 zm_file_path: $zm_file_path"
+
+			else
+				 zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
+				 if [[ -z "$zm_file_path" ]]; then
+						echo 'abort'
+						return 1
+				 fi
+
 			fi
-	 fi
 
 
 		# Replace /home/$USER with $HOME

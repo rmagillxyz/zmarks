@@ -38,9 +38,11 @@ _zm_list(){
 	 _describe -t zmarks 'zmarks' zmarks && ret=0
 }
 
-_zm_pwd(){
-	 _arguments 1:(`basename $PWD`)
-}
+# _zm_pwd(){
+# 	 _arguments 1:(`basename $PWD`)
+# }
+
+# TODO add optional _canonical_paths as third arg to -F[mark file]
 
 _arguments \
 	 '-j[jump to dir or file]: :_zm_all' \
