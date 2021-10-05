@@ -17,8 +17,8 @@
 # 	 fpath=("$ZDOTDIR/zmarks/functions" $fpath)
 # fi
 
-# dir="${foo%%|*}"
-# zm="${foo##*|}"
+# zm_path="${foo%%|*}"
+# zm_name="${foo##*|}"
 RED='\033[0;31m'
 NOCOLOR='\033[0m'
 
@@ -235,8 +235,8 @@ function _zm_jump() {
 				 return 1
 			else
 				 # echo 'DEBUG _zm_jump: found file'
-				 local filename="${zm%%|*}"
-				 _zm_zoom "$filename" "$2"
+				 local zm_path="${zm%%|*}"
+				 _zm_zoom "$zm_path" "$2"
 			fi
 
 	 else
@@ -374,16 +374,16 @@ function __ask_to_overwrite_zm_dir() {
 
 # jump to marked file
 function _zm_zoom() {
-	 local filename=$1
+	 local file_path=$1
 	 if [[ -z $2 ]]; then
-			has_zoom_mark=$(grep "$ZM_ZOOM_MARK" "$filename")
+			has_zoom_mark=$(grep "$ZM_ZOOM_MARK" "$file_path")
 			if [[ -n $has_zoom_mark ]]; then
-				"$EDITOR" +/"$ZM_ZOOM_MARK" "$filename"	
+				"$EDITOR" +/"$ZM_ZOOM_MARK" "$file_path"	
 			else
-				"$EDITOR" "$filename"
+				"$EDITOR" "$file_path"
 			fi
 		 else
-				"$EDITOR" +/"$2" "$filename"	
+				"$EDITOR" +/"$2" "$file_path"	
 	 fi
 }
 
