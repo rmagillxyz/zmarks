@@ -365,28 +365,6 @@ function __ask_to_overwrite_zm_dir() {
 	 fi
 }
 
-# function _zm_zoom() {
-# 	 # if [[ -z  ]]
-# 	 if [[ -z $2 ]]; then
-# 			has_zoom_mark = grep '__zm_zoom__' "$filename"
-# 			if [[ -n $has_zoom_mark ]]; then
-# 				"$EDITOR" "$filename" "$ZM_ZOOM_MARK"
-# 			else
-# 				"$EDITOR" "$filename"
-# 			fi
-# 		 else
-# 				"$EDITOR" "$filename" "$2"
-# 	 			"$EDITOR" +/"$2" "$1"	
-# 	 fi
-
-# 	 # if [ -z "$2" ]; then
-# 	 # 			"$EDITOR" "$1"
-# 	 # else
-# 	 # 			"$EDITOR" +/"$2" "$1"	
-# 	 # fi
-# }
-
-
 # jump to marked file
 function _zm_zoom() {
 	 local filename=$1
