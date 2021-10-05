@@ -128,8 +128,16 @@ function __zm_move_to_trash(){
 
 function _zm_mark_dir() {
 	 local zm_name=$1
+
 	 if [[ -z $zm_name ]]; then
 			zm_name="${PWD##*/}"
+	 fi
+
+	 echo "zmarks/init.zsh: 136 zm_name: $zm_name"
+	 # if [[ ! $zm_name =~ [:alnum:] ]]; then
+	 if [[ ! "${zm_name//[0-9A-Za-z]/}" = "" ]]; then
+			echo 'Marks must only contain alphanumeric characters'
+			return 1
 	 fi
 
 	 cur_dir="$(pwd)"
@@ -453,6 +461,16 @@ function _zm_mark_file() {
 			echo 'zmark name required'
 			return 1
 	 fi
+
+	 if [[ ! "${zm_name//[0-9A-Za-z]/}" = "" ]]; then
+			echo 'Marks must only contain alphanumeric characters'
+			return 1
+	 fi
+
+# 	 if [[ ! $zm_name =~ [:alnum:] ]]; then
+# 			echo 'Marks must only contain alphanumeric characters'
+# 			return 1
+# 	 fi
 
 	 local zm_clash_fail
 	 # __zm_checkclash zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
