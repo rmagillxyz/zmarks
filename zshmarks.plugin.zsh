@@ -153,7 +153,8 @@ function _zm_mark_dir() {
 
 	 			printf "\n${RED}zmark name is already being used:\n$(_zm_show $zm_name)${NOCOLOR}\n"
 
-	 			echo -n "Remove $zm_name?  (y/n)? "
+	 			# echo -n "Remove dir mark $zm_name?  (y/n)? "
+				 echo -n "Remove '$zm_name' file mark? (y/n)?"
 	 			 read answer
 	 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
 	 					_zm_remove "$zm_name"  && _zm_mark_dir "$zm_name"
@@ -245,7 +246,7 @@ function _zm_show() {
 	 # zm_file is the contents of the file stored in a var
 	 local zm_file=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
 	 local zm_array; zm_array=(${(f)zm_file});
-	 local zm_name zm_path zm_line
+	 local zm_name zm_line
 
 	 if [[ $# -eq 1 ]]; then
 			zm_name="*\|${1}"
@@ -557,7 +558,7 @@ function __zm_checkclash(){
 
 	 local clash_fail="$1"; shift
 	 local zm_name="$1"
-	 local zm_path="$2"
+	 local zm_file="$2" # ZM_FILES_FILE or ZM_DIRS_FILE
 
 	 local clash
 
@@ -575,21 +576,23 @@ function __zm_checkclash(){
 	 __zm_checkhashclash(){
 			local hash_already_exists=$(hash -dm "$zm_name")
 			if [[ -n $hash_already_exists ]]; then
-				 printf "${RED} ~$zm_name clashes. Named hash: $hash_already_exists ${NOCOLOR}\n"
-				 echo 'If you created this, you can remove it and run again, but this could have been set by another program on your machine. If you did not create it, I would just choose another name.'
+				 printf "${RED} ~$zm_name named hash clashes: $hash_already_exists ${NOCOLOR}\n"
+				 echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
 				 eval "$clash_fail=true"
 				 return 1
 				 fi
 	 }
 
 	 # check marks for collision
-	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$zm_path"; then
+	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$zm_file"; then
 			# TODO BUG: true when file ZM_FILES_FILE does not exist. 
 			# may be fixed
-			if [[ $zm_path == $ZM_FILES_FILE ]];then
+			echo "zmarks/init.zsh: 589 ZM_FILES_FILE : $ZM_FILES_FILE "
+			echo "zmarks/init.zsh: 590 zm_file : $zm_file "
+			if [[ $zm_file == $ZM_FILES_FILE ]]; then
+				 echo 'clash check 591'
 				 printf "${RED}name clashes with marked file: $clash${NOCOLOR}\n"
-				 # echo -n "delete zmark?: $clash (y/n)? "
-				 echo -n "delete '$zm_name' mark? (y/n)?"
+				 echo -n "Remove '$zm_name' file mark? (y/n)?"
 				 __asktodelete "$clash"
 			else
 				 printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
