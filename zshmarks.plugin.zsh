@@ -88,6 +88,7 @@ function _zm_gen_named_files(){
 }
 
 function _zm_rebuild_hash_table(){
+			echo '91 generate new named dir to sync with marks'
 			# generate new named dir to sync with marks
 			hash -d -r  # rebuild hash table
 			_zm_gen_named_dirs 1> /dev/null
@@ -562,7 +563,7 @@ function __zm_checkclash(){
 
 	 local clash
 
-	 __asktodelete(){
+	 __checktoremove(){
 			local zm="${clash##*|}"
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ];then 
@@ -584,23 +585,24 @@ function __zm_checkclash(){
 	 }
 
 	 # check marks for collision
+	 echo "zmarks/init.zsh: 588 zm_name: $zm_name"
 	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$zm_file"; then
-			# TODO BUG: true when file ZM_FILES_FILE does not exist. 
-			# may be fixed
 			echo "zmarks/init.zsh: 589 ZM_FILES_FILE : $ZM_FILES_FILE "
 			echo "zmarks/init.zsh: 590 zm_file : $zm_file "
 			if [[ $zm_file == $ZM_FILES_FILE ]]; then
 				 echo 'clash check 591'
 				 printf "${RED}name clashes with marked file: $clash${NOCOLOR}\n"
 				 echo -n "Remove '$zm_name' file mark? (y/n)?"
-				 __asktodelete "$clash"
-			else
-				 printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
-				 echo -n "delete zmark directory?: $clash (y/n)? "
-				 __asktodelete "$clash"
+				 __checktoremove "$clash"
 			fi
-			fi
-			__zm_checkhashclash 
+	 elif  __zmarks_zgrep clash "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+			printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
+			echo -n "delete directory mark?: $clash (y/n)? "
+			__checktoremove "$clash"
+	 fi
+	 
+	 # finally check there are no named hash collisions set by something else besides zmarks
+	 __zm_checkhashclash 
 }
 
 
