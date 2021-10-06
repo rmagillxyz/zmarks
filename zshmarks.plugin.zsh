@@ -227,18 +227,49 @@ function _zm_jump() {
 }
 
 # Show a list of all the zmarks
+# function _zm_show() {
+# 	 local file_contents=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
+# 	 local contents_array; contents_array=(${(f)file_contents});
+# 	 local zm_search zm_line
+
+# 	 if [[ $# -eq 1 ]]; then
+# 			zm_search="*\|${1}"
+# 			zm_line=${contents_array[(r)$zm_search*]}
+# 			__zm_line_printf "$zm_line"
+# 	 else
+# 			# print all
+# 			for zm_line in $contents_array; do
+# 				 __zm_line_printf "$zm_line"
+# 			done
+# 	 fi
+# }
+
 function _zm_show() {
-	 local file_contents=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
-	 local contents_array; contents_array=(${(f)file_contents});
-	 local zm_search zm_line
+	 local zm_file=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
+	 local zm_array; zm_array=(${(f)zm_file});
+	 local zm_name zm_path zm_line
+	 zmarks=()
 
 	 if [[ $# -eq 1 ]]; then
-			zm_search="*\|${1}"
-			zm_line=${contents_array[(r)$zm_search*]}
-			__zm_line_printf "$zm_line"
+
+	 for zm_line in $zm_array; do
+			 zm_name="${zm_line#*|}"
+			 if [[ $zm_name =~ ^$1 ]]; then
+					zmarks+="$zm_line"
+			 fi
+
+	 done
+
+	 IFS=$'\n' 
+	 sorted=($(sort -t '|' -k 2 <<<"${zmarks[*]}"))
+	 unset IFS
+
+	 for zm_line in $sorted; do
+				 __zm_line_printf "$zm_line"
+	 done
 	 else
-			# print all
-			for zm_line in $contents_array; do
+			for zm_line in $zm_array; do
+				 # echo 'printing formatted line'
 				 __zm_line_printf "$zm_line"
 			done
 	 fi
