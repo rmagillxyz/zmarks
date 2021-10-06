@@ -8,17 +8,11 @@
 #        DEPENDS: fzf
 # ------------------------------------------------------------------------------
 
-
- [[ -d $ZDOTDIR ]] && fpath=("$ZDOTDIR/zmarks/functions" $fpath)
-
-# if [[ -z $ZDOTDIR ]];then
-# 	 fpath=("$HOME/.config/zsh/zmarks/functions" $fpath)
-# else
-# 	 fpath=("$ZDOTDIR/zmarks/functions" $fpath)
-# fi
-
 # zm_path="${foo%%|*}"
 # zm_name="${foo##*|}"
+
+[[ -d $ZDOTDIR ]] && fpath=("$ZDOTDIR/zmarks/functions" $fpath)
+
 RED='\033[0;31m'
 NOCOLOR='\033[0m'
 
@@ -50,51 +44,42 @@ touch "$ZM_DIRS_FILE"
 touch "$ZM_NAMED_FILES"
 touch "$ZM_NAMED_DIRS"
 
-
-
-	 ## could just remove one instead of rebuilting
 function _zm_gen_named_dirs(){
-	 if [[  -f "$ZM_NAMED_DIRS" ]]; then
-			\rm -f "$ZM_NAMED_DIRS"
-	 fi
+	 \rm -f "$ZM_NAMED_DIRS"
 
-			while read line
-			do
-				 if [[ -n "$line" ]]; then
-						dir="${line%%|*}"
-						bm="${line##*|}"
-						echo "~$bm"
-						echo "hash -d $bm=$dir" >> "$ZM_NAMED_DIRS"
-				 fi
-			done < "$ZM_DIRS_FILE"
-			return 
+	 while read line
+	 do
+			if [[ -n "$line" ]]; then
+				 zm_path="${line%%|*}"
+				 zm_name="${line##*|}"
+				 echo "~$zm_name"
+				 echo "hash -d $zm_name=$zm_path" >> "$ZM_NAMED_DIRS"
+			fi
+	 done < "$ZM_DIRS_FILE"
+	 return 
 }
 
 function _zm_gen_named_files(){
-	 if [[  -f "$ZM_NAMED_FILES" ]]; then
-			\rm -f "$ZM_NAMED_FILES"
-	 fi
+	 \rm -f "$ZM_NAMED_FILES"
 
-			while read line
-			do
-				 if [[ -n "$line" ]]; then
-						dir="${line%%|*}"
-						bm="${line##*|}"
-						echo "~$bm"
-						echo "hash -d $bm=$dir" >> "$ZM_NAMED_FILES"
-				 fi
-			done < "$ZM_FILES_FILE"
-			return 
+	 while read line
+	 do
+			if [[ -n "$line" ]]; then
+				 zm_path="${line%%|*}"
+				 zm_name="${line##*|}"
+				 echo "~$zm_name"
+				 echo "hash -d $zm_name=$zm_path" >> "$ZM_NAMED_FILES"
+			fi
+	 done < "$ZM_FILES_FILE"
+	 return 
 }
 
 function _zm_rebuild_hash_table(){
-			echo '91 generate new named dir to sync with marks'
-			# generate new named dir to sync with marks
-			hash -d -r  # rebuild hash table
-			_zm_gen_named_dirs 1> /dev/null
-			_zm_gen_named_files 1> /dev/null
+	 # generate new named dir to sync with marks
+	 hash -d -r 
+	 _zm_gen_named_dirs 1> /dev/null
+	 _zm_gen_named_files 1> /dev/null
 }
-
 _zm_rebuild_hash_table
 
 # Check if $ZMARKS_DIR is a symlink.
@@ -153,39 +138,39 @@ function _zm_mark_dir() {
 	 for line in $(cat $ZM_DIRS_FILE) 
 	 do
 
-	 	 if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
-	 			echo "umm, like, you already have this EXACT dir zmark." 
-	 			return 
-	 	 fi 
+			if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
+				 echo "umm, like, you already have this EXACT dir zmark." 
+				 return 
+			fi 
 
-# 	 	 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
-# 				# name clash
+#			 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
+#					# name clash
 
-# 	 			printf "\n${RED}zmark name is already being used:\n$(_zm_show $zm_name)${NOCOLOR}\n"
+#					printf "\n${RED}zmark name is already being used:\n$(_zm_show $zm_name)${NOCOLOR}\n"
 
-# 				 echo -n "Remove '$zm_name' file mark? (y/n)?"
-# 	 			 read answer
-# 	 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
-# 	 					_zm_remove "$zm_name"  && _zm_mark_dir "$zm_name"
-# 				 else
-# 						echo 'abort'
-# 				 fi
+#					 echo -n "Remove '$zm_name' file mark? (y/n)?"
+#					 read answer
+#					 if  [ "$answer" != "${answer#[Yy]}" ];then 
+#							_zm_remove "$zm_name"  && _zm_mark_dir "$zm_name"
+#					 else
+#							echo 'abort'
+#					 fi
 
-# 				 return
+#					 return
 
-	 	 # elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir ]]; then
-	 	 if [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir ]]; then
-			# dir path clash			 
+		 # elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir ]]; then
+		 if [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir ]]; then
+				# dir path clash			 
 
-	 			local zm_clashed_path zm_clashed_path_name
-	 			 __zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
+				local zm_clashed_path zm_clashed_path_name
+				__zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
 
-	 				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t--  $zm_clashed_path${NOCOLOR}\n"
-	 			
-	 			__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name
-	 			return 
-	 	 fi
-	 done
+				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t--  $zm_clashed_path${NOCOLOR}\n"
+
+				__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name
+				return 
+		 fi
+	done
 
 	! __zm_check_name_clash "$zm_name" && return
 	! __zm_check_hash_clash && return
@@ -274,7 +259,7 @@ function _zm_show() {
 
 __zm_line_parse(){
 	 USAGE="
-			${FUNCNAME[0]}  zm_line path_variable_to_set name_variable_to_set 
+	 ${FUNCNAME[0]}  zm_line path_variable_to_set name_variable_to_set 
 	 "
 	 local zm_line="$1"
 	 local outpath outname
@@ -382,28 +367,28 @@ function _zm_zoom() {
 	 if [[ -z $2 ]]; then
 			has_zoom_mark=$(grep "$ZM_ZOOM_MARK" "$file_path")
 			if [[ -n $has_zoom_mark ]]; then
-				"$EDITOR" +/"$ZM_ZOOM_MARK" "$file_path"	
+				 "$EDITOR" +/"$ZM_ZOOM_MARK" "$file_path"	
 			else
-				"$EDITOR" "$file_path"
+				 "$EDITOR" "$file_path"
 			fi
-		 else
-				"$EDITOR" +/"$2" "$file_path"	
+	 else
+			"$EDITOR" +/"$2" "$file_path"	
 	 fi
 }
 
 # TODO add command comletion 
 # add checks to for type and file to only allow editable commands
 function _zm_vi() {
-	local cmd pattern c_path 
-	cmd="$1"
-	pattern="$2"
-	c_path=$(command -v $cmd)
-	echo "zmarks/init.zsh: 465 c_path: $c_path"
-	if [[ -z "$c_path" ]];then
-		 echo 'script not in path'
-	else
-		_zm_zoom "$c_path" "$pattern"
-	fi
+	 local cmd pattern c_path 
+	 cmd="$1"
+	 pattern="$2"
+	 c_path=$(command -v $cmd)
+	 echo "zmarks/init.zsh: 465 c_path: $c_path"
+	 if [[ -z "$c_path" ]];then
+			echo 'script not in path'
+	 else
+			_zm_zoom "$c_path" "$pattern"
+	 fi
 }
 
 # TODO
@@ -467,8 +452,8 @@ function _zm_mark_file() {
 			return 1
 	 fi
 
-	! __zm_check_name_clash "$zm_name" && return
-	! __zm_check_hash_clash && return
+	 ! __zm_check_name_clash "$zm_name" && return
+	 ! __zm_check_hash_clash && return
 
 			# if mark name matches file from cwd, automatically use that file path
 			local exactmatchfromcwd=$(\ls $(pwd) | grep -x "$zm_name")
@@ -528,7 +513,7 @@ function _zm_mark_file() {
 		 if [[ "$line" == "$zm_file_path|$zm_name" ]]; then 
 				echo "umm, you already have this EXACT edit mark, bro" 
 				return 
-		 fi 	
+		 fi		
 
 		 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
 				echo "zmarks file name already existed"
@@ -571,8 +556,8 @@ function __zm_check_hash_clash(){
 			echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
 			# eval "$clash_fail=true"
 			return 1 
-	 fi
-}
+			fi
+	 }
 
 function __zm_check_name_clash(){
 	 # usage='usage: ${FUNCNAME[0]} zm_clash $zm_name $zm_file'
@@ -605,81 +590,81 @@ function __zm_check_name_clash(){
 			echo -n "delete directory mark?: $clash (y/n)? "
 			__checktoremove "$clash"
 	 fi
-	 
+
 }
 
 
 function zm(){
 	 local USAGE="Usage: zm <OPTION> <MARK>
- -d, --dir-jump <DIR-MARK> \t\t Jump to directory mark. 
- -D, --mark-dir [MARK-NAME] \t\t Mark directory. Will use current directory name if not specified. 
- -f, --file-jump <FILE-MARK> [PATTERN] \t Jump to file mark and search for optional pattern. 
- -F, --mark-file <MARK-NAME> [FILE] \t Mark file. Will use fzf to select from files in current dir if not specified.  
- -j, --jump MARK \t\t\t Jump to directory or jump into file.
- -s, --show <MARK> \t\t\t Will try to match or show all if not specified.   
- -h, --help \t\t\t\t Show this message.
+	 -d, --dir-jump <DIR-MARK> \t\t Jump to directory mark. 
+	 -D, --mark-dir [MARK-NAME] \t\t Mark directory. Will use current directory name if not specified. 
+	 -f, --file-jump <FILE-MARK> [PATTERN] \t Jump to file mark and search for optional pattern. 
+	 -F, --mark-file <MARK-NAME> [FILE] \t Mark file. Will use fzf to select from files in current dir if not specified.  
+	 -j, --jump MARK \t\t\t Jump to directory or jump into file.
+	 -s, --show <MARK> \t\t\t Will try to match or show all if not specified.   
+	 -h, --help \t\t\t\t Show this message.
 	 "
-	
-			if [[ $# -gt 0 ]]; then
-				 key="$1"
 
-				 case $key in
-						 
-						 -d|--dir-jump)
-								shift 
-								_zm_dir_jump "$@"
-								return
-						 ;;
+	 if [[ $# -gt 0 ]]; then
+			key="$1"
 
-						 -D|--mark-dir)
-								shift 
-								_zm_mark_dir "$@"
-								return
-						 ;; 
+			case $key in
 
-						 -F|--mark-file)
-								shift 
-								_zm_mark_file "$@"
-								return
-						 ;;
-												 
-						 -f|--file-jump)
-								shift 
-								_zm_file_jump "$@"
-								return
-						 ;;
- 
-						 -j|--jump)
-								shift
-								# [[  $# -lt 1  ]] && usage && return 
-								_zm_jump "$@"
-								# echo "you are here: $PWD "
-								return
-						 ;; 
+				 -d|--dir-jump)
+						shift 
+						_zm_dir_jump "$@"
+						return
+						;;
 
-						 -s|--show)
-								shift
-								_zm_show "$@"
-								return
-						 ;;
+				 -D|--mark-dir)
+						shift 
+						_zm_mark_dir "$@"
+						return
+						;; 
 
-						 -r|--remove)
-								shift 
-								_zm_remove "$@"
-								return
-						 ;;
+				 -F|--mark-file)
+						shift 
+						_zm_mark_file "$@"
+						return
+						;;
 
-						 -h|--help)
-							 echo $USAGE
-							 return
-						 ;; 
+				 -f|--file-jump)
+						shift 
+						_zm_file_jump "$@"
+						return
+						;;
+
+				 -j|--jump)
+						shift
+						# [[  $# -lt 1  ]] && usage && return 
+						_zm_jump "$@"
+						# echo "you are here: $PWD "
+						return
+						;; 
+
+				 -s|--show)
+						shift
+						_zm_show "$@"
+						return
+						;;
+
+				 -r|--remove)
+						shift 
+						_zm_remove "$@"
+						return
+						;;
+
+				 -h|--help)
+						echo $USAGE
+						return
+						;; 
 
 				 esac
 
 			else
 				 echo $USAGE
 				 return
-			fi
+	 fi
 
 }
 
@@ -709,7 +694,7 @@ zle     -N    _fzf_zm_jump
 
 # zsh fzf jump binding (dirs)
 _fzf_zm_dir_jump(){
-	local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
+	 local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
 	 if [[ -n $zm ]];then 
 			local dir="${zm%%|*}"
 			eval "cd ${dir}"
@@ -722,12 +707,12 @@ zle     -N    _fzf_zm_dir_jump
 
 # zsh fzf jump binding (files)
 _fzf_zm_file_jump(){
-   local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
+	 local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
 	 if [[ -n $zm ]];then 
-		 local file="${zm%%|*}"
-		 # could use BUFFER and _zm_zoom here
-		# eval "\"$EDITOR\" \"$file\""
-		eval "_zm_zoom \"$file\""
+			local file="${zm%%|*}"
+			# could use BUFFER and _zm_zoom here
+			# eval "\"$EDITOR\" \"$file\""
+			eval "_zm_zoom \"$file\""
 	 fi
 }
 zle     -N    _fzf_zm_file_jump
