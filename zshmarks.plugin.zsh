@@ -154,23 +154,27 @@ function _zm_mark_dir() {
 	 do
 
 	 	 if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
-	 			echo "umm, you already have this EXACT dir zmark, bro" 
+	 			echo "umm, like, you already have this EXACT dir zmark." 
 	 			return 
 	 	 fi 
 
 	 	 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
+				# name clash
 
 	 			printf "\n${RED}zmark name is already being used:\n$(_zm_show $zm_name)${NOCOLOR}\n"
 
-	 			# echo -n "Remove dir mark $zm_name?  (y/n)? "
 				 echo -n "Remove '$zm_name' file mark? (y/n)?"
 	 			 read answer
 	 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
 	 					_zm_remove "$zm_name"  && _zm_mark_dir "$zm_name"
-	 					return 
-	 			 fi
+				 else
+						echo 'abort'
+				 fi
 
-	 	 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir  ]]; then
+				 return
+
+	 	 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir ]]; then
+			# dir path clash			 
 
 	 			local zm_clashed_path zm_clashed_path_name
 	 			 __zm_line_parse "$line" zm_clashed_path zm_clashed_path_name
@@ -178,13 +182,13 @@ function _zm_mark_dir() {
 	 				printf "${RED}zmark path is already being used:\n$zm_clashed_path_name\t--  $zm_clashed_path${NOCOLOR}\n"
 	 			
 	 			__ask_to_overwrite_zm_dir $zm_clashed_path_name $zm_name
-	 			return 1
+	 			return 
 	 	 fi
 	 done
 
-	local zm_clash_fail
-	__zm_checkclash zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
-	[[ -n $zm_clash_fail ]] && echo "$zm_clash_fail" && return 1
+	local zm_clash
+	__zm_checkclash zm_clash "$zm_name" 
+	[[ -n $zm_clash ]] && echo "$zm_clash" && return 1
 
 	# no duplicates, make mark
 	echo $new_zm_line >> $ZM_DIRS_FILE
@@ -366,10 +370,10 @@ function __ask_to_overwrite_zm_dir() {
 	 read answer
 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
 			_zm_remove "$1" && _zm_mark_dir "$2"
-			return
 	 else
-			return 1
+			echo 'abort'
 	 fi
+	 return
 }
 
 # jump to marked file
@@ -468,11 +472,10 @@ function _zm_mark_file() {
 # 			return 1
 # 	 fi
 
-	 local zm_clash_fail
-	 # __zm_checkclash zm_clash_fail "$zm_name" "$ZM_DIRS_FILE"
-	 __zm_checkclash zm_clash_fail "$zm_name" "$ZM_FILES_FILE"
+	 local zm_clash
+	 __zm_checkclash zm_clash "$zm_name"
 
-	 [[ -n $zm_clash_fail ]] && return 2
+	 [[ -n $zm_clash ]] && return 2
 
 
 
@@ -577,11 +580,11 @@ function _zm_mark_file() {
 
 
 function __zm_checkclash(){
-	 # usage='usage: ${FUNCNAME[0]} zm_clash_fail  $zm_name $ZM_X_FILE'
+	 # usage='usage: ${FUNCNAME[0]} zm_clash $zm_name $zm_file'
 
 	 local clash_fail="$1"; shift
 	 local zm_name="$1"
-	 local zm_file="$2" # ZM_FILES_FILE or ZM_DIRS_FILE
+	 # local zm_file="$ZM_FILES_FILE" # ZM_FILES_FILE or ZM_DIRS_FILE
 
 	 local clash
 
@@ -596,35 +599,25 @@ function __zm_checkclash(){
 			fi
 	 }
 
-	 __zm_checkhashclash(){
-			local hash_already_exists=$(hash -dm "$zm_name")
-			if [[ -n $hash_already_exists ]]; then
-				 printf "${RED} ~$zm_name named hash clashes: $hash_already_exists ${NOCOLOR}\n"
-				 echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
-				 eval "$clash_fail=true"
-				 return 1
-				 fi
-	 }
-
-	 # check marks for collision
-	 echo "zmarks/init.zsh: 588 zm_name: $zm_name"
-	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$zm_file"; then
-			echo "zmarks/init.zsh: 589 ZM_FILES_FILE : $ZM_FILES_FILE "
-			echo "zmarks/init.zsh: 590 zm_file : $zm_file "
-			if [[ $zm_file == $ZM_FILES_FILE ]]; then
-				 echo 'clash check 591'
-				 printf "${RED}name clashes with marked file: $clash${NOCOLOR}\n"
-				 echo -n "Remove '$zm_name' file mark? (y/n)?"
-				 __checktoremove "$clash"
-			fi
+	 # check file and dir marks for name collision
+	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$ZM_FILES_FILE"; then
+			printf "${RED}name clashes with marked file: $clash${NOCOLOR}\n"
+			echo -n "Remove '$zm_name' file mark? (y/n)?"
+			__checktoremove "$clash"
 	 elif  __zmarks_zgrep clash "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 			printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
 			echo -n "delete directory mark?: $clash (y/n)? "
 			__checktoremove "$clash"
 	 fi
 	 
-	 # finally check there are no named hash collisions set by something else besides zmarks
-	 __zm_checkhashclash 
+	 # finally check there are no named hash collisions set by something other than this program
+	 local hash_already_exists=$(hash -dm "$zm_name")
+	 if [[ -n $hash_already_exists ]]; then
+			printf "${RED} ~$zm_name named hash clashes: $hash_already_exists ${NOCOLOR}\n"
+			echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
+			eval "$clash_fail=true"
+			return 1
+	 fi
 }
 
 
