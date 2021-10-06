@@ -44,41 +44,29 @@ touch "$ZM_DIRS_FILE"
 touch "$ZM_NAMED_FILES"
 touch "$ZM_NAMED_DIRS"
 
-function _zm_gen_named_dirs(){
-	 \rm -f "$ZM_NAMED_DIRS"
 
-	 while read line
-	 do
-			if [[ -n "$line" ]]; then
-				 zm_path="${line%%|*}"
-				 zm_name="${line##*|}"
-				 echo "~$zm_name"
-				 echo "hash -d $zm_name=$zm_path" >> "$ZM_NAMED_DIRS"
-			fi
-	 done < "$ZM_DIRS_FILE"
-	 return 
-}
-
-function _zm_gen_named_files(){
-	 \rm -f "$ZM_NAMED_FILES"
-
-	 while read line
-	 do
-			if [[ -n "$line" ]]; then
-				 zm_path="${line%%|*}"
-				 zm_name="${line##*|}"
-				 echo "~$zm_name"
-				 echo "hash -d $zm_name=$zm_path" >> "$ZM_NAMED_FILES"
-			fi
-	 done < "$ZM_FILES_FILE"
-	 return 
-}
 
 function _zm_rebuild_hash_table(){
 	 # generate new named dir to sync with marks
+	 gen_named_hashes(){
+			local zm_file="$1"
+			local named_hash_file="$2"
+			\rm -f "$named_hash_file"
+
+			while read line
+			do
+				 if [[ -n "$line" ]]; then
+						zm_path="${line%%|*}"
+						zm_name="${line##*|}"
+						echo "~$zm_name"
+						echo "hash -d $zm_name=$zm_path" >> "$named_hash_file"
+				 fi
+			done < "$zm_file"
+			return 
+	 }
 	 hash -d -r 
-	 _zm_gen_named_dirs 1> /dev/null
-	 _zm_gen_named_files 1> /dev/null
+	 gen_named_hashes "$ZM_DIRS_FILE" "$ZM_NAMED_DIRS" 1> /dev/null
+	 gen_named_hashes "$ZM_FILES_FILE" "$ZM_NAMED_FILES" 1> /dev/null
 }
 _zm_rebuild_hash_table
 
