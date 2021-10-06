@@ -295,7 +295,7 @@ __zm_line_parse(){
 	 fi
 }
 
-function __zm_line_printf() {
+__zm_line_printf() {
 	 USAGE="${FUNCNAME[0]} zm_line"
 	 if [[ ! "$#" -eq 1 ]]; then
 			echo "$USAGE"
@@ -304,8 +304,26 @@ function __zm_line_printf() {
 	 local zm_line="$1"
 	 local path name
 	 __zm_line_parse "$zm_line" path name
-	 printf "%s\t\t--  %s\n" "$name" "$path"
+
+	 if [[ ${#name} -gt 7 ]]; then
+			# echo "${#name} is greater than 7"
+	 	 printf "%s\t-- %s\n" "$name" "$path"
+	 else
+			# echo "${#name} is not greater than 7"
+	  printf "%s\t\t-- %s\n" "$name" "$path"
+	 fi
 }
+
+# function __zm_line_printf() {
+# 	 USAGE="${FUNCNAME[0]} zm_line"
+# 	 if [[ ! "$#" -eq 1 ]]; then
+# 			echo "$USAGE"
+# 	 fi
+# 	 local zm_line="$1"
+# 	 local path name
+# 	 __zm_line_parse "$zm_line" path name
+# 	 printf "%s\t\t--  %s\n" "$name" "$path"
+# }
 
 function _zm_remove()  {
 	 local zm_name="$1"
