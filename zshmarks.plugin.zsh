@@ -49,8 +49,9 @@ touch "$ZM_NAMED_DIRS"
 function _zm_rebuild_hash_table(){
 	 # generate new named dir to sync with marks
 	 gen_named_hashes(){
-			local zm_file="$1"
-			local named_hash_file="$2"
+			local zm_file zm_path zm_name named_hash_file
+			zm_file="$1"
+			named_hash_file="$2"
 			\rm -f "$named_hash_file"
 
 			while read line
@@ -79,8 +80,8 @@ if [[ -L "$ZM_FILES_FILE" ]]; then
 	 ZM_FILES_FILE=$(readlink $ZM_FILES_FILE)
 fi
 
-[ -f $ZM_NAMED_DIRS ] && source "$ZM_NAMED_DIRS" 
-[ -f $ZM_NAMED_FILES ] && source "$ZM_NAMED_FILES" 
+source "$ZM_NAMED_DIRS" 
+source "$ZM_NAMED_FILES" 
 
 function __zm_move_to_trash(){
 	 local file_path="$1"
@@ -165,7 +166,7 @@ function _zm_mark_dir() {
 
 	# no duplicates, make mark
 	echo $new_zm_line >> $ZM_DIRS_FILE
-	echo "directory zmark '$zm_name' saved"
+	echo "directory mark '$zm_name' saved"
 
 	echo "hash -d $zm_name=$cur_dir" >> "$ZM_NAMED_DIRS"
 	echo "Created named dir ~$zm_name"
@@ -199,7 +200,7 @@ function _zm_jump() {
 	 local zm
 	 if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 			if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
-				 echo "Invalid name, please provide a valid file or directory zmark name. For example:"
+				 echo "Invalid name, please provide a valid file or directory mark name. For example:"
 				 # echo "_zm_jump foo [pattern]"
 				 echo "zm -j <MARK> [PATTERN]"
 				 echo
@@ -229,15 +230,15 @@ function _zm_jump() {
 function _zm_show() {
 	 local file_contents=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
 	 local contents_array; contents_array=(${(f)file_contents});
-	 local zm_name zm_line
+	 local zm_search zm_line
 
 	 if [[ $# -eq 1 ]]; then
-			zm_name="*\|${1}"
-			zm_line=${contents_array[(r)$zm_name*]}
+			zm_search="*\|${1}"
+			zm_line=${contents_array[(r)$zm_search*]}
 			__zm_line_printf "$zm_line"
 	 else
+			# print all
 			for zm_line in $contents_array; do
-				 # echo 'printing formatted line'
 				 __zm_line_printf "$zm_line"
 			done
 	 fi
@@ -280,7 +281,6 @@ function _zm_remove()  {
 	 local zm_file="${2:-$ZM_DIRS_FILE}"
 	 if [[ -z $zm_name ]]; then
 			printf "%s \n" "Please provide a mark name to remove. For example:"
-			# printf "\t%s \n" "_zm_remove foo"
 			printf "\t%s \n" "zm -r foo"
 			return 1
 	 else
@@ -291,7 +291,6 @@ function _zm_remove()  {
 			if [[ -z ${zm_array[(r)$zm_search]} ]]; then
 				 if [[ $zm_file == $ZM_DIRS_FILE ]]; then
 						# name not found in dirs, run again with files
-						# TODO would it be better to check the named hash for file or dir and not run through all? 
 						_zm_remove "$zm_name" "$ZM_FILES_FILE"
 				 else
 						# eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
@@ -391,7 +390,7 @@ function _zm_file_jump() {
 	 local editmark_name=$1
 	 local editmark
 	 if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
-			echo "Invalid name, please provide a valid zmark name. For example:"
+			echo "Invalid name, please provide a valid mark name. For example:"
 			echo "_zm_jump foo [pattern]"
 			echo
 			echo "To mark a directory:"
@@ -411,7 +410,7 @@ function _zm_dir_jump() {
 	 local zmark_name=$1
 	 local zmark
 	 if ! __zmarks_zgrep zmark "\\|$zmark_name\$" "$ZM_DIRS_FILE"; then
-			echo "Invalid directory zmark name, please provide a valid zmark name. For example:"
+			echo "Invalid directory mark name, please provide a valid mark name. For example:"
 			echo "_zm_dir_jump foo [pattern]"
 			echo
 			echo "To mark a directory:"
@@ -431,7 +430,7 @@ function _zm_mark_file() {
 	 local zm_file_path="$2"
 
 	 if [[ -z $zm_name ]]; then
-			echo 'zmark name required'
+			echo 'mark name required'
 			return 1
 	 fi
 
@@ -443,60 +442,59 @@ function _zm_mark_file() {
 	 ! __zm_check_name_clash "$zm_name" && return
 	 ! __zm_check_hash_clash && return
 
-			# if mark name matches file from cwd, automatically use that file path
-			local exactmatchfromcwd=$(\ls $(pwd) | grep -x "$zm_name")
-			if [[ -z $zm_file_path && -n $exactmatchfromcwd ]]; then
-				 #could use find here
-				 cur_dir="$(pwd)"
-				 zm_file_path="$cur_dir"
-				 zm_file_path+="/$zm_name"
+	 # if mark name matches file from cwd, automatically use that file path
+	 local exactmatchfromcwd=$(\ls $(pwd) | grep -x "$zm_name")
+	 if [[ -z $zm_file_path && -n $exactmatchfromcwd ]]; then
+			#could use find here
+			cur_dir="$(pwd)"
+			zm_file_path="$cur_dir"
+			zm_file_path+="/$zm_name"
 
-			elif [[ -n $zm_file_path ]] && [[ -f $(readlink -f $zm_file_path) ]]; then
-				 zm_file_path=$(readlink -f $zm_file_path)
-				 echo "zmarks/init.zsh: 499 zm_file_path: $zm_file_path"
+	 elif [[ -n $zm_file_path ]] && [[ -f $(readlink -f $zm_file_path) ]]; then
+			zm_file_path=$(readlink -f $zm_file_path)
+			echo "zmarks/init.zsh: 499 zm_file_path: $zm_file_path"
 
-			else
-				 zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
-				 if [[ -z "$zm_file_path" ]]; then
-						echo 'abort'
-						return 1
-				 fi
-
+	 else
+			zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
+			if [[ -z "$zm_file_path" ]]; then
+				 echo 'abort'
+				 return 1
 			fi
 
+	 fi
 
 		# Replace /home/$USER with $HOME
-		if [[ "$zm_file_path" =~ ^"$HOME"(/|$) ]]; then
-			 zm_file_path="\$HOME${zm_file_path#$HOME}"
-		fi
+	 if [[ "$zm_file_path" =~ ^"$HOME"(/|$) ]]; then
+			zm_file_path="\$HOME${zm_file_path#$HOME}"
+	 fi
 
-		# Store the zm as directory|name
-		zm="$zm_file_path|$zm_name"
+	 # Store the zm as directory|name
+	 zm="$zm_file_path|$zm_name"
 
-		__ask_to_overwrite_zm_file() {
-			 usage='usage: ${FUNCNAME[0]} to-overwrite replacement'
+	 __ask_to_overwrite_zm_file() {
+			usage='usage: ${FUNCNAME[0]} to-overwrite replacement'
 
-			 local overwrite=$1
-			 local replacement=$1
-			 [[  $# == 2 ]] && replacement=$2
-			 echo "overwrite: $overwrite"
-			 echo "replacement: $replacement"
+			local overwrite=$1
+			local replacement=$1
+			[[  $# == 2 ]] && replacement=$2
+			echo "overwrite: $overwrite"
+			echo "replacement: $replacement"
 
-			 echo -n "overwrite mark $1 (y/n)? "
-			 read answer
-			 if  [ "$answer" != "${answer#[Yy]}" ];then 
-					_zm_remove "$overwrite"
-					zmf "$replacement" "$zm_file_path"
-			 else
-					return 1
-			 fi
-		}
+			echo -n "overwrite mark $1 (y/n)? "
+			read answer
+			if  [ "$answer" != "${answer#[Yy]}" ];then 
+			 _zm_remove "$overwrite"
+			 zmf "$replacement" "$zm_file_path"
+			else
+			 return 1
+			fi
+	 }
 
-	# TODO: this could be sped up by sorting and using a search algorithm
-	# refactor into function to deal with files and dirs
-	# check for duplicates
-	for line in $(cat $ZM_FILES_FILE) 
-	do
+	 # TODO: this could be sped up by sorting and using a search algorithm
+	 # refactor into function to deal with files and dirs
+	 # check for duplicates
+	 for line in $(cat $ZM_FILES_FILE) 
+	 do
 
 		 if [[ "$line" == "$zm_file_path|$zm_name" ]]; then 
 				echo "umm, you already have this EXACT edit mark, bro" 
@@ -518,9 +516,9 @@ function _zm_mark_file() {
 				__ask_to_overwrite_zm_file "$zm_to_overwrite_name" "$zm_name" 
 				return 1
 		 fi
-	done
+	 done
 
-	if [[ -n "$zm_name" && -n "$zm_file_path" ]]; then
+	 if [[ -n "$zm_name" && -n "$zm_file_path" ]]; then
 		 echo $zm >> "$ZM_FILES_FILE"
 		 echo "zmark file '$zm_name' saved"
 
@@ -529,12 +527,10 @@ function _zm_mark_file() {
 		 echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
 		 echo "Created named file ~$zm_name"
 		 source "$ZM_NAMED_FILES"
-	else
+	 else
 		 echo "something went wrong. Mark or path is not assigned"
-	fi
+	 fi
 }
-
-
 
 function __zm_check_hash_clash(){
 	 # check there are no named hash collisions set by something other than this program
@@ -544,8 +540,8 @@ function __zm_check_hash_clash(){
 			echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
 			# eval "$clash_fail=true"
 			return 1 
-			fi
-	 }
+	 fi
+}
 
 function __zm_check_name_clash(){
 	 # usage='usage: ${FUNCNAME[0]} zm_clash $zm_name $zm_file'
