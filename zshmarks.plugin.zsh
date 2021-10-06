@@ -158,22 +158,23 @@ function _zm_mark_dir() {
 	 			return 
 	 	 fi 
 
-	 	 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
-				# name clash
+# 	 	 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
+# 				# name clash
 
-	 			printf "\n${RED}zmark name is already being used:\n$(_zm_show $zm_name)${NOCOLOR}\n"
+# 	 			printf "\n${RED}zmark name is already being used:\n$(_zm_show $zm_name)${NOCOLOR}\n"
 
-				 echo -n "Remove '$zm_name' file mark? (y/n)?"
-	 			 read answer
-	 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
-	 					_zm_remove "$zm_name"  && _zm_mark_dir "$zm_name"
-				 else
-						echo 'abort'
-				 fi
+# 				 echo -n "Remove '$zm_name' file mark? (y/n)?"
+# 	 			 read answer
+# 	 			 if  [ "$answer" != "${answer#[Yy]}" ];then 
+# 	 					_zm_remove "$zm_name"  && _zm_mark_dir "$zm_name"
+# 				 else
+# 						echo 'abort'
+# 				 fi
 
-				 return
+# 				 return
 
-	 	 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir ]]; then
+	 	 # elif [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir ]]; then
+	 	 if [[ $(echo $line |  awk -F'|' '{print $1}') == $cur_dir ]]; then
 			# dir path clash			 
 
 	 			local zm_clashed_path zm_clashed_path_name
@@ -186,9 +187,8 @@ function _zm_mark_dir() {
 	 	 fi
 	 done
 
-	local zm_clash
-	__zm_checkclash zm_clash "$zm_name" 
-	[[ -n $zm_clash ]] && echo "$zm_clash" && return 1
+	! __zm_check_name_clash "$zm_name" && return
+	! __zm_check_hash_clash && return
 
 	# no duplicates, make mark
 	echo $new_zm_line >> $ZM_DIRS_FILE
@@ -467,24 +467,8 @@ function _zm_mark_file() {
 			return 1
 	 fi
 
-# 	 if [[ ! $zm_name =~ [:alnum:] ]]; then
-# 			echo 'Marks must only contain alphanumeric characters'
-# 			return 1
-# 	 fi
-
-	 local zm_clash
-	 __zm_checkclash zm_clash "$zm_name"
-
-	 [[ -n $zm_clash ]] && return 2
-
-
-
-# 			local filenotincwd=$(\ls $(pwd) | grep -x "$zm_file_path")
-# 			if [[ -n $zm_file_path && -z $filenotincwd   ]]; then
-# 						# printf "${RED}$zm_file_path not found in current directory ${NOCOLOR}\n"
-# 						printf "${RED}$zm_file_path not found${NOCOLOR}\n"
-# 						return 1
-# 			fi
+	! __zm_check_name_clash "$zm_name" && return
+	! __zm_check_hash_clash && return
 
 			# if mark name matches file from cwd, automatically use that file path
 			local exactmatchfromcwd=$(\ls $(pwd) | grep -x "$zm_name")
@@ -579,10 +563,21 @@ function _zm_mark_file() {
 
 
 
-function __zm_checkclash(){
+function __zm_check_hash_clash(){
+	 # check there are no named hash collisions set by something other than this program
+	 local hash_already_exists=$(hash -dm "$zm_name")
+	 if [[ -n $hash_already_exists ]]; then
+			printf "${RED} ~$zm_name named hash clashes: $hash_already_exists ${NOCOLOR}\n"
+			echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
+			# eval "$clash_fail=true"
+			return 1 
+	 fi
+}
+
+function __zm_check_name_clash(){
 	 # usage='usage: ${FUNCNAME[0]} zm_clash $zm_name $zm_file'
 
-	 local clash_fail="$1"; shift
+	 # local clash_fail="$1"; shift
 	 local zm_name="$1"
 	 # local zm_file="$ZM_FILES_FILE" # ZM_FILES_FILE or ZM_DIRS_FILE
 
@@ -594,8 +589,9 @@ function __zm_checkclash(){
 			if  [ "$answer" != "${answer#[Yy]}" ];then 
 				 _zm_remove "$zm_name"
 			else
-				 eval "$clash_fail=true"
-				 return 1
+				 # eval "$clash_fail=true"
+				 echo 'abort'
+				 return  1
 			fi
 	 }
 
@@ -610,14 +606,6 @@ function __zm_checkclash(){
 			__checktoremove "$clash"
 	 fi
 	 
-	 # finally check there are no named hash collisions set by something other than this program
-	 local hash_already_exists=$(hash -dm "$zm_name")
-	 if [[ -n $hash_already_exists ]]; then
-			printf "${RED} ~$zm_name named hash clashes: $hash_already_exists ${NOCOLOR}\n"
-			echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
-			eval "$clash_fail=true"
-			return 1
-	 fi
 }
 
 
