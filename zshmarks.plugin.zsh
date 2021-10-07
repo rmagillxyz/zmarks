@@ -36,23 +36,34 @@ fi
 export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 export ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 export ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
-export ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files"
+export ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files" 
 export ZM_ZOOM_MARK="__zm_zoom__"
+
+echo "zmarks/init.zsh: 42 ZM_NAMED_DIRS: $ZM_NAMED_DIRS"
 
 touch "$ZM_FILES_FILE"
 touch "$ZM_DIRS_FILE"
 touch "$ZM_NAMED_FILES"
 touch "$ZM_NAMED_DIRS"
 
+# Check if $ZMARKS_DIR is a symlink.
+if [[ -L "$ZM_DIRS_FILE" ]]; then
+	 ZM_DIRS_FILE=$(readlink $ZM_DIRS_FILE)
+fi
 
+if [[ -L "$ZM_FILES_FILE" ]]; then
+	 ZM_FILES_FILE=$(readlink $ZM_FILES_FILE)
+fi
 
+# TODO could had options to rebuild one or the other or even most recent line and source
 function _zm_rebuild_hash_table(){
 	 # generate new named dir to sync with marks
 	 gen_named_hashes(){
 			local zm_file zm_path zm_name named_hash_file
 			zm_file="$1"
 			named_hash_file="$2"
-			\rm -f "$named_hash_file"
+
+			[[ $(wc -l "$zm_file" | cut -f1 -d\  ) -gt 0 ]] && \rm -f "$named_hash_file"
 
 			while read line
 			do
@@ -68,20 +79,11 @@ function _zm_rebuild_hash_table(){
 	 hash -d -r 
 	 gen_named_hashes "$ZM_DIRS_FILE" "$ZM_NAMED_DIRS" 1> /dev/null
 	 gen_named_hashes "$ZM_FILES_FILE" "$ZM_NAMED_FILES" 1> /dev/null
+	 source "$ZM_NAMED_DIRS" 
+	 source "$ZM_NAMED_FILES" 
 }
 _zm_rebuild_hash_table
 
-# Check if $ZMARKS_DIR is a symlink.
-if [[ -L "$ZM_DIRS_FILE" ]]; then
-	 ZM_DIRS_FILE=$(readlink $ZM_DIRS_FILE)
-fi
-
-if [[ -L "$ZM_FILES_FILE" ]]; then
-	 ZM_FILES_FILE=$(readlink $ZM_FILES_FILE)
-fi
-
-source "$ZM_NAMED_DIRS" 
-source "$ZM_NAMED_FILES" 
 
 function __zm_move_to_trash(){
 	 local file_path="$1"
@@ -114,19 +116,21 @@ function _zm_mark_dir() {
 			return 1
 	 fi
 
-	 cur_dir="$(pwd)"
+	 # cur_dir="$(pwd)"
+	 cur_dir=$(printf "%q" "$PWD")
 	 # Replace /home/$USER with $HOME
 	 if [[ "$cur_dir" =~ ^"$HOME"(/|$) ]]; then
-			cur_dir="\$HOME${cur_dir#$HOME}"
+			cur_dir="\"\$HOME${cur_dir#$HOME}\""
 	 fi
 
 	 # Store the zmark as directory|name
 	 local new_zm_line="$cur_dir|$zm_name"
+	 echo "zmarks/init.zsh: 125 new_zm_line: $new_zm_line"
 
-	 # TODO: this could be sped up sorting and using a search algorithm
 	 for line in $(cat $ZM_DIRS_FILE) 
 	 do
-
+			echo "zmarks/init.zsh: 129 line: $line"
+			echo "zmarks/init.zsh: 129 $cur_dir|$zm_name"
 			if [[ "$line" == "$cur_dir|$zm_name" ]]; then 
 				 echo "umm, like, you already have this EXACT dir zmark." 
 				 return 
@@ -168,9 +172,12 @@ function _zm_mark_dir() {
 	echo $new_zm_line >> $ZM_DIRS_FILE
 	echo "directory mark '$zm_name' saved"
 
-	echo "hash -d $zm_name=$cur_dir" >> "$ZM_NAMED_DIRS"
-	echo "Created named dir ~$zm_name"
-	source "$ZM_NAMED_DIRS"
+	# echo "hash -d $zm_name=$cur_dir" >> "$ZM_NAMED_DIRS"
+	# echo "Created named dir ~$zm_name"
+	# source "$ZM_NAMED_DIRS"
+	_zm_rebuild_hash_table
+	# echo 'named dir sourced'
+	return 
 }
 
 function __zmarks_zgrep() {
@@ -183,8 +190,10 @@ function __zmarks_zgrep() {
 
 	 for line in "${contents_array[@]}"; do
 			if [[ "$line" =~ "$pattern" ]]; then
+				 echo "zmarks/init.zsh: 187 line: $line"
 				 eval "$outvar=\"$line\""
-				 return 0
+				 # eval "$outvar=\"$HOME/slate|sla\""
+				 return 
 			fi
 	 done
 	 return 1
@@ -219,7 +228,11 @@ function _zm_jump() {
 
 	 else
 			# echo 'DEBUG _zm_jump: found dir'
+			
+			echo "zmarks/init.zsh: 225 zm: $zm"
 			local dir="${zm%%|*}"
+			echo "zmarks/init.zsh: 224 dir: $dir"
+			# return 1
 			eval "cd \"${dir}\""
 			eval "ls \"${dir}\""
 	 fi
@@ -619,7 +632,7 @@ function __zm_check_name_clash(){
 			echo -n "Remove '$zm_name' file mark? (y/n)?"
 			__checktoremove "$clash"
 	 elif  __zmarks_zgrep clash "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
-			printf "${RED}name clashes with zmark dir: $clash${NOCOLOR}\n"
+			printf "${RED}name clashes with directory mark : $clash${NOCOLOR}\n"
 			echo -n "delete directory mark?: $clash (y/n)? "
 			__checktoremove "$clash"
 	 fi
