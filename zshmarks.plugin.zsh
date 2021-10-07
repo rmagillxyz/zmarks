@@ -109,7 +109,7 @@ function _zm_mark_dir() {
 
 	 echo "zmarks/init.zsh: 136 zm_name: $zm_name"
 	 # if [[ ! $zm_name =~ [:alnum:] ]]; then
-	 if [[ ! "${zm_name//[0-9A-Za-z]/}" = "" ]]; then
+	 if [[ ! "${zm_name//[0-9A-Za-z-_]/}" = "" ]]; then
 			echo 'Marks must only contain alphanumeric characters'
 			return 1
 	 fi
@@ -483,7 +483,7 @@ function _zm_mark_file() {
 			return 1
 	 fi
 
-	 if [[ ! "${zm_name//[0-9A-Za-z]/}" = "" ]]; then
+	 if [[ ! "${zm_name//[0-9A-Za-z-_]/}" = "" ]]; then
 			echo 'Marks must only contain alphanumeric characters'
 			return 1
 	 fi
