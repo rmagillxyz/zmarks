@@ -117,10 +117,11 @@ function _zm_mark_dir() {
 	 fi
 
 	 # cur_dir="$(pwd)"
-	 cur_dir=$(printf "%q" "$PWD")
+	 # cur_dir=$(printf "%q" "$PWD")
+	 cur_dir="$PWD"
 	 # Replace /home/$USER with $HOME
 	 if [[ "$cur_dir" =~ ^"$HOME"(/|$) ]]; then
-			cur_dir="\"\$HOME${cur_dir#$HOME}\""
+			cur_dir="\$HOME${cur_dir#$HOME}"
 	 fi
 
 	 # Store the zmark as directory|name
