@@ -107,6 +107,7 @@ function _zm_mark_dir() {
 	 zm_name=$1
 	 # zm_path=$(readlink -f $2)
 	 zm_init_path=$(readlink -f $2)
+	 echo "zmarks/init.zsh: 110 zm_init_path: $zm_init_path"
 
 	 if [[ -z $zm_name ]]; then
 			zm_name="${PWD##*/}"
@@ -119,6 +120,7 @@ function _zm_mark_dir() {
 
 
 	 [[ -z "$zm_init_path" ]] && zm_init_path="$PWD"
+	 echo "zmarks/init.zsh: 123 zm_init_path: $zm_init_path"
 
 	 if [[ ! "${zm_init_path//[0-9A-Za-z-_\/]/}" = "" ]]; then
 			echo 'Path must only contain alphanumeric characters'
@@ -127,12 +129,16 @@ function _zm_mark_dir() {
 
 	 # Replace /home/$USER with $HOME
 	 if [[ "$zm_init_path" =~ ^"$HOME"(/|$) ]]; then
-			zm_path="\$HOME${zm_path#$HOME}"
+			zm_path="\$HOME${zm_init_path#$HOME}"
+			# zm_path=${zm_path/#$HOME/\\$HOME}
+			# zm_path=${zm_path/#$HOME/wtf}
 	 fi
+
+	 echo "zmarks/init.zsh: 134 zm_path: $zm_path"
 
 	 # Store the zmark as directory|name
 	 new_zm_line="$zm_path|$zm_name"
-	 # echo "zmarks/init.zsh: 125 new_zm_line: $new_zm_line"
+	 echo "zmarks/init.zsh: 125 new_zm_line: $new_zm_line"
 
 	 for line in $(cat $ZM_DIRS_FILE) 
 	 do
@@ -172,6 +178,7 @@ function _zm_mark_dir() {
 	! __zm_check_hash_clash && return
 
 	# no duplicates, make mark
+	 echo "zmarks/init.zsh: 145 new_zm_line: $new_zm_line"
 	echo $new_zm_line >> $ZM_DIRS_FILE
 	echo "directory mark '$zm_name' saved"
 
