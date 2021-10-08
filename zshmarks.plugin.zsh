@@ -103,9 +103,10 @@ function __zm_move_to_trash(){
 }
 
 function _zm_mark_dir() {
-	 local zm_name zm_path new_zm_line
+	 local zm_name zm_init_path zm_path new_zm_line
 	 zm_name=$1
-	 zm_path=$(readlink -f $2)
+	 # zm_path=$(readlink -f $2)
+	 zm_init_path=$(readlink -f $2)
 
 	 if [[ -z $zm_name ]]; then
 			zm_name="${PWD##*/}"
@@ -116,21 +117,18 @@ function _zm_mark_dir() {
 			return 1
 	 fi
 
-	 echo "zmarks/init.zsh: 120 zm_name: $zm_name"
 
-	 [[ -z "$zm_path" ]] && zm_path="$PWD"
+	 [[ -z "$zm_init_path" ]] && zm_init_path="$PWD"
 
-	 echo "zmarks/init.zsh: 126 zm_path: $zm_path"
-	 if [[ ! "${zm_path//[0-9A-Za-z-_\/]/}" = "" ]]; then
+	 if [[ ! "${zm_init_path//[0-9A-Za-z-_\/]/}" = "" ]]; then
 			echo 'Path must only contain alphanumeric characters'
 			return 1
 	 fi
 
 	 # Replace /home/$USER with $HOME
-	 if [[ "$zm_path" =~ ^"$HOME"(/|$) ]]; then
+	 if [[ "$zm_init_path" =~ ^"$HOME"(/|$) ]]; then
 			zm_path="\$HOME${zm_path#$HOME}"
 	 fi
-	 echo "zmarks/init.zsh: 131 zm_path: $zm_path"
 
 	 # Store the zmark as directory|name
 	 new_zm_line="$zm_path|$zm_name"
@@ -139,10 +137,12 @@ function _zm_mark_dir() {
 	 for line in $(cat $ZM_DIRS_FILE) 
 	 do
 			echo "zmarks/init.zsh: 129 line: $line"
-			echo "zmarks/init.zsh: 129 $zm_path|$zm_name"
 			# if [[ "$line" == "$zm_path|$zm_name" ]]; then 
 			if [[ "$line" == "$new_zm_line" ]]; then 
 				 echo "umm, like, you already have this EXACT dir zmark." 
+				 echo "zmarks/init.zsh: 120 zm_name: $zm_name"
+				 echo "zmarks/init.zsh: 126 zm_path: $zm_path"
+				 echo "zmarks/init.zsh: 145 new_zm_line: $new_zm_line"
 				 return 
 
 			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zm_path ]]; then
@@ -153,7 +153,17 @@ function _zm_mark_dir() {
 
 				printf "${RED}zmark path is already being used:\n$zm_clash_name\t--  $zm_clashed_path${NOCOLOR}\n"
 
-				__ask_to_overwrite_zm_dir "$zm_clash_name" "$zm_name" "$zm_path"
+				echo "zmarks/init.zsh: 155 zm_path: $zm_path"
+				# echo "zmarks/init.zsh: 155 zm_path: $HOME/slate"
+				# local zm_abso_path=$(readlink -f $(echo "$zm_path"|sed 's@\\@@g')  )
+				# local zm_abso_path=$(echo `readlink -f "$zm_path"`)
+				# local zm_abso_path=$(echo `readlink -f "$zm_path"`)
+				# local zm_abso_path=$(readlink -f "$zm_path")
+				# echo "zmarks/init.zsh: 157 zm_abso_path: $zm_abso_path"
+				echo "zmarks/init.zsh: 164 zm_init_path: $zm_init_path"
+				# __ask_to_overwrite_zm_dir "$zm_clash_name" "$zm_name" $(readlink -f "$zm_path")
+				# __ask_to_overwrite_zm_dir "$zm_clash_name" "$zm_name" "$zm_abso_path"
+				__ask_to_overwrite_zm_dir "$zm_clash_name" "$zm_name" "$zm_init_path"
 				return 
 		 fi
 	done
@@ -393,22 +403,19 @@ function __ask_to_overwrite_zm_dir() {
 	 # [[  $# -gt 1 ]] && zm_new_name="$2" || zm_new_name="$1"
 	 zm_new_name="$2"
 
-	 # [[  $# -eq 3 ]] && zm_path="$3" || zm_path=${PWD/\$HOME/~}
-	 # [[  $# -eq 3 ]] && zm_path="$3" || zm_path="$PWD"
-
-	 # [[ -n "$3" ]] && zm_path="$3" || zm_path=${PWD/\$HOME/~}
-	 [[ -n "$3" ]] && zm_path="$3" || zm_path=$(readlink -f "$PWD")
-	 echo "zmarks/init.zsh: 396 zm_path: $zm_path"
+	 [[ -n "$3" ]] && zm_path=$(readlink -f "$3") || zm_path=$(readlink -f "$PWD")
+	 # echo "zmarks/init.zsh: 396 zm_path: $zm_path"
 
 	 echo -e "overwrite: $(_zm_show $zm_clash)"
-	 # printf "replacement: $zm_new_name\t-- ${cur_dir/\$HOME/~}\n"
 	 printf "replacement: $zm_new_name\t-- $zm_path\n"
 
 	 echo -n "overwrite mark $1 (y/n)? "
 	 read answer
 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
 			
-		[[ -n "$zm_path" ]] && _zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name" "$zm_path" ||	_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name"
+		# [[ -n "$zm_path" ]] && _zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name" "$zm_path" ||	_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name"
+		_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name" "$zm_path" 
+		# ||	_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name"
 			
 	 else
 			echo 'abort'
