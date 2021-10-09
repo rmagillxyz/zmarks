@@ -63,14 +63,13 @@ function _zm_rebuild_hash_table(){
 			zm_file="$1"
 			named_hash_file="$2"
 
-			[[ $(wc -l "$zm_file" | cut -f1 -d\  ) -gt 0 ]] && \rm -f "$named_hash_file"
+			echo -n >  "$named_hash_file"
 
 			while read line
 			do
 				 if [[ -n "$line" ]]; then
 						zm_path="${line%%|*}"
 						zm_name="${line##*|}"
-						echo "~$zm_name"
 						echo "hash -d $zm_name=$zm_path" >> "$named_hash_file"
 				 fi
 			done < "$zm_file"
@@ -78,6 +77,7 @@ function _zm_rebuild_hash_table(){
 	 }
 	 hash -d -r 
 	 gen_named_hashes "$ZM_DIRS_FILE" "$ZM_NAMED_DIRS" 1> /dev/null
+	 # gen_named_hashes "$ZM_DIRS_FILE" "$ZM_NAMED_DIRS" 
 	 gen_named_hashes "$ZM_FILES_FILE" "$ZM_NAMED_FILES" 1> /dev/null
 	 source "$ZM_NAMED_DIRS" 
 	 source "$ZM_NAMED_FILES" 
@@ -103,88 +103,80 @@ function __zm_move_to_trash(){
 }
 
 function _zm_mark_dir() {
-	 local zm_name zm_init_path zm_path new_zm_line
-	 zm_name=$1
-	 # zm_path=$(readlink -f $2)
-	 zm_init_path=$(readlink -f $2)
-	 echo "zmarks/init.zsh: 110 zm_init_path: $zm_init_path"
+	 local new_zm_name new_zm_path new_zm_line
+	 new_zm_name="$1"
+	 new_zm_path="$2"
 
-	 if [[ -z $zm_name ]]; then
-			zm_name="${PWD##*/}"
+	 if [[ -z $new_zm_name ]]; then
+			new_zm_name="${PWD##*/}"
 	 fi
+	 
+	 echo "zmarks/init.zsh: 2: 110 $2"
+	 [[ -z "$new_zm_path" ]] \
+			&& new_zm_path=$(readlink -e "$PWD") \
+			|| new_zm_path=$(readlink -e "$2")
 
-	 if [[ ! "${zm_name//[0-9A-Za-z-_]/}" = "" ]]; then
+	 echo "zmarks/init.zsh: 123 new_zm_path: $new_zm_path"
+
+	 if [[ ! "${new_zm_name//[0-9A-Za-z-_]/}" = "" ]]; then
 			echo 'Marks must only contain alphanumeric characters'
 			return 1
 	 fi
 
+	 echo "zmarks/init.zsh: 127 new_zm_path: $new_zm_path"
+	 [[ -z "$new_zm_path" ]] \
+			&& echo "path does not exist" && return 1
 
-	 [[ -z "$zm_init_path" ]] && zm_init_path="$PWD"
-	 echo "zmarks/init.zsh: 123 zm_init_path: $zm_init_path"
-
-	 if [[ ! "${zm_init_path//[0-9A-Za-z-_\/]/}" = "" ]]; then
+	 if [[ ! "${new_zm_path//[0-9A-Za-z-_\/]/}" = "" ]]; then
 			echo 'Path must only contain alphanumeric characters'
 			return 1
 	 fi
 
-	 # Replace /home/$USER with $HOME
-	 if [[ "$zm_init_path" =~ ^"$HOME"(/|$) ]]; then
-			zm_path="\$HOME${zm_init_path#$HOME}"
-			# zm_path=${zm_path/#$HOME/\\$HOME}
-			# zm_path=${zm_path/#$HOME/wtf}
-	 fi
-
-	 echo "zmarks/init.zsh: 134 zm_path: $zm_path"
 
 	 # Store the zmark as directory|name
-	 new_zm_line="$zm_path|$zm_name"
+	 if [[ "$new_zm_path" =~ ^"$HOME"(/|$) ]]; then
+			new_zm_line="\$HOME${new_zm_path#$HOME}|$new_zm_name"
+	 else
+			new_zm_line="$new_zm_path|$new_zm_name"
+	 fi
+
+# 	 # Store the zmark as directory|name
+# 	 [[ "$new_zm_path" =~ ^"$HOME"(/|$) ]] \
+# 			&& new_zm_line="\$HOME${new_zm_path#$HOME}|$new_zm_name" \
+# 			|| new_zm_line="$new_zm_path|$new_zm_name"
+
 	 echo "zmarks/init.zsh: 125 new_zm_line: $new_zm_line"
 
 	 for line in $(cat $ZM_DIRS_FILE) 
 	 do
 			echo "zmarks/init.zsh: 129 line: $line"
-			# if [[ "$line" == "$zm_path|$zm_name" ]]; then 
 			if [[ "$line" == "$new_zm_line" ]]; then 
 				 echo "umm, like, you already have this EXACT dir zmark." 
-				 echo "zmarks/init.zsh: 120 zm_name: $zm_name"
-				 echo "zmarks/init.zsh: 126 zm_path: $zm_path"
-				 echo "zmarks/init.zsh: 145 new_zm_line: $new_zm_line"
 				 return 
 
-			elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zm_path ]]; then
-				# dir path clash			 
+			elif [[ $(eval "readlink -f $(echo "${line%%|*}" )") == $(readlink -e $(echo $new_zm_path)) ]]; then
+
 
 				local zm_clashed_path zm_clash_name
 				__zm_line_parse "$line" zm_clashed_path zm_clash_name
 
 				printf "${RED}zmark path is already being used:\n$zm_clash_name\t--  $zm_clashed_path${NOCOLOR}\n"
 
-				echo "zmarks/init.zsh: 155 zm_path: $zm_path"
-				# echo "zmarks/init.zsh: 155 zm_path: $HOME/slate"
-				# local zm_abso_path=$(readlink -f $(echo "$zm_path"|sed 's@\\@@g')  )
-				# local zm_abso_path=$(echo `readlink -f "$zm_path"`)
-				# local zm_abso_path=$(echo `readlink -f "$zm_path"`)
-				# local zm_abso_path=$(readlink -f "$zm_path")
-				# echo "zmarks/init.zsh: 157 zm_abso_path: $zm_abso_path"
-				echo "zmarks/init.zsh: 164 zm_init_path: $zm_init_path"
-				# __ask_to_overwrite_zm_dir "$zm_clash_name" "$zm_name" $(readlink -f "$zm_path")
-				# __ask_to_overwrite_zm_dir "$zm_clash_name" "$zm_name" "$zm_abso_path"
-				__ask_to_overwrite_zm_dir "$zm_clash_name" "$zm_name" "$zm_init_path"
+				__ask_to_overwrite_zm_dir "$zm_clash_name" "$new_zm_name" "$new_zm_path"
 				return 
 		 fi
 	done
 
-	! __zm_check_name_clash "$zm_name" && return
+	! __zm_check_name_clash "$new_zm_name" && return
 	! __zm_check_hash_clash && return
 
 	# no duplicates, make mark
-	 echo "zmarks/init.zsh: 145 new_zm_line: $new_zm_line"
-	echo $new_zm_line >> $ZM_DIRS_FILE
-	echo "directory mark '$zm_name' saved"
+	echo "$new_zm_line" >> $ZM_DIRS_FILE
+	echo "directory mark '$new_zm_name' saved"
 
-	# echo "hash -d $zm_name=$zm_path" >> "$ZM_NAMED_DIRS"
-	# echo "Created named dir ~$zm_name"
-	# source "$ZM_NAMED_DIRS"
+	# echo "hash -d $new_zm_name=$zm_path" >> "$new_zm_nameD_DIRS"
+	# echo "Created named dir ~$new_zm_name"
+	# source "$new_zm_nameD_DIRS"
 	_zm_rebuild_hash_table
 	# echo 'named dir sourced'
 	return 
@@ -373,14 +365,30 @@ function _zm_remove()  {
 				 \cp "${zm_file}" "${zm_file}.bak"
 				 zm_line=${zm_array[(r)$zm_search]}
 				 zm_array=(${zm_array[@]/$zm_line})
-				 eval "printf '%s\n' \"\${zm_array[@]}\"" >! $zm_file
+				 echo "zmarks/init.zsh: 365 zm_array: $zm_array"
+
+# 				 [[ ${#zm_array[@]} -gt 0 ]] \
+# 						&& eval "printf '%s\n' \"\${zm_array[@]}\"" > "$zm_file" \
+# 						|| touch "$zm_file"
+
+				 echo 'foo'
+				 echo "length zm_array: ${#zm_array[@]}"
+				 if [[ ${#zm_array[@]} -eq 1 ]]; then
+						echo 'new zm_file from array'
+						eval "printf '%s\n' \"\${zm_array[@]}\"" > "$zm_file" 
+				 else
+						echo 'clear zm_file'
+						echo -n > "$zm_file"
+				 fi
+
+				 # eval "printf '%s\n' \"\${zm_array[@]}\"" >! $zm_file
 				 # eval "printf '%s\n' \"\${zm_array[@]}\"" > $zm_file
 
 				 __zm_move_to_trash "${zm_file}.bak" 
+				 echo "$zm_name removed"
 
 				 _zm_rebuild_hash_table
-				 echo "$zm_name removed"
-				 echo "Synced named hashes"
+				 # echo "Synced named hashes"
 				 return 
 			fi
 	 fi
@@ -410,11 +418,12 @@ function __ask_to_overwrite_zm_dir() {
 	 # [[  $# -gt 1 ]] && zm_new_name="$2" || zm_new_name="$1"
 	 zm_new_name="$2"
 
-	 [[ -n "$3" ]] && zm_path=$(readlink -f "$3") || zm_path=$(readlink -f "$PWD")
+	 [[ -n "$3" ]] && zm_path=$(readlink -e "$3") || zm_path=$(readlink -e "$PWD")
 	 # echo "zmarks/init.zsh: 396 zm_path: $zm_path"
 
 	 echo -e "overwrite: $(_zm_show $zm_clash)"
-	 printf "replacement: $zm_new_name\t-- $zm_path\n"
+	 # printf "replacement: $zm_new_name\t-- $zm_path\n"
+	 printf "replacement: $zm_new_name\t-- ${zm_path/#$HOME/~}\n"
 
 	 echo -n "overwrite mark $1 (y/n)? "
 	 read answer
@@ -532,8 +541,8 @@ function _zm_mark_file() {
 			zm_file_path="$cur_dir"
 			zm_file_path+="/$zm_name"
 
-	 elif [[ -n $zm_file_path ]] && [[ -f $(readlink -f $zm_file_path) ]]; then
-			zm_file_path=$(readlink -f $zm_file_path)
+	 elif [[ -n $zm_file_path ]] && [[ -f $(readlink -e $zm_file_path) ]]; then
+			zm_file_path=$(readlink -e $zm_file_path)
 			echo "zmarks/init.zsh: 499 zm_file_path: $zm_file_path"
 
 	 else
