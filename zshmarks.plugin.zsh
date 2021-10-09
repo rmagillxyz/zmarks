@@ -111,20 +111,16 @@ function _zm_mark_dir() {
 			new_zm_name="${PWD##*/}"
 	 fi
 	 
-	 echo "zmarks/init.zsh: 2: 110 $2"
 	 [[ -z "$new_zm_path" ]] \
 			&& new_zm_path=$(readlink -e "$PWD") \
 			|| new_zm_path=$(readlink -e "$2")
 
-	 echo "zmarks/init.zsh: 123 new_zm_path: $new_zm_path"
 
-	 # if [[ ! "${new_zm_name//[0-9A-Za-z-_]/}" ]]; then
 	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
 			echo 'Mark names must start with an alphanumeric and must only contain alphanumerics, dashes or underscores'
 			return 1
 	 fi
 
-	 echo "zmarks/init.zsh: 127 new_zm_path: $new_zm_path"
 	 [[ -z "$new_zm_path" ]] \
 			&& echo "path does not exist" && return 1
 
@@ -150,7 +146,6 @@ function _zm_mark_dir() {
 
 	 for line in $(cat $ZM_DIRS_FILE) 
 	 do
-			echo "zmarks/init.zsh: 129 line: $line"
 			if [[ "$line" == "$new_zm_line" ]]; then 
 				 echo "umm, like, you already have this EXACT dir zmark." 
 				 return 
@@ -518,37 +513,38 @@ function _zm_dir_jump() {
 }
 
 function _zm_mark_file() {
-	 local zm_name="$1"
-	 local zm_file_path="$2"
+	 local new_zm_name new_zm_path
+	 new_zm_name="$1"
+	 new_zm_path="$2"
 
-	 if [[ -z $zm_name ]]; then
+	 if [[ -z $new_zm_name ]]; then
 			echo 'mark name required'
 			return 1
 	 fi
 
-	 if [[ ! "${zm_name//[0-9A-Za-z-_]/}" = "" ]]; then
-			echo 'Marks must only contain alphanumeric characters'
+	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
+			echo 'Mark names must start with an alphanumeric and must only contain alphanumerics, dashes or underscores'
 			return 1
 	 fi
 
-	 ! __zm_check_name_clash "$zm_name" && return
+	 ! __zm_check_name_clash "$new_zm_name" && return
 	 ! __zm_check_hash_clash && return
 
 	 # if mark name matches file from cwd, automatically use that file path
-	 local exactmatchfromcwd=$(\ls $(pwd) | grep -x "$zm_name")
-	 if [[ -z $zm_file_path && -n $exactmatchfromcwd ]]; then
+	 local exactmatchfromcwd=$(\ls $(pwd) | grep -x "$new_zm_name")
+	 if [[ -z $new_zm_path && -n $exactmatchfromcwd ]]; then
 			#could use find here
 			cur_dir="$(pwd)"
-			zm_file_path="$cur_dir"
-			zm_file_path+="/$zm_name"
+			new_zm_path="$cur_dir"
+			new_zm_path+="/$new_zm_name"
 
-	 elif [[ -n $zm_file_path ]] && [[ -f $(readlink -e $zm_file_path) ]]; then
-			zm_file_path=$(readlink -e $zm_file_path)
-			echo "zmarks/init.zsh: 499 zm_file_path: $zm_file_path"
+	 elif [[ -n $new_zm_path ]] && [[ -f $(readlink -e $new_zm_path) ]]; then
+			new_zm_path=$(readlink -e $new_zm_path)
+			echo "zmarks/init.zsh: 499 new_zm_path: $new_zm_path"
 
 	 else
-			zm_file_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
-			if [[ -z "$zm_file_path" ]]; then
+			new_zm_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
+			if [[ -z "$new_zm_path" ]]; then
 				 echo 'abort'
 				 return 1
 			fi
@@ -556,12 +552,12 @@ function _zm_mark_file() {
 	 fi
 
 		# Replace /home/$USER with $HOME
-	 if [[ "$zm_file_path" =~ ^"$HOME"(/|$) ]]; then
-			zm_file_path="\$HOME${zm_file_path#$HOME}"
+	 if [[ "$new_zm_path" =~ ^"$HOME"(/|$) ]]; then
+			new_zm_path="\$HOME${new_zm_path#$HOME}"
 	 fi
 
 	 # Store the zm as directory|name
-	 zm="$zm_file_path|$zm_name"
+	 new_zm_line="$new_zm_path|$new_zm_name"
 
 	 __ask_to_overwrite_zm_file() {
 			usage='usage: ${FUNCNAME[0]} to-overwrite replacement'
@@ -576,7 +572,7 @@ function _zm_mark_file() {
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ];then 
 			 _zm_remove "$overwrite"
-			 zmf "$replacement" "$zm_file_path"
+			 _zm_mark_file "$replacement" "$new_zm_path"
 			else
 			 return 1
 			fi
@@ -588,36 +584,36 @@ function _zm_mark_file() {
 	 for line in $(cat $ZM_FILES_FILE) 
 	 do
 
-		 if [[ "$line" == "$zm_file_path|$zm_name" ]]; then 
+		 if [[ "$line" == "$new_zm_path|$new_zm_name" ]]; then 
 				echo "umm, you already have this EXACT edit mark, bro" 
 				return 
 		 fi		
 
-		 if [[ $(echo $line |  awk -F'|' '{print $2}') == $zm_name ]]; then
+		 if [[ $(echo $line |  awk -F'|' '{print $2}') == $new_zm_name ]]; then
 				echo "zmarks file name already existed"
 				echo "old: $line"
 				echo "new: $zm"
-				__ask_to_overwrite_zm_file $zm_name 
+				__ask_to_overwrite_zm_file $new_zm_name 
 				return 1
 
-		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $zm_file_path  ]]; then
+		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $new_zm_path  ]]; then
 				echo "zmark dir already existed"
 				echo "old: $line"
 				echo "new: $zm"
 				local zm_to_overwrite_name="${line##*|}"
-				__ask_to_overwrite_zm_file "$zm_to_overwrite_name" "$zm_name" 
+				__ask_to_overwrite_zm_file "$zm_to_overwrite_name" "$new_zm_name" 
 				return 1
 		 fi
 	 done
 
-	 if [[ -n "$zm_name" && -n "$zm_file_path" ]]; then
+	 if [[ -n "$new_zm_name" && -n "$new_zm_path" ]]; then
 		 echo $zm >> "$ZM_FILES_FILE"
-		 echo "zmark file '$zm_name' saved"
+		 echo "zmark file '$new_zm_name' saved"
 
-		 # echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
+		 # echo "hash -d $new_zm_name=$new_zm_path" >> "$ZM_NAMED_FILES"
 		 # TODO zmf ZM_NAMED_FILES is empty here!!! ZM_NAMED_FILES
-		 echo "hash -d $zm_name=$zm_file_path" >> "$ZM_NAMED_FILES"
-		 echo "Created named file ~$zm_name"
+		 echo "hash -d $new_zm_name=$new_zm_path" >> "$ZM_NAMED_FILES"
+		 echo "Created named file ~$new_zm_name"
 		 source "$ZM_NAMED_FILES"
 	 else
 		 echo "something went wrong. Mark or path is not assigned"
