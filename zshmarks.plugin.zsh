@@ -118,8 +118,9 @@ function _zm_mark_dir() {
 
 	 echo "zmarks/init.zsh: 123 new_zm_path: $new_zm_path"
 
-	 if [[ ! "${new_zm_name//[0-9A-Za-z-_]/}" = "" ]]; then
-			echo 'Marks must only contain alphanumeric characters'
+	 # if [[ ! "${new_zm_name//[0-9A-Za-z-_]/}" ]]; then
+	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
+			echo 'Mark names must start with an alphanumeric and must only contain alphanumerics, dashes or underscores'
 			return 1
 	 fi
 
