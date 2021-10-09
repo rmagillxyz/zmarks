@@ -559,55 +559,56 @@ function _zm_mark_file() {
 	 # Store the zm as directory|name
 	 new_zm_line="$new_zm_path|$new_zm_name"
 
-	 __ask_to_overwrite_zm_file() {
-			usage='usage: ${FUNCNAME[0]} to-overwrite replacement'
+# 	 __ask_to_overwrite_zm_file() {
+# 			usage='usage: ${FUNCNAME[0]} to-overwrite replacement'
 
-			local overwrite=$1
-			local replacement=$1
-			[[  $# == 2 ]] && replacement=$2
-			echo "overwrite: $overwrite"
-			echo "replacement: $replacement"
+# 			local overwrite=$1
+# 			local replacement=$1
+# 			[[  $# == 2 ]] && replacement=$2
+# 			echo "overwrite: $overwrite"
+# 			echo "replacement: $replacement"
 
-			echo -n "overwrite mark $1 (y/n)? "
-			read answer
-			if  [ "$answer" != "${answer#[Yy]}" ];then 
-			 _zm_remove "$overwrite"
-			 _zm_mark_file "$replacement" "$new_zm_path"
-			else
-			 return 1
-			fi
-	 }
+# 			echo -n "overwrite mark $1 (y/n)? "
+# 			read answer
+# 			if  [ "$answer" != "${answer#[Yy]}" ];then 
+# 			 _zm_remove "$overwrite"
+# 			 _zm_mark_file "$replacement" "$new_zm_path"
+# 			else
+# 			 return 1
+# 			fi
+# 	 }
 
 	 # TODO: this could be sped up by sorting and using a search algorithm
 	 # refactor into function to deal with files and dirs
 	 # check for duplicates
-	 for line in $(cat $ZM_FILES_FILE) 
-	 do
+	 
+# 	 for line in $(cat $ZM_FILES_FILE) 
+# 	 do
+# 		 if [[ "$line" == "$new_zm_line" ]]; then 
+# 				echo "umm, you already have this EXACT edit mark, bro" 
+# 				return 
 
-		 if [[ "$line" == "$new_zm_path|$new_zm_name" ]]; then 
-				echo "umm, you already have this EXACT edit mark, bro" 
-				return 
-		 fi		
+# # 		 # if [[ $(echo $line |  awk -F'|' '{print $2}') == $new_zm_name ]]; then
+# # 				echo "mark file name already existed"
+# # 				echo "old: $line"
+# # 				echo "new: $zm"
+# # 				__ask_to_overwrite_zm_file $new_zm_name 
+# # 				return 1
 
-		 if [[ $(echo $line |  awk -F'|' '{print $2}') == $new_zm_name ]]; then
-				echo "zmarks file name already existed"
-				echo "old: $line"
-				echo "new: $zm"
-				__ask_to_overwrite_zm_file $new_zm_name 
-				return 1
-
-		 elif [[ $(echo $line |  awk -F'|' '{print $1}') == $new_zm_path  ]]; then
-				echo "zmark dir already existed"
-				echo "old: $line"
-				echo "new: $zm"
-				local zm_to_overwrite_name="${line##*|}"
-				__ask_to_overwrite_zm_file "$zm_to_overwrite_name" "$new_zm_name" 
-				return 1
-		 fi
-	 done
+# 		 # elif [[ $(echo $line |  awk -F'|' '{print $1}') == $new_zm_path  ]]; then
+# 	   elif [[ $(eval "readlink -f $(echo "${line%%|*}" )") == $(readlink -e $(echo $new_zm_path)) ]]; then
+# 				echo "mark dir path already existed"
+# 				# echo "old: $line"
+# 				# echo "new: $zm"
+# 				local zm_to_overwrite_name="${line##*|}"
+# 				__ask_to_overwrite_zm_file "$zm_to_overwrite_name" "$new_zm_name" 
+# 				return 1
+# 		 fi
+# 	 done
+	 ! __zm_check_path_clash  "$new_zm_line" && return
 
 	 if [[ -n "$new_zm_name" && -n "$new_zm_path" ]]; then
-		 echo $zm >> "$ZM_FILES_FILE"
+		 echo "$new_zm_line" >> "$ZM_FILES_FILE"
 		 echo "zmark file '$new_zm_name' saved"
 
 		 # echo "hash -d $new_zm_name=$new_zm_path" >> "$ZM_NAMED_FILES"
@@ -663,6 +664,63 @@ function __zm_check_name_clash(){
 			__checktoremove "$clash"
 	 fi
 
+}
+
+function __ask_to_overwrite_zm_file() {
+	 local overwrite replacement zm_path
+	 overwrite="$1"
+	 replacement="$2"
+	 zm_path="$3"
+	 echo "overwrite: $overwrite"
+	 echo "replacement: $replacement"
+
+	 echo -n "overwrite mark $1 (y/n)? "
+	 read answer
+	 if  [ "$answer" != "${answer#[Yy]}" ];then 
+		_zm_remove "$overwrite"
+		_zm_mark_file "$replacement" "$zm_path"
+	 else
+		return 1
+	 fi
+}
+
+function __zm_check_path_clash(){
+	 echo "zmarks/init.zsh: 688 __zm_check_path_clash: __zm_check_path_clash"
+	 local new_zm_line zm_clashed_path zm_clash_name
+	 new_zm_line="$1"
+	 for line in $(cat $ZM_DIRS_FILE) 
+	 do
+			if [[ "$line" == "$new_zm_line" ]]; then 
+				 echo "umm, like, you already have this EXACT dir zmark." 
+				 return 1 
+
+			elif [[ $(eval "readlink -f $(echo "${line%%|*}" )") == $(readlink -e $(echo $new_zm_path)) ]]; then
+				__zm_line_parse "$line" zm_clashed_path zm_clash_name
+
+				printf "${RED}mark path is already being used on directory:\n$zm_clash_name\t--  $zm_clashed_path${NOCOLOR}\n"
+
+				__ask_to_overwrite_zm_dir "$zm_clash_name" "$new_zm_name" "$new_zm_path"
+				return 
+		 fi
+	done
+
+	 for line in $(cat $ZM_FILES_FILE) 
+			do
+				 if [[ "$line" == "$new_zm_line" ]]; then 
+						echo "umm, like, you already have this EXACT dir zmark." 
+						return 
+
+				 # elif [[ $(eval "readlink -f $(echo "${line%%|*}" )") == $(readlink -e $(echo $new_zm_path)) ]]; then
+				 elif [[ $(eval "readlink -f $(echo "${line%%|*}" )") == $(eval "readlink -f $(echo "${new_zm_line%%|*}" )") ]]; then
+					 __zm_line_parse "$line" zm_clashed_path zm_clash_name
+
+					 printf "${RED}mark path is already being used on file:\n$zm_clash_name\t--  $zm_clashed_path${NOCOLOR}\n"
+
+					 # __ask_to_overwrite_zm_dir "$zm_clash_name" "$new_zm_name" "$new_zm_path"
+					 __ask_to_overwrite_zm_file "$zm_clash_name" "$new_zm_name" "$zm_clashed_path" 
+					 return 
+				fi
+		 done
 }
 
 
