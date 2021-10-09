@@ -46,14 +46,10 @@ touch "$ZM_DIRS_FILE"
 touch "$ZM_NAMED_FILES"
 touch "$ZM_NAMED_DIRS"
 
-# Check if $ZMARKS_DIR is a symlink.
-if [[ -L "$ZM_DIRS_FILE" ]]; then
-	 ZM_DIRS_FILE=$(readlink $ZM_DIRS_FILE)
-fi
-
-if [[ -L "$ZM_FILES_FILE" ]]; then
-	 ZM_FILES_FILE=$(readlink $ZM_FILES_FILE)
-fi
+[[ -L "$ZM_DIRS_FILE" ]] \
+	&& ZM_DIRS_FILE=$(eval "readlink -e $ZM_DIRS_FILE")
+[[ -L "$ZM_FILES_FILE" ]] \
+	&& ZM_FILES_FILE=$(eval "readlink -e $ZM_FILES_FILE")
 
 # TODO could had options to rebuild one or the other or even most recent line and source
 function _zm_rebuild_hash_table(){
@@ -112,8 +108,8 @@ function _zm_mark_dir() {
 	 fi
 	 
 	 [[ -z "$new_zm_path" ]] \
-			&& new_zm_path=$(readlink -e "$PWD") \
-			|| new_zm_path=$(readlink -e "$2")
+			&& new_zm_path=$(eval "readlink -e $PWD") \
+			|| new_zm_path=$(eval "readlink -e $2")
 
 
 	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
@@ -150,7 +146,7 @@ function _zm_mark_dir() {
 				 echo "umm, like, you already have this EXACT dir zmark." 
 				 return 
 
-			elif [[ $(eval "readlink -f $(echo "${line%%|*}" )") == $(readlink -e $(echo $new_zm_path)) ]]; then
+			elif [[ $(eval "readlink -f ${line%%|*}") == $(eval "readlink -e $new_zm_path") ]]; then
 
 
 				local zm_clashed_path zm_clash_name
@@ -414,7 +410,7 @@ function __ask_to_overwrite_zm_dir() {
 	 # [[  $# -gt 1 ]] && zm_new_name="$2" || zm_new_name="$1"
 	 zm_new_name="$2"
 
-	 [[ -n "$3" ]] && zm_path=$(readlink -e "$3") || zm_path=$(readlink -e "$PWD")
+	 [[ -n "$3" ]] && zm_path=$(eval "readlink -e $3") || zm_path=$(eval "readlink -e $PWD")
 	 # echo "zmarks/init.zsh: 396 zm_path: $zm_path"
 
 	 echo -e "overwrite: $(_zm_show $zm_clash)"
@@ -528,7 +524,6 @@ function _zm_mark_file() {
 	 fi
 
 	 echo "zmarks/init.zsh: 530 new_zm_path: $new_zm_path"
-	 # [[ -n $(readlink -e $(echo "$new_zm_path")) ]] \
 	 [[ -n $(eval "readlink -e  $new_zm_path") ]] \
 	 && echo "zmarks/init.zsh: 530 new_zm_path: $new_zm_path"
 	 # if mark name matches file from cwd, automatically use that file path
@@ -539,9 +534,7 @@ function _zm_mark_file() {
 			new_zm_path="$cur_dir"
 			new_zm_path+="/$new_zm_name"
 
-	 # elif [[ -n "$new_zm_path" ]] && [[ -n $(readlink -e "$new_zm_path") ]]; then
 	 elif [[ -n "$new_zm_path" ]] && [[ -n $(eval "readlink -e  $new_zm_path") ]]; then
-	 # elif [[ -n "$new_zm_path" ]] && [[ -n $(readlink -e $(echo "$new_zm_path")) ]]; then
 			echo "zmarks/init.zsh: 540 new_zm_path: $new_zm_path"
 			new_zm_path=$(eval "readlink -e $new_zm_path")
 			echo "zmarks/init.zsh: 499 new_zm_path: $new_zm_path"
@@ -665,7 +658,7 @@ function __zm_check_path_clash(){
 				 echo "umm, like, you already have this EXACT dir zmark." 
 				 return 1 
 
-			elif [[ $(eval "readlink -f $(echo "${line%%|*}" )") == $(readlink -e $(echo $new_zm_path)) ]]; then
+			elif [[ $(eval "readlink -f ${line%%|*}") == $(eval "readlink -e $new_zm_path") ]]; then
 				__zm_line_parse "$line" zm_clashed_path zm_clash_name
 
 				printf "${RED}mark path is already being used on directory:\n$zm_clash_name\t--  $zm_clashed_path${NOCOLOR}\n"
@@ -683,7 +676,7 @@ function __zm_check_path_clash(){
 						echo "umm, like, you already have this EXACT dir zmark." 
 						return 1 
 
-				 elif [[ $(eval "readlink -f $(echo "${line%%|*}" )") == $(eval "readlink -f $(echo "${new_zm_line%%|*}" )") ]]; then
+				 elif [[ $(eval "readlink -f ${line%%|*}") == $(eval "readlink -f ${new_zm_line%%|*}") ]]; then
 					 __zm_line_parse "$line" zm_clashed_path zm_clash_name
 
 					 printf "${RED}mark path is already being used on file:\n$zm_clash_name\t--  $zm_clashed_path${NOCOLOR}\n"
