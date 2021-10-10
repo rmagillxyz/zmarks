@@ -203,52 +203,26 @@ function _zm_jump() {
 	 if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 			if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
 				 echo "Invalid name, please provide a valid file or directory mark name. For example:"
-				 # echo "_zm_jump foo [pattern]"
 				 echo "zm -j <MARK> [PATTERN]"
 				 echo
 				 echo "To mark a directory:"
-				 # echo "zm <NAME>"
 				 echo "zm -m <NAME>"
 				 echo "To mark a file:"
-				 # echo "zmf <NAME>"
 				 echo "zm -d  <NAME>"
 				 return 1
 			else
-				 # echo 'DEBUG _zm_jump: found file'
+				 # File mark found
 				 local zm_path="${zm%%|*}"
 				 _zm_zoom "$zm_path" "$2"
 			fi
 
 	 else
-			# echo 'DEBUG _zm_jump: found dir'
-			
-			echo "zmarks/init.zsh: 225 zm: $zm"
+			# Directory mark found
 			local dir="${zm%%|*}"
-			echo "zmarks/init.zsh: 224 dir: $dir"
-			# return 1
 			eval "cd \"${dir}\""
 			eval "ls \"${dir}\""
 	 fi
-	 # return 
 }
-
-# Show a list of all the zmarks
-# function _zm_show() {
-# 	 local file_contents=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
-# 	 local contents_array; contents_array=(${(f)file_contents});
-# 	 local zm_search zm_line
-
-# 	 if [[ $# -eq 1 ]]; then
-# 			zm_search="*\|${1}"
-# 			zm_line=${contents_array[(r)$zm_search*]}
-# 			__zm_line_printf "$zm_line"
-# 	 else
-# 			# print all
-# 			for zm_line in $contents_array; do
-# 				 __zm_line_printf "$zm_line"
-# 			done
-# 	 fi
-# }
 
 function _zm_show() {
 	 local zm_file=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
@@ -348,7 +322,6 @@ function _zm_remove()  {
 						# name not found in dirs, run again with files
 						_zm_remove "$zm_name" "$ZM_FILES_FILE"
 				 else
-						# eval "printf '%s\n' \"'${zm_name}' not found, skipping.\""
 						eval "printf '%s\n' \"'${zm_name}' not found.\""
 						return 1
 				 fi
@@ -356,30 +329,15 @@ function _zm_remove()  {
 				 \cp "${zm_file}" "${zm_file}.bak"
 				 zm_line=${zm_array[(r)$zm_search]}
 				 zm_array=(${zm_array[@]/$zm_line})
-				 echo "zmarks/init.zsh: 365 zm_array: $zm_array"
 
-# 				 [[ ${#zm_array[@]} -gt 0 ]] \
-# 						&& eval "printf '%s\n' \"\${zm_array[@]}\"" > "$zm_file" \
-# 						|| touch "$zm_file"
-
-				 echo 'foo'
-				 echo "length zm_array: ${#zm_array[@]}"
-				 if [[ ${#zm_array[@]} -eq 1 ]]; then
-						echo 'new zm_file from array'
-						eval "printf '%s\n' \"\${zm_array[@]}\"" > "$zm_file" 
-				 else
-						echo 'clear zm_file'
-						echo -n > "$zm_file"
-				 fi
-
-				 # eval "printf '%s\n' \"\${zm_array[@]}\"" >! $zm_file
-				 # eval "printf '%s\n' \"\${zm_array[@]}\"" > $zm_file
+				 [[ ${#zm_array[@]} -gt 0 ]] \
+						&& eval "printf '%s\n' \"\${zm_array[@]}\"" > "$zm_file" \
+						|| echo -n > "$zm_file"
 
 				 __zm_move_to_trash "${zm_file}.bak" 
 				 echo "$zm_name removed"
 
 				 _zm_rebuild_hash_table
-				 # echo "Synced named hashes"
 				 return 
 			fi
 	 fi
@@ -400,16 +358,15 @@ function __zm_clear_all_files(){
 
 function __ask_to_overwrite_zm_dir() {
 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement> [dir-path]'
-	 [ ! $# -ge 1 ] && echo "$usage" && return 1 
+	 [ ! $# -ge 2 ] && echo "$usage" && return 1 
 
 	 local zm_clash zm_new_name zm_path
 	 zm_clash="$1"
-
-	 # TODO is this still needed?
-	 # [[  $# -gt 1 ]] && zm_new_name="$2" || zm_new_name="$1"
 	 zm_new_name="$2"
 
-	 [[ -n "$3" ]] && zm_path=$(eval "readlink -e $3") || zm_path=$(eval "readlink -e $PWD")
+
+	 # [[ -n "$3" ]] && zm_path=$(eval "readlink -e $3") || zm_path=$(eval "readlink -e $PWD")
+	 [[ -n "$3" ]] && zm_path=$(eval "readlink -e $3") || zm_path="$PWD"
 	 # echo "zmarks/init.zsh: 396 zm_path: $zm_path"
 
 	 echo -e "overwrite: $(_zm_show $zm_clash)"
@@ -420,9 +377,7 @@ function __ask_to_overwrite_zm_dir() {
 	 read answer
 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
 			
-		# [[ -n "$zm_path" ]] && _zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name" "$zm_path" ||	_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name"
 		_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name" "$zm_path" 
-		# ||	_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name"
 			
 	 else
 			echo 'abort'
@@ -430,7 +385,7 @@ function __ask_to_overwrite_zm_dir() {
 	 return
 }
 
-# jump to marked file
+# jump to ZM_ZOOM_MARK in marked file
 function _zm_zoom() {
 	 local file_path=$1
 	 if [[ -z $2 ]]; then
