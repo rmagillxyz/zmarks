@@ -551,17 +551,16 @@ function __zm_check_hash_clash(){
 }
 
 function __zm_check_name_clash(){
-	 # usage='usage: ${FUNCNAME[0]} zm_clash $zm_name $zm_file'
+	 # usage='usage: ${FUNCNAME[0]} <MARK-NAME>'
 	 local zm_name clash
 	 zm_name="$1"
 
-	 __checktoremove(){
-			local zm_name="${clash##*|}"
+	 _checktoremove(){
+			local zm_clash_name="${clash##*|}"
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ];then 
-				 _zm_remove "$zm_name"
+				 _zm_remove "$zm_clash_name"
 			else
-				 # eval "$clash_fail=true"
 				 echo 'abort'
 				 return  1
 			fi
@@ -571,11 +570,11 @@ function __zm_check_name_clash(){
 	 if  __zmarks_zgrep clash "\\|$zm_name\$" "$ZM_FILES_FILE"; then
 			printf "${RED}name clashes with marked file: $clash${NOCOLOR}\n"
 			echo -n "Remove '$zm_name' file mark? (y/n)?"
-			__checktoremove "$clash"
+			_checktoremove "$clash"
 	 elif  __zmarks_zgrep clash "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 			printf "${RED}name clashes with directory mark : $clash${NOCOLOR}\n"
 			echo -n "delete directory mark?: $clash (y/n)? "
-			__checktoremove "$clash"
+			_checktoremove "$clash"
 	 fi
 
 }
