@@ -140,27 +140,9 @@ function _zm_mark_dir() {
 
 	 echo "zmarks/init.zsh: 125 new_zm_line: $new_zm_line"
 
-	 for line in $(cat $ZM_DIRS_FILE) 
-	 do
-			if [[ "$line" == "$new_zm_line" ]]; then 
-				 echo "umm, like, you already have this EXACT dir zmark." 
-				 return 
-
-			elif [[ $(eval "readlink -f ${line%%|*}") == $(eval "readlink -e $new_zm_path") ]]; then
-
-
-				local zm_clashed_path zm_clash_name
-				__zm_line_parse "$line" zm_clashed_path zm_clash_name
-
-				printf "${RED}zmark path is already being used:\n$zm_clash_name\t--  $zm_clashed_path${NOCOLOR}\n"
-
-				__ask_to_overwrite_zm_dir "$zm_clash_name" "$new_zm_name" "$new_zm_path"
-				return 
-		 fi
-	done
-
-	! __zm_check_name_clash "$new_zm_name" && return
-	! __zm_check_hash_clash "$new_zm_name" && return
+	 ! __zm_check_path_clash "$new_zm_line" && return
+	 ! __zm_check_name_clash "$new_zm_name" && return
+	 ! __zm_check_hash_clash "$new_zm_name"  && return
 
 	# no duplicates, make mark
 	echo "$new_zm_line" >> $ZM_DIRS_FILE
@@ -556,29 +538,15 @@ function __zm_check_name_clash(){
 	 local zm_name clash_line
 	 zm_name="$1"
 
-	 _checktoremove(){
-			local zm_clash_name="${clash_line##*|}"
-			read answer
-			if  [ "$answer" != "${answer#[Yy]}" ];then 
-				 _zm_remove "$zm_clash_name"
-			else
-				 echo 'abort'
-				 return  1
-			fi
-	 }
-
-	 # check file and dir marks for name collision
 	 if  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_FILES_FILE"; then
-			printf "${RED}name clashes with marked file: $clash_line${NOCOLOR}\n"
-			echo -n "Remove '$zm_name' file mark? (y/n)?"
-			_checktoremove "$clash_line"
+			printf "${RED}Name clashes with marked file: $clash_line${NOCOLOR}\n"
+			echo -n "Remove '$zm_name' file mark? (y/n)? "
+			__zm_checktoremove "$clash_line"
 	 elif  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
-			printf "${RED}name clashes with directory mark: $clash_line${NOCOLOR}\n"
-			# TODO: use dir mark name 
-			echo -n "Remove directory mark?: $clash_line (y/n)? "
-			_checktoremove "$clash_line"
+			printf "${RED}Name clashes with directory mark: $clash_line${NOCOLOR}\n"
+			echo -n "Remove '$zm_name' directory mark? (y/n)? "
+			__zm_checktoremove "$clash_line"
 	 fi
-
 }
 
 function __ask_to_overwrite_zm_file() {
@@ -599,6 +567,19 @@ function __ask_to_overwrite_zm_file() {
 	 fi
 }
 
+function __zm_checktoremove(){
+			local zm_clash_name clash_line
+			clash_line="$1"
+			zm_clash_name="${clash_line##*|}"
+			read answer
+			if  [ "$answer" != "${answer#[Yy]}" ];then 
+				 _zm_remove "$zm_clash_name"
+			else
+				 echo 'abort'
+				 return  1
+			fi
+}
+
 function __zm_check_path_clash(){
 	 echo "zmarks/init.zsh: 688 __zm_check_path_clash"
 	 local new_zm_line zm_path zm_name zm_clashed_path zm_clash_name
@@ -607,74 +588,17 @@ function __zm_check_path_clash(){
 	 zm_name="${new_zm_line##*|}"
 	 echo "zmarks/init.zsh: 645 new_zm_line: $new_zm_line"
 
-	 _checktoremove(){
-			local zm_clash_name="${clash_line##*|}"
-			read answer
-			if  [ "$answer" != "${answer#[Yy]}" ];then 
-				 _zm_remove "$zm_clash_name"
-			else
-				 echo 'abort'
-				 return  1
-			fi
-	 }
 
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
-
-	 # check file and dir marks for name collision
-	 # if  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_FILES_FILE"; then
 	 echo "zmarks/init.zsh: 623 zm_path: $zm_path"
 	 if  __zmarks_zgrep clash_line "^\\$zm_path\|[[:alnum:]]+" "$ZM_FILES_FILE"; then
-			printf "${RED}path clashes with marked file: $clash_line${NOCOLOR}\n"
-			echo -n "Remove '${clash_line##*|}' file mark? (y/n)?"
-			_checktoremove "$clash_line"
-	 # elif  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+			printf "${RED}Path clashes with marked file: $clash_line${NOCOLOR}\n"
+			echo -n "Remove '${clash_line##*|}' file mark? (y/n)? "
+			__zm_checktoremove "$clash_line"
 	 elif  __zmarks_zgrep clash_line "^\\$zm_path\|[[:alnum:]]+" "$ZM_DIRS_FILE"; then
-			printf "${RED}path clashes with directory mark: $clash_line${NOCOLOR}\n"
-			echo -n "Remove directory mark?: '${clash_line##*|}' (y/n)? "
-			_checktoremove "$clash_line"
+			printf "${RED}Path clashes with directory mark: $clash_line${NOCOLOR}\n"
+			echo -n "Remove '${clash_line##*|}' directory mark? (y/n)? "
+			__zm_checktoremove "$clash_line"
 	 fi
-
-# while read -r line 
-# do
-# 	echo "$line"
-# done < $ZM_DIRS_FILE
-
-# 	 for line in $(cat $ZM_DIRS_FILE) 
-# 	 # while read -r line 
-# 	 do
-# 			if [[ "$line" == "$new_zm_line" ]]; then 
-# 				 echo "umm, like, you already have this EXACT dir zmark." 
-# 				 return 1 
-
-# 			elif [[ $(eval "readlink -f ${line%%|*}") == $(eval "readlink -e $new_zm_path") ]]; then
-# 				__zm_line_parse "$line" zm_clashed_path zm_clash_name
-
-# 				printf "${RED}mark path is already being used on directory:\n$zm_clash_name\t--  $zm_clashed_path${NOCOLOR}\n"
-
-# 				__ask_to_overwrite_zm_dir "$zm_clash_name" "$new_zm_name" "$new_zm_path"
-# 				return 1 
-# 		 fi
-# 	# done < "$ZM_DIRS_FILE"
-# 	 done
-
-# 	 for line in $(cat $ZM_FILES_FILE) 
-# 	 # while read -r line 
-# 			do
-# 				 if [[ "$line" == "$new_zm_line" ]]; then 
-# 						echo "umm, like, you already have this EXACT dir zmark." 
-# 						return 1 
-
-# 				 elif [[ $(eval "readlink -f ${line%%|*}") == $(eval "readlink -f ${new_zm_line%%|*}") ]]; then
-# 					 __zm_line_parse "$line" zm_clashed_path zm_clash_name
-
-# 					 printf "${RED}mark path is already being used on file:\n$zm_clash_name\t--  $zm_clashed_path${NOCOLOR}\n"
-
-# 					 echo "zmarks/init.zsh: 679 zm_clashed_path: $zm_clashed_path"
-# 					 __ask_to_overwrite_zm_file "$zm_clash_name" "$new_zm_name" "$zm_clashed_path" 
-# 					 return 1
-# 				fi
-# 		 # done < "$ZM_FILES_FILE"
-# 		 done
 } 
 
 
