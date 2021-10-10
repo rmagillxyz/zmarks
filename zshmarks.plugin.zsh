@@ -28,18 +28,19 @@ if [[ -z $EDITOR ]]; then
 fi
 
 # Allows for a user to configure ZMARKS_DIR location.
-if [[ -z $ZMARKS_DIR ]] ; then
-	 [[ ! -d "$HOME/.local/share/zsh" ]] && mkdir -p "$HOME/.local/share/zsh" 
-	 ZMARKS_DIR="$HOME/.local/share/zsh"
-fi
+[[ -z "$ZMARKS_DIR" ]] \
+	 && export ZMARKS_DIR="$HOME/.local/share/zsh"
+
+[[ ! -d "$ZMARKS_DIR" ]] \
+	 && mkdir -p "$ZMARKS_DIR" && echo "created ZMARKS_DIR: $ZMARKS_DIR " 
+
+[[ -z "$ZM_ZOOM_MARK" ]] \
+	 && export ZM_ZOOM_MARK="__zm_zoom__"
 
 export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
 export ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
 export ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
 export ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files" 
-export ZM_ZOOM_MARK="__zm_zoom__"
-
-# echo "zmarks/init.zsh: 42 ZM_NAMED_DIRS: $ZM_NAMED_DIRS"
 
 touch "$ZM_FILES_FILE"
 touch "$ZM_DIRS_FILE"
@@ -51,9 +52,8 @@ touch "$ZM_NAMED_DIRS"
 [[ -L "$ZM_FILES_FILE" ]] \
 	&& ZM_FILES_FILE=$(eval "readlink -e $ZM_FILES_FILE")
 
-# TODO could had options to rebuild one or the other or even most recent line and source
+# TODO could have options to rebuild one or the other or even most recent line and source
 function _zm_rebuild_hash_table(){
-	 # generate new named dir to sync with marks
 	 gen_named_hashes(){
 			local zm_file zm_path zm_name named_hash_file
 			zm_file="$1"
@@ -73,7 +73,6 @@ function _zm_rebuild_hash_table(){
 	 }
 	 hash -d -r 
 	 gen_named_hashes "$ZM_DIRS_FILE" "$ZM_NAMED_DIRS" 1> /dev/null
-	 # gen_named_hashes "$ZM_DIRS_FILE" "$ZM_NAMED_DIRS" 
 	 gen_named_hashes "$ZM_FILES_FILE" "$ZM_NAMED_FILES" 1> /dev/null
 	 source "$ZM_NAMED_DIRS" 
 	 source "$ZM_NAMED_FILES" 
@@ -120,7 +119,7 @@ function _zm_mark_dir() {
 	 [[ -z "$new_zm_path" ]] \
 			&& echo "path does not exist" && return 1
 
-	 if [[ ! "${new_zm_path//[0-9A-Za-z-_\/]/}" = "" ]]; then
+	 if [[ ! "${new_zm_path//[0-9A-Za-z-_.\/]/}" = "" ]]; then
 			echo 'Path must only contain alphanumeric characters'
 			return 1
 	 fi
@@ -535,9 +534,9 @@ function _zm_mark_file() {
 			new_zm_path+="/$new_zm_name"
 
 	 elif [[ -n "$new_zm_path" ]] && [[ -n $(eval "readlink -e  $new_zm_path") ]]; then
-			echo "zmarks/init.zsh: 540 new_zm_path: $new_zm_path"
+			# echo "zmarks/init.zsh: 540 new_zm_path: $new_zm_path"
 			new_zm_path=$(eval "readlink -e $new_zm_path")
-			echo "zmarks/init.zsh: 499 new_zm_path: $new_zm_path"
+			# echo "zmarks/init.zsh: 499 new_zm_path: $new_zm_path"
 
 	 else
 			new_zm_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
@@ -546,6 +545,11 @@ function _zm_mark_file() {
 				 return 1
 			fi
 
+	 fi
+
+	 if [[ ! "${new_zm_path//[0-9A-Za-z-_.\/]/}" = "" ]]; then
+			echo 'Path must only contain alphanumeric characters'
+			return 1
 	 fi
 
 		# Replace /home/$USER with $HOME
