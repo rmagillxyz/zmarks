@@ -1,22 +1,18 @@
 #!/bin/zsh
 
 # ------------------------------------------------------------------------------
-#        FILE:  zsharks.plugin.zsh
+#        FILE:  zmarks/init.zsh
 #        AUTHOR: Robert Magill
 #        FORKED_FROM:  Jocelyn Mallon
-#        VERSION: 0.7
+#        VERSION: 1.0
 #        DEPENDS: fzf
 # ------------------------------------------------------------------------------
-
-# zm_path="${foo%%|*}"
-# zm_name="${foo##*|}"
 
 [[ -d $ZDOTDIR ]] && fpath=("$ZDOTDIR/zmarks/functions" $fpath)
 
 RED='\033[0;31m'
 NOCOLOR='\033[0m'
 
-# echo "zmarks/zmarks.plugin.zsh: 16 EDITOR : $EDITOR "
 if [[ -z $EDITOR ]]; then
 	 echo "set \$EDITOR environment variable to choose editor"
 	 echo "defaulting to nvim or vim"
@@ -37,20 +33,23 @@ fi
 [[ -z "$ZM_ZOOM_MARK" ]] \
 	 && export ZM_ZOOM_MARK="__zm_zoom__"
 
-export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs"
-export ZM_FILES_FILE="$ZMARKS_DIR/zm_files"
-export ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs"
-export ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files" 
+export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs" \
+	 && touch "$ZM_DIRS_FILE"
 
-touch "$ZM_FILES_FILE"
-touch "$ZM_DIRS_FILE"
-touch "$ZM_NAMED_FILES"
-touch "$ZM_NAMED_DIRS"
+export ZM_FILES_FILE="$ZMARKS_DIR/zm_files" \
+	 && touch "$ZM_FILES_FILE"
+
+export ZM_NAMED_DIRS="$ZMARKS_DIR/zm_named_dirs" \
+	 && touch "$ZM_NAMED_DIRS"
+
+export ZM_NAMED_FILES="$ZMARKS_DIR/zm_named_files" \
+	 && touch "$ZM_NAMED_FILES"
 
 [[ -L "$ZM_DIRS_FILE" ]] \
-	&& ZM_DIRS_FILE=$(eval "readlink -e $ZM_DIRS_FILE")
+	 && ZM_DIRS_FILE=$(eval "readlink -e $ZM_DIRS_FILE")
+
 [[ -L "$ZM_FILES_FILE" ]] \
-	&& ZM_FILES_FILE=$(eval "readlink -e $ZM_FILES_FILE")
+	 && ZM_FILES_FILE=$(eval "readlink -e $ZM_FILES_FILE")
 
 function _zm_rebuild_hash_table(){
 	 gen_named_hashes(){
@@ -70,6 +69,7 @@ function _zm_rebuild_hash_table(){
 			done < "$zm_file"
 			return 
 	 }
+
 	 # empty and rebuild hash table immediately
 	 hash -rfd
 	 gen_named_hashes "$ZM_DIRS_FILE" "$ZM_NAMED_DIRS" 1> /dev/null
@@ -104,13 +104,9 @@ function __zmarks_zgrep() {
 	 local file_contents="$(<"$filename")"
 	 local contents_array; contents_array=(${(f)file_contents})
 
-
-	 echo "zmarks/init.zsh: 185 pattern: $pattern"
 	 for line in "${contents_array[@]}"; do
 			if [[ "$line" =~ "$pattern" ]]; then
-				 echo "zmarks/init.zsh: 187 line: $line"
 				 eval "$outvar=\"$line\""
-				 # eval "$outvar=\"$HOME/slate|sla\""
 				 return 
 			fi
 	 done
@@ -156,22 +152,22 @@ function _zm_show() {
 	 zmarks=()
 
 	 if [[ $# -eq 1 ]]; then
+			for zm_line in $zm_array; do
+				 zm_name="${zm_line#*|}"
+				 if [[ $zm_name =~ ^$1 ]]; then
+						zmarks+="$zm_line"
+				 fi
 
-	 for zm_line in $zm_array; do
-			 zm_name="${zm_line#*|}"
-			 if [[ $zm_name =~ ^$1 ]]; then
-					zmarks+="$zm_line"
-			 fi
+			done
 
-	 done
+			IFS=$'\n' 
+			sorted=($(sort -t '|' -k 2 <<<"${zmarks[*]}"))
+			unset IFS
 
-	 IFS=$'\n' 
-	 sorted=($(sort -t '|' -k 2 <<<"${zmarks[*]}"))
-	 unset IFS
-
-	 for zm_line in $sorted; do
+			for zm_line in $sorted; do
 				 __zm_line_printf "$zm_line"
-	 done
+			done
+
 	 else
 			for zm_line in $zm_array; do
 				 # echo 'printing formatted line'
@@ -179,8 +175,6 @@ function _zm_show() {
 			done
 	 fi
 }
-
-# TODO write format function for hash -d from line
 
 __zm_line_parse(){
 	 USAGE="
@@ -212,23 +206,12 @@ __zm_line_printf() {
 
 	 if [[ ${#name} -gt 7 ]]; then
 			# echo "${#name} is greater than 7"
-	 	 printf "%s\t-- %s\n" "$name" "$path"
+			printf "%s\t-- %s\n" "$name" "$path"
 	 else
 			# echo "${#name} is not greater than 7"
-	  printf "%s\t\t-- %s\n" "$name" "$path"
+			printf "%s\t\t-- %s\n" "$name" "$path"
 	 fi
 }
-
-# function __zm_line_printf() {
-# 	 USAGE="${FUNCNAME[0]} zm_line"
-# 	 if [[ ! "$#" -eq 1 ]]; then
-# 			echo "$USAGE"
-# 	 fi
-# 	 local zm_line="$1"
-# 	 local path name
-# 	 __zm_line_parse "$zm_line" path name
-# 	 printf "%s\t\t--  %s\n" "$name" "$path"
-# }
 
 function _zm_remove()  {
 	 local zm_name="$1"
@@ -281,9 +264,7 @@ function __zm_clear_all_files(){
 	 __zm_move_to_trash "$ZM_FILES_FILE"
 }
 
-
-
-# jump to ZM_ZOOM_MARK in marked file
+# jump to $ZM_ZOOM_MARK in marked file
 function _zm_zoom() {
 	 local file_path=$1
 	 if [[ -z $2 ]]; then
@@ -298,29 +279,6 @@ function _zm_zoom() {
 	 fi
 }
 
-# TODO add command comletion 
-# add checks to for type and file to only allow editable commands
-function _zm_vi() {
-	 local cmd pattern c_path 
-	 cmd="$1"
-	 pattern="$2"
-	 c_path=$(command -v $cmd)
-	 echo "zmarks/init.zsh: 465 c_path: $c_path"
-	 if [[ -z "$c_path" ]];then
-			echo 'script not in path'
-	 else
-			_zm_zoom "$c_path" "$pattern"
-	 fi
-}
-
-# TODO
-# could just get rid of this and source any files which reside in ZDOTDIR immediately
-function _zm_jump_n_source() {
-	 _zm_file_jump "$1" "$2"
-	 source ~"$1"
-}
-
-# jump to file mark
 function _zm_file_jump() {
 	 local editmark_name=$1
 	 local editmark
@@ -366,7 +324,7 @@ function _zm_mark_dir() {
 	 if [[ -z $new_zm_name ]]; then
 			new_zm_name="${PWD##*/}"
 	 fi
-	 
+
 	 [[ -z "$new_zm_path" ]] \
 			&& new_zm_path=$(eval "readlink -e $PWD") \
 			|| new_zm_path=$(eval "readlink -e $2")
@@ -441,27 +399,27 @@ function _zm_mark_file() {
 	 fi
 
 		# Replace /home/$USER with $HOME
-	 if [[ "$new_zm_path" =~ ^"$HOME"(/|$) ]]; then
-			new_zm_path="\$HOME${new_zm_path#$HOME}"
-	 fi
+		if [[ "$new_zm_path" =~ ^"$HOME"(/|$) ]]; then
+			 new_zm_path="\$HOME${new_zm_path#$HOME}"
+		fi
 
-	 new_zm_line="$new_zm_path|$new_zm_name"
+		new_zm_line="$new_zm_path|$new_zm_name"
 
-	 ! __zm_check_path_clash "$new_zm_line" && return
-	 ! __zm_check_name_clash "$new_zm_name" && return
-	 ! __zm_check_hash_clash "$new_zm_name"  && return
+		! __zm_check_path_clash "$new_zm_line" && return
+		! __zm_check_name_clash "$new_zm_name" && return
+		! __zm_check_hash_clash "$new_zm_name"  && return
 
-	 if [[ -n "$new_zm_name" && -n "$new_zm_path" ]]; then
-		 echo "$new_zm_line" >> "$ZM_FILES_FILE"
-		 echo "zmark file '$new_zm_name' saved"
+		if [[ -n "$new_zm_name" && -n "$new_zm_path" ]]; then
+			 echo "$new_zm_line" >> "$ZM_FILES_FILE"
+			 echo "zmark file '$new_zm_name' saved"
 
-		 echo "hash -d $new_zm_name=$new_zm_path" >> "$ZM_NAMED_FILES"
-		 echo "Created named file ~$new_zm_name"
-		 source "$ZM_NAMED_FILES"
-	 else
-		 echo "Something went wrong. Mark or path is not assigned."
-	 fi
-}
+			 echo "hash -d $new_zm_name=$new_zm_path" >> "$ZM_NAMED_FILES"
+			 echo "Created named file ~$new_zm_name"
+			 source "$ZM_NAMED_FILES"
+		else
+			 echo "Something went wrong. Mark or path is not assigned."
+		fi
+ }
 
 function __zm_check_hash_clash(){
 	 local zm_name="$1"; [[ -z "$zm_name" ]] && return 1 
@@ -472,8 +430,8 @@ function __zm_check_hash_clash(){
 			printf "${RED} ~$zm_name named hash clashes: $hash_name_exists ${NOCOLOR}\n"
 			# echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
 			return 1 
-	 fi
-}
+			fi
+	 }
 
 function __zm_check_name_clash(){
 	 # usage='usage: ${FUNCNAME[0]} <MARK-NAME>'
@@ -509,18 +467,41 @@ function __zm_check_path_clash(){
 } 
 
 function __zm_checktoremove(){
-			local zm_clash_name clash_line
-			clash_line="$1"
-			zm_clash_name="${clash_line##*|}"
-			read answer
-			if  [ "$answer" != "${answer#[Yy]}" ];then 
-				 _zm_remove "$zm_clash_name"
-			else
-				 echo 'abort'
-				 return  1
-			fi
+	 local zm_clash_name clash_line
+	 clash_line="$1"
+	 zm_clash_name="${clash_line##*|}"
+	 read answer
+	 if  [ "$answer" != "${answer#[Yy]}" ];then 
+			_zm_remove "$zm_clash_name"
+	 else
+			echo 'abort'
+			return  1
+	 fi
 }
 
+# TODO add command comletion or maybe just remove this
+# add checks to for type and file to only allow editable commands
+function _zm_vi() {
+	 local cmd pattern c_path 
+	 cmd="$1"
+	 pattern="$2"
+	 c_path=$(command -v $cmd)
+	 echo "zmarks/init.zsh: 465 c_path: $c_path"
+	 if [[ -z "$c_path" ]];then
+			echo 'script not in path'
+	 else
+			_zm_zoom "$c_path" "$pattern"
+	 fi
+}
+
+# TODO
+# could just get rid of this and source any files which reside in ZDOTDIR immediately
+function _zm_jump_n_source() {
+	 _zm_file_jump "$1" "$2"
+	 source ~"$1"
+}
+
+# __zm_zoom__
 function zm(){
 	 local USAGE="Usage: zm <OPTION> <MARK>
 	 -d, --dir-jump <DIR-MARK> \t\t Jump to directory mark. 
@@ -607,7 +588,7 @@ _fzf_zm_jump(){
 	 # if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 	 # TODO why do I need eval here?
 	 if [ -d $(eval "echo $dest") ]; then
-			echo "we gotta dir"
+			# echo "we gotta dir"
 			eval "cd \"$dest\""
 			ls
 			echo -e "\n"
@@ -666,9 +647,9 @@ zle     -N    _fzf_zm_file_jump
 # 	 echo -n "overwrite mark $1 (y/n)? "
 # 	 read answer
 # 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
-			
+
 # 		_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name" "$zm_path" 
-			
+
 # 	 else
 # 			echo 'abort'
 # 	 fi
@@ -692,3 +673,6 @@ zle     -N    _fzf_zm_file_jump
 # 		return 1
 # 	 fi
 # }
+
+# zm_path="${foo%%|*}"
+# zm_name="${foo##*|}"
