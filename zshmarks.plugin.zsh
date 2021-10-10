@@ -71,7 +71,8 @@ function _zm_rebuild_hash_table(){
 			done < "$zm_file"
 			return 
 	 }
-	 hash -d -r 
+	 # empty and rebuild hash table immediately
+	 hash -rfd
 	 gen_named_hashes "$ZM_DIRS_FILE" "$ZM_NAMED_DIRS" 1> /dev/null
 	 gen_named_hashes "$ZM_FILES_FILE" "$ZM_NAMED_FILES" 1> /dev/null
 	 source "$ZM_NAMED_DIRS" 
@@ -541,25 +542,18 @@ function __zm_check_hash_clash(){
 	 local zm_name="$1"; [[ -z "$zm_name" ]] && return 1 
 
 	 local hash_name_exists=$(hash -md "$zm_name")
-	 [[ -z "$hash_name_exists" ]] \
-			&& hash_name_exists=$(hash -m "$zm_name")
 
 	 if [[ -n "$hash_name_exists" ]]; then
-			printf "${RED} ~$zm_name named hash clashes: $( [[ -n $hash_name_exists ]] && echo $hash_name_exists || echo $hash_name_exists) ${NOCOLOR}\n"
-			echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
+			printf "${RED} ~$zm_name named hash clashes: $hash_name_exists ${NOCOLOR}\n"
+			# echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
 			return 1 
 	 fi
-
 }
 
 function __zm_check_name_clash(){
 	 # usage='usage: ${FUNCNAME[0]} zm_clash $zm_name $zm_file'
-
-	 # local clash_fail="$1"; shift
-	 local zm_name="$1"
-	 # local zm_file="$ZM_FILES_FILE" # ZM_FILES_FILE or ZM_DIRS_FILE
-
-	 local clash
+	 local zm_name clash
+	 zm_name="$1"
 
 	 __checktoremove(){
 			local zm_name="${clash##*|}"
