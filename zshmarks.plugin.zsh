@@ -159,7 +159,7 @@ function _zm_mark_dir() {
 	done
 
 	! __zm_check_name_clash "$new_zm_name" && return
-	! __zm_check_hash_clash "$new_zm_name"  && return
+	! __zm_check_hash_clash "$new_zm_name" && return
 
 	# no duplicates, make mark
 	echo "$new_zm_line" >> $ZM_DIRS_FILE
@@ -537,18 +537,19 @@ function _zm_mark_file() {
 }
 
 function __zm_check_hash_clash(){
-	 local zm_name="$1"
-	 # check there are no named hash collisions set by something other than this program
-	 echo '# check there are no named hash collisions set by something other than this program'
-	 echo "zmarks/init.zsh: 542 zm_name: $zm_name"
-	 local hash_already_exists=$(hash -dm "$zm_name")
-	 echo "zmarks/init.zsh: 543 hash_already_exists: $hash_already_exists"
-	 if [[ -n $hash_already_exists ]]; then
-			printf "${RED} ~$zm_name named hash clashes: $hash_already_exists ${NOCOLOR}\n"
+	 # check there are no named hash collisions in hash table set by something other than this program
+	 local zm_name="$1"; [[ -z "$zm_name" ]] && return 1 
+
+	 local hash_name_exists=$(hash -md "$zm_name")
+	 [[ -z "$hash_name_exists" ]] \
+			&& hash_name_exists=$(hash -m "$zm_name")
+
+	 if [[ -n "$hash_name_exists" ]]; then
+			printf "${RED} ~$zm_name named hash clashes: $( [[ -n $hash_name_exists ]] && echo $hash_name_exists || echo $hash_name_exists) ${NOCOLOR}\n"
 			echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
-			# eval "$clash_fail=true"
 			return 1 
 	 fi
+
 }
 
 function __zm_check_name_clash(){
