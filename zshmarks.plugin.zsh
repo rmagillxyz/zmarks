@@ -12,8 +12,8 @@
 
 _ZM_RED='\033[0;31m'
 _ZM_NOCOLOR='\033[0m'
-# _ZM_MARK_RE='^[0-9A-Za-z\-_\.]$' 
-_ZM_MARK_RE='^[[:alnum:]]' 
+_ZM_MARK_RE='^[0-9A-Za-z\-_\.]+' 
+# _ZM_MARK_RE='^[[:alnum:]]' 
 _ZM_PATH_RE='^\/[0-9A-Za-z\-_\.\/]+' 
 
 
@@ -109,6 +109,8 @@ function __zmarks_zgrep() {
 	 local contents_array; contents_array=(${(f)file_contents})
 
 	 for line in "${contents_array[@]}"; do
+			# echo "zmarks/init.zsh: 112 line: $line"
+			# echo "zmarks/init.zsh: 113 pattern: $pattern"
 			if [[ "$line" =~ "$pattern" ]]; then
 				 eval "$outvar=\"$line\""
 				 return 
@@ -410,7 +412,6 @@ function _zm_mark_dir() {
 	 ! __zm_check_name_clash "$new_zm_line" && return
 	 ! __zm_check_hash_clash "$new_zm_name"  && return
 
-	 # Store the zmark as directory|name
 	 if [[ "$new_zm_line" =~ ^"$HOME"(/|$) ]]; then
 			new_zm_line="\$HOME${new_zm_line#$HOME}"
 	 fi
@@ -531,7 +532,12 @@ function __zm_check_path_clash(){
 	 local new_zm_line zm_path zm_name zm_clashed_path zm_clash_name
 	 new_zm_line="$1"
 	 zm_path="${new_zm_line%%|*}"
+	 echo "zmarks/init.zsh: 536 zm_path: $zm_path"
 	 zm_name="${new_zm_line##*|}"
+
+	 if [[ "$zm_path" =~ ^"$HOME"(/|$) ]]; then
+			zm_path="\$HOME${zm_path#$HOME}"
+	 fi
 
 	 if  __zmarks_zgrep clash_line "^\\$zm_path\|[[:alnum:]]+" "$ZM_FILES_FILE"; then
 
