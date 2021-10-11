@@ -336,17 +336,14 @@ function _zm_dir_jump() {
 }
 
 function _zm_mark_dir() {
+	 echo "\$@: $@"
 	 local new_zm_name new_zm_path new_zm_line
 	 new_zm_name="$1"
-	 new_zm_path="$2"
+	 # new_zm_path="$2"
 
 	 if [[ -z $new_zm_name ]]; then
 			new_zm_name="${PWD##*/}"
 	 fi
-
-	 [[ -z "$new_zm_path" ]] \
-			&& new_zm_path=$(eval "readlink -e $PWD") \
-			|| new_zm_path=$(eval "readlink -e $2")
 
 	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
 			echo 'Mark names must start with an alphanumeric and must only contain alphanumerics, dashes or underscores'
@@ -354,19 +351,29 @@ function _zm_mark_dir() {
 			return 1
 	 fi
 
-	 if [[ -z "$new_zm_path" ]]; then
-			echo "path '$2' does not exist" 
+	 # [[ -z "$new_zm_path" ]] \
+	 [[ -z "$2" ]] \
+			&& new_zm_path=$(eval "readlink -e $PWD") \
 
-			[[ ! "${2//[0-9A-Za-z-_.\/]/}" = "" ]] \
+	 [[ -z "$new_zm_path" ]] \
+			&& new_zm_path=$(eval "readlink -e $2")
+
+	 echo "zmarks/init.zsh: 360 2: $2"
+	 echo "zmarks/init.zsh: 357 new_zm_path: $new_zm_path"
+	 if [[ -z "$new_zm_path" && -n "$2" ]]; then
+
+			[[ -n "$2" && ! "${2//[0-9A-Za-z-_.\/]/}" = "" ]] \
 				 && echo 'Path must only contain alphanumeric characters' && return 1
+
+			echo "path '$2' does not exist" 
 
 			echo 'Would you like to create it? (y/n) '
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ]; then 
 				 mkdir -p "$2"
-				 echo "\$2: $2"
+				 # echo "\$2: $2"
 				 new_zm_path=$(eval "readlink -e $2")
-				 echo "zmarks/init.zsh: 364 new_zm_path: $new_zm_path"
+				 echo "path created: $new_zm_path"
 				 [[ -z "$new_zm_path" ]] \
 						&& echo 'invalid path' \
 						&& return 1
@@ -374,6 +381,9 @@ function _zm_mark_dir() {
 				 echo 'abort'
 				 return 1
 			fi
+	 elif [[ -z "$new_zm_path" ]]; then
+			echo 'invalid path'
+			echo 'Path must only contain alphanumeric characters' && return 1
 	 fi
 
 	 if [[ ! "${new_zm_path//[0-9A-Za-z-_.\/]/}" = "" ]]; then
