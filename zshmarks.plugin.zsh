@@ -356,11 +356,20 @@ function _zm_mark_dir() {
 
 	 if [[ -z "$new_zm_path" ]]; then
 			echo "path '$2' does not exist" 
+
+			[[ ! "${2//[0-9A-Za-z-_.\/]/}" = "" ]] \
+				 && echo 'Path must only contain alphanumeric characters' && return 1
+
 			echo 'Would you like to create it? (y/n) '
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ]; then 
 				 mkdir -p "$2"
+				 echo "\$2: $2"
 				 new_zm_path=$(eval "readlink -e $2")
+				 echo "zmarks/init.zsh: 364 new_zm_path: $new_zm_path"
+				 [[ -z "$new_zm_path" ]] \
+						&& echo 'invalid path' \
+						&& return 1
 			else
 				 echo 'abort'
 				 return 1
