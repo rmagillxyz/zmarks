@@ -362,10 +362,13 @@ function _zm_mark_dir() {
 	 echo "zmarks/init.zsh: 357 new_zm_path: $new_zm_path"
 	 if [[ -z "$new_zm_path" && -n "$2" ]]; then
 
-			[[ -n "$2" && ! "${2//[0-9A-Za-z-_.\/]/}" = "" ]] \
-				 && echo 'Path must only contain alphanumeric characters' && return 1
+			# [[ -n "$2" && ! "${2//^[.\$\/\~].[0-9A-Za-z-_.\/]/}" = "" ]] \
+			if [[ ! "$2" =~ '^\/[0-9A-Za-z\-_\.\/]+' ]]; then
 
-			echo "path '$2' does not exist" 
+				 [[ ! "$2" =~ '^[0-9A-Za-z\.\-_][0-9A-Za-z\-_\.\/]+' ]] \
+						&& echo 'Invalid path. Path must only contain alphanumeric characters.' && return 1 \
+						|| echo "path '$PWD/$2' does not exist" 
+			fi
 
 			echo 'Would you like to create it? (y/n) '
 			read answer
@@ -392,6 +395,7 @@ function _zm_mark_dir() {
 	 fi
 
 	 # Store the zmark as directory|name
+	 # TODO: should regex be quoted
 	 if [[ "$new_zm_path" =~ ^"$HOME"(/|$) ]]; then
 			new_zm_line="\$HOME${new_zm_path#$HOME}|$new_zm_name"
 	 else
