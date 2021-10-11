@@ -52,4 +52,5 @@ _arguments \
 	 '-r[remove mark]: :_zm_all' \
 	 '-F[mark file]: :_files' \
 	 '-D[mark dir]: :(`basename $(pwd)`)' \
+	 '--clear-all[clear all directory and file marks]: :' \
 	 '-h[help]'

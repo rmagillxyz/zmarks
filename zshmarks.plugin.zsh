@@ -251,17 +251,36 @@ function _zm_remove()  {
 	 fi
 }
 
+function __zm_ask_to_clear(){
+	 local i msg
+	 msg="${@: -1}"
+	 printf "${RED}$msg (y/n)? ${NOCOLOR}"
+	 read answer
+	 if  [ "$answer" != "${answer#[Yy]}" ];then 
+			i=1
+			for file in "$@" 
+			do
+				 [[ $i -lt $# ]] \
+						&& __zm_move_to_trash "$file" && touch "$file"
+
+				((i++))
+			done
+			_zm_rebuild_hash_table
+	 else
+			echo 'abort'
+	 fi
+}
+
 function __zm_clear_all(){
-	 __zm_move_to_trash "$ZM_DIRS_FILE"
-	 __zm_move_to_trash "$ZM_FILES_FILE"
+	 __zm_ask_to_clear "$ZM_FILES_FILE" "$ZM_DIRS_FILE" "Clear all directory and file marks?"
 }
 
 function __zm_clear_all_dirs(){
-	 __zm_move_to_trash "$ZM_DIRS_FILE"
+	 __zm_ask_to_clear "$ZM_DIRS_FILE" "Clear all directory marks?"
 }
 
 function __zm_clear_all_files(){
-	 __zm_move_to_trash "$ZM_FILES_FILE"
+	 __zm_ask_to_clear "$ZM_FILES_FILE" "Clear all file marks?"
 }
 
 # jump to $ZM_ZOOM_MARK in marked file
@@ -559,6 +578,24 @@ function zm(){
 				 -r|--remove)
 						shift 
 						_zm_remove "$@"
+						return
+						;;
+
+				 --clear-all)
+						shift 
+						__zm_clear_all
+						return
+						;;
+
+				 --clear-files)
+						shift 
+						__zm_clear_all_files
+						return
+						;;
+
+				 --clear-dirs)
+						shift 
+						__zm_clear_all_dirs
 						return
 						;;
 
