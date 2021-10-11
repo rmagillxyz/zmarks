@@ -350,11 +350,22 @@ function _zm_mark_dir() {
 
 	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
 			echo 'Mark names must start with an alphanumeric and must only contain alphanumerics, dashes or underscores'
+			echo 'Example: zm -D MARK [PATH]'
 			return 1
 	 fi
 
-	 [[ -z "$new_zm_path" ]] \
-			&& echo "path does not exist" && return 1
+	 if [[ -z "$new_zm_path" ]]; then
+			echo "path '$2' does not exist" 
+			echo 'Would you like to create it? (y/n) '
+			read answer
+			if  [ "$answer" != "${answer#[Yy]}" ]; then 
+				 mkdir -p "$2"
+				 new_zm_path=$(eval "readlink -e $2")
+			else
+				 echo 'abort'
+				 return 1
+			fi
+	 fi
 
 	 if [[ ! "${new_zm_path//[0-9A-Za-z-_.\/]/}" = "" ]]; then
 			echo 'Path must only contain alphanumeric characters'
@@ -472,6 +483,7 @@ function __zm_check_path_clash(){
 	 local new_zm_line zm_path zm_name zm_clashed_path zm_clash_name
 	 new_zm_line="$1"
 	 zm_path="${new_zm_line%%|*}"
+	 # echo "zmarks/init.zsh: 485 zm_path: $zm_path"
 	 zm_name="${new_zm_line##*|}"
 
 	 if  __zmarks_zgrep clash_line "^\\$zm_path\|[[:alnum:]]+" "$ZM_FILES_FILE"; then
@@ -522,6 +534,7 @@ function _zm_jump_n_source() {
 
 # __zm_zoom__
 function zm(){
+
 	 local USAGE="Usage: zm <OPTION> <MARK>
 	 -d, --dir-jump <DIR-MARK> \t\t Jump to directory mark. 
 	 -D, --mark-dir [MARK-NAME] \t\t Mark directory. Will use current directory name if not specified. 
