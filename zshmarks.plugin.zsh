@@ -12,12 +12,6 @@
 
 _ZM_RED='\033[0;31m'
 _ZM_NOCOLOR='\033[0m'
- # if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]][a-zA-Z0-9]?[a-zA-Z0-9]$' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]][a-zA-Z0-9]$' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]][0-9A-Za-z\-_\.]?[0-9A-Za-z\-_\.]$' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]][0-9A-Za-z\-_\.]?' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[0-9A-Za-z\-\_\.][0-9A-Za-z\-\_\.]$' ]]; then
 _ZM_MARK_RE='^[0-9A-Za-z\-\_\.]$' 
 _ZM_PATH_RE='^\/[0-9A-Za-z\-_\.\/]+' 
 
@@ -345,9 +339,8 @@ function _zm_dir_jump() {
 }
 
 function _zm_mark_dir() {
-	 echo "zmarks/init.zsh: 348 MARK_RE: $MARK_RE"
-	 echo "\$@: $@"
-	 return 1
+	 # echo "\$@: $@"
+	 # return 1
 	 local new_zm_name new_zm_path new_zm_line
 	 new_zm_name="$1"
 	 # new_zm_path="$2"
@@ -356,14 +349,8 @@ function _zm_mark_dir() {
 			new_zm_name="${PWD##*/}"
 	 fi
 
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]][a-zA-Z0-9]?[a-zA-Z0-9]$' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]][a-zA-Z0-9]$' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]][0-9A-Za-z\-_\.]?[0-9A-Za-z\-_\.]$' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]][0-9A-Za-z\-_\.]?' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[0-9A-Za-z\-\_\.][0-9A-Za-z\-\_\.]$' ]]; then
-	 if [[ ! "$new_zm_name" =~ '^[0-9A-Za-z\-\_\.]$' ]]; then
-			echo 'Mark names must start with an alphanumeric and must only contain alphanumerics, dashes or underscores'
+	 if [[ ! "$new_zm_name" =~ $_ZM_MARK_RE ]]; then
+			echo 'Mark name must only contain alphanumerics, dashes and underscores'
 			echo 'Example: zm -D MARK [PATH]'
 			return 1
 	 fi
@@ -383,9 +370,8 @@ function _zm_mark_dir() {
 				 # TODO: will this will not match single char or ../../? 
 				 # 		changed to readlink -f. test this
 				 # relative path
-				 # [[ ! "$2" =~ '^[0-9A-Za-z\.\-_][0-9A-Za-z\-_\.\/]+' ]] \
 				 [[ ! $(readlink -f "$2") =~ $_ZM_PATH_RE ]] \
-						&& echo 'Invalid path. Path must only contain alphanumeric characters.' && return 1 \
+						&& echo 'Path must only contain alphanumerics, dashes and underscores' && return 1 \
 						|| echo "path $(readlink -f "$2") does not exist" 
 						# || echo "path '$PWD/$2' does not exist" 
 			fi
@@ -405,20 +391,16 @@ function _zm_mark_dir() {
 				 return 1
 			fi
 	 elif [[ -z "$new_zm_path" ]]; then
-			echo 'invalid path'
-			echo 'Path must only contain alphanumeric characters' && return 1
+			echo 'Invalid path:'
+			echo 'Path must only contain alphanumerics, dashes and underscores'
+			return 1
 	 fi
 
 
 	 if [[ ! "$new_zm_path" =~ $_ZM_PATH_RE ]]; then
-			echo 'Path must only contain alphanumeric characters'
+			echo 'Path must only contain alphanumerics, dashes and underscores'
 			return 1
 	 fi
-
-# 	 if [[ ! "${new_zm_path//[0-9A-Za-z-_.\/]/}" = "" ]]; then
-# 			echo 'Path must only contain alphanumeric characters'
-# 			return 1
-# 	 fi
 
 	 # Store the zmark as directory|name
 	 # TODO: should regex be quoted
@@ -450,12 +432,10 @@ function _zm_mark_file() {
 			return 1
 	 fi
 
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]][a-zA-Z0-9]?[a-zA-Z0-9]$' ]]; then
-	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]]$' ]]; then
 	 if [[ ! "$new_zm_name" =~ $_ZM_MARK_RE ]]; then
-			echo 'Invalid name. Mark name must only contain alphanumeric characters.' 
-			# echo 'Mark names must start with an alphanumeric and must only contain alphanumerics, dashes or underscores'
+			echo 'Invalid mark name. 
+			# Mark name must only contain alphanumeric characters.' 
+			echo 'Mark names must only contain alphanumerics, dashes and underscores'
 			return 1
 	 fi
 
@@ -467,7 +447,8 @@ function _zm_mark_file() {
 			# cur_dir="$PWD"
 			# new_zm_path="$cur_dir"
 			# new_zm_path+="/$new_zm_name"
-			new_zm_path="$PWD/$new_zm_name"
+			#TODO: test this
+			new_zm_path=$(readlink -e "$PWD/$new_zm_name")
 
 	 else
 			new_zm_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
@@ -480,14 +461,9 @@ function _zm_mark_file() {
 
 
 	 if [[ ! "$new_zm_path" =~ $_ZM_PATH_RE ]]; then
-			echo 'Path must only contain alphanumeric characters'
+			echo 'Path must only contain alphanumerics, dashes and underscores'
 			return 1
 	 fi
-
-# 	 if [[ ! "${new_zm_path//[0-9A-Za-z-_.\/]/}" = "" ]]; then
-# 			echo 'Path must only contain alphanumeric characters'
-# 			return 1
-# 	 fi
 
 		# Replace /home/$USER with $HOME
 		if [[ "$new_zm_path" =~ ^"$HOME"(/|$) ]]; then
