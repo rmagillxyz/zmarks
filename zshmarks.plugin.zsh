@@ -345,7 +345,9 @@ function _zm_mark_dir() {
 			new_zm_name="${PWD##*/}"
 	 fi
 
-	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
+	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
+	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]][a-zA-Z0-9]?[a-zA-Z0-9]$' ]]; then
+
 			echo 'Mark names must start with an alphanumeric and must only contain alphanumerics, dashes or underscores'
 			echo 'Example: zm -D MARK [PATH]'
 			return 1
@@ -364,7 +366,6 @@ function _zm_mark_dir() {
 
 			# [[ -n "$2" && ! "${2//^[.\$\/\~].[0-9A-Za-z-_.\/]/}" = "" ]] \
 			if [[ ! "$2" =~ '^\/[0-9A-Za-z\-_\.\/]+' ]]; then
-
 				 [[ ! "$2" =~ '^[0-9A-Za-z\.\-_][0-9A-Za-z\-_\.\/]+' ]] \
 						&& echo 'Invalid path. Path must only contain alphanumeric characters.' && return 1 \
 						|| echo "path '$PWD/$2' does not exist" 
@@ -424,7 +425,8 @@ function _zm_mark_file() {
 			return 1
 	 fi
 
-	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
+	 # if [[ ! "$new_zm_name" =~ '^[[:alnum:]]+[a-zA-Z0-9]?' ]]; then
+	 if [[ ! "$new_zm_name" =~ '^[[:alnum:]][a-zA-Z0-9]?[a-zA-Z0-9]$' ]]; then
 			echo 'Mark names must start with an alphanumeric and must only contain alphanumerics, dashes or underscores'
 			return 1
 	 fi
