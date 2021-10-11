@@ -45,12 +45,14 @@ _zm_list(){
 # TODO add optional _canonical_paths as third arg to -F[mark file]
 
 _arguments \
-	 '-j[jump to dir or file]: :_zm_all' \
-	 '-f[jump to file]: :_zm_files' \
-	 '-d[jump to dir]: :_zm_dirs' \
-	 '-s[show all marks or matching pattern]: :_zm_all' \
-	 '-r[remove mark]: :_zm_all' \
-	 '-F[mark file]: :_files' \
-	 '-D[mark dir]: :(`basename $(pwd)`)' \
-	 '--clear-all[clear all directory and file marks]: :' \
-	 '-h[help]'
+	 '-j[Jump to dir or file]: :_zm_all' \
+	 '-f[Jump to file]: :_zm_files' \
+	 '-d[Jump to dir]: :_zm_dirs' \
+	 '-s[Show all marks or matching pattern]: :_zm_all' \
+	 '-r[Remove mark]: :_zm_all' \
+	 '-F[Mark file]: :_files' \
+	 '-D[Mark dir]: :(`basename $(pwd)`)' \
+	 '--clear-all[Clear all directory and file marks]: :' \
+	 '--clear-all-files[Clear all file marks]: :' \
+	 '--clear-all-dirs[Clear all directory marks]: :' \
+	 '-h[Help]'

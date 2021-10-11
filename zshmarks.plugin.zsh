@@ -529,6 +529,9 @@ function zm(){
 	 -F, --mark-file <MARK-NAME> [FILE] \t Mark file. Will use fzf to select from files in current dir if not specified.  
 	 -j, --jump MARK \t\t\t Jump to directory or jump into file.
 	 -s, --show <MARK> \t\t\t Will try to match or show all if not specified.   
+	 --clear-all \t\t\t\t Clear all directory and file marks.
+	 --clear-all-dirs \t\t\t Clear all directory marks.
+	 --clear-all-files \t\t\t Clear all file marks.
 	 -h, --help \t\t\t\t Show this message.
 	 "
 
@@ -563,9 +566,7 @@ function zm(){
 
 				 -j|--jump)
 						shift
-						# [[  $# -lt 1  ]] && usage && return 
 						_zm_jump "$@"
-						# echo "you are here: $PWD "
 						return
 						;; 
 
@@ -587,13 +588,13 @@ function zm(){
 						return
 						;;
 
-				 --clear-files)
+				 --clear-all-files)
 						shift 
 						__zm_clear_all_files
 						return
 						;;
 
-				 --clear-dirs)
+				 --clear-all-dirs)
 						shift 
 						__zm_clear_all_dirs
 						return
