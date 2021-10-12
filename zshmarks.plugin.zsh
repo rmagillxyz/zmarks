@@ -29,7 +29,6 @@ _ZM_USAGE="USAGE: zm <OPTION> <MARK> [PATH|PATTERN]
 
 _ZM_RED='\033[0;31m'
 _ZM_NOCOLOR='\033[0m'
-# _ZM_MARK_RE='^[0-9A-Za-z_-\.]+' 
 _ZM_MARK_RE='^([0-9A-Za-z]|_|\.)+' 
 _ZM_PATH_RE='^\/[0-9A-Za-z\-_\.\/]+' 
 

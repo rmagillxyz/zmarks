@@ -11,14 +11,18 @@ A fork of [Zshmarks (by Jocelyn Mallon)](https://github.com/jocelynmallon/zshmar
 ##### Ensure `$ZDOTDIR` environment variable is set.
 
 ###### clone repo:
-`git clone http://github.com/rmagillxyz/zmarks $ZDOTDIR/zmarks`
+```
+	git clone http://github.com/rmagillxyz/zmarks $ZDOTDIR/zmarks
+```
 
 ###### source repo in `$ZDOTDIR/.zshrc`: 
-`source "$ZDOTDIR/zmarks/init.zsh"` 
+```
+source "$ZDOTDIR/zmarks/init.zsh"
+```
 
 Must be sourced before  `autoload -U compinit; compinit`
 
-Only works with zsh and neovim or vim. If you have neovim installed, it will set your EDITOR environment variable to neovim. If you prefer vim, set `$EDITOR` env variable to `vim`:
+Zmarks only works with zsh and neovim or vim. If you have neovim installed, it will set your EDITOR environment variable to neovim. If you prefer vim, make sure `$EDITOR` env variable is set to `vim`:
 
 `export EDITOR="vim"`
 
