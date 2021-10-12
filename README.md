@@ -16,11 +16,11 @@ A fork of [Zshmarks (by Jocelyn Mallon)](https://github.com/jocelynmallon/zshmar
 ```
 
 ###### source repo in `$ZDOTDIR/.zshrc`: 
+** Must be sourced before  `autoload -U compinit; compinit` **
 ```
 source "$ZDOTDIR/zmarks/init.zsh"
 ```
 
-Must be sourced before  `autoload -U compinit; compinit`
 
 Zmarks only works with zsh and neovim or vim. If you have neovim installed, it will set your EDITOR environment variable to neovim. If you prefer vim, make sure `$EDITOR` env variable is set to `vim`:
 
@@ -56,7 +56,7 @@ Examples
 `zm -j z`
 
 #### Set file mark name `_rc` to .zshrc file:
-
+While inside $ZDOTDIR
 `zm -F _rc`
 
 and then, select `.zshrc` or any other file with fuzzy selector.
@@ -66,10 +66,10 @@ The fuzzy selector will search 3 directories deep from cwd by default, but this 
 `zm -j _rc PATTERN`
 
 #### Setting directories also works using current working directory
-
-`cd ~/.config/nvim`
-
-`zm -D n`
+```
+cd ~/.config/nvim
+zm -D n
+```
 
 #### Marking files will also accept a path
 
@@ -87,7 +87,7 @@ The fuzzy selector will search 3 directories deep from cwd by default, but this 
 ##### Tab completion shows all marks for above commands, but to show and jump to only directories use:
 `zm -d <TAB>`
 
-##### or using files
+##### or using only files
 `zm -f <TAB>`
 
 #### Named Hash Table
@@ -103,7 +103,7 @@ This is generally used for dirs, but named hashes are also created for files:
 
 `echo 'alias now="date +%T"' >> ~zali` or `cat ~zali`
 
-Also, by sourcing  `$ZM_NAMED_DIRS` or `$ZM_NAMED_FILES` in a script, they can also be used there. Only works in zsh not bash, but be careful with these. 
+By sourcing  `$ZM_NAMED_DIRS` or `$ZM_NAMED_FILES` in a script, marks can also be used there. Only works in zsh not bash, but be careful with these. 
 
 ```
 source "$ZM_NAMED_DIRS" 
@@ -149,6 +149,35 @@ Additional/functions:
 `alias zi='_zm_vi'` 
 
 `zi <some-script-in-path> [pattern]` 
+
+Notes/Tips:
+-----------
+Directory and files are saved in separate files, but the mark names cannot clash. I recommend using your own convention to keep dirs and files separate. i.e. Start each file mark with an underscore or specific letter. All marks must contain only alphanumerics or underscores. Mark paths can contain alphanumerics, underscores or dashes, but no spaces or escaped characters. 
+
+You can change the location of the mark files (default is $HOME/.local/share/zsh/zmarks) by adding the environment variable 'ZMARKS_DIR' to your shell profile or .zshrc:
+
+`export ZMARKS_DIR="/some/other/path"`
+				
+and the (default `__zm_zoom__`) spot in file jump:
+
+`export _ZM_ZOOM_MARK="__jump_here__"`
+
+and the mark file fzf depth (default 3):
+
+`export _ZM_FZF_DEPTH=1`
+
+Obviously you can shorten the commands up even more by adding aliases:
+
+```
+alias \
+	 j='zm -j' \
+	 jf='zm -f' \
+	 jd='zm -d' \
+	 zs='zm -s' \
+	 zi='_zm_vi' 
+```
+Contributions welcome and please report any bugs. 
+=================
 
 Plugin Managers
 -------------------
@@ -197,30 +226,4 @@ Add the following to your .zshrc file somewhere after you source zplug.
 
         zplug "rmagillxyz/zmarks"
 
-Notes/Tips:
------------
-Directory and files are saved in separate files, but the mark names cannot clash. I recommend using your own convention to keep dirs and files separate. i.e. Start each file mark with an underscore or specific letter. All marks must contain only alphanumerics or underscores. Mark paths can contain alphanumerics, underscores or dashes, but no spaces or escaped characters. 
 
-You can change the location of the mark files (default is $HOME/.local/share/zsh/zmarks) by adding the environment variable 'ZMARKS_DIR' to your shell profile or .zshrc:
-
-`export ZMARKS_DIR="/some/other/path"`
-				
-and the (default `__zm_zoom__`) spot in file jump:
-
-`export _ZM_ZOOM_MARK="__jump_here__"`
-
-and the mark file fzf depth (default 3):
-
-`export _ZM_FZF_DEPTH=1`
-
-Obviously you can shorten the commands up even more by adding aliases:
-
-```
-alias \
-	 j='zm -j' \
-	 jf='zm -f' \
-	 jd='zm -d' \
-	 zi='_zm_vi' \
-	 zz='_zm_zoom' 
-```
-Contributions welcome and please report any bugs. 
