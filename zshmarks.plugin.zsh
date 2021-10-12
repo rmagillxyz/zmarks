@@ -12,8 +12,8 @@
 
 _ZM_RED='\033[0;31m'
 _ZM_NOCOLOR='\033[0m'
-_ZM_MARK_RE='^[0-9A-Za-z\-_\.]+' 
-# _ZM_MARK_RE='^[[:alnum:]]' 
+# _ZM_MARK_RE='^[0-9A-Za-z_-\.]+' 
+_ZM_MARK_RE='^([0-9A-Za-z]|_|\.)+' 
 _ZM_PATH_RE='^\/[0-9A-Za-z\-_\.\/]+' 
 
 
@@ -190,7 +190,7 @@ __zm_line_parse(){
 	 local zm_line="$1"
 	 local outpath outname
 	 local outpath="${zm_line%%|*}"
-	 local outpath="${outpath/\$HOME/~}"
+	 # local outpath="${outpath/\$HOME/~}"
 	 local outname="${zm_line#*|}"
 
 	 if [[ "$#" -eq 3 ]]; then
@@ -354,31 +354,22 @@ function _zm_mark_dir() {
 	 fi
 
 	 if [[ ! "$new_zm_name" =~ $_ZM_MARK_RE ]]; then
-			echo 'Mark name must only contain alphanumerics, dashes and underscores'
+			echo 'Mark name must only contain alphanumerics and underscores'
 			echo 'Example: zm -D MARK [PATH]'
 			return 1
 	 fi
 
-	 # [[ -z "$new_zm_path" ]] \
 	 [[ -z "$2" ]] \
 			&& new_zm_path=$(eval "readlink -e $PWD") \
 
 	 [[ -z "$new_zm_path" ]] \
 			&& new_zm_path=$(eval "readlink -e $2")
 
-	 echo "zmarks/init.zsh: 360 2: $2"
-	 echo "zmarks/init.zsh: 357 new_zm_path: $new_zm_path"
 	 if [[ -z "$new_zm_path" && -n "$2" ]]; then
 
-			if [[ ! "$2" =~ $_ZM_PATH_RE ]]; then
-				 # TODO: will this will not match single char or ../../? 
-				 # 		changed to readlink -f. test this
-				 # relative path
-				 [[ ! $(readlink -f "$2") =~ $_ZM_PATH_RE ]] \
-						&& echo 'Path must only contain alphanumerics, dashes and underscores' && return 1 \
-						|| echo "path $(readlink -f "$2") does not exist" 
-						# || echo "path '$PWD/$2' does not exist" 
-			fi
+			[[ ! $(readlink -f "$2") =~ $_ZM_PATH_RE ]] \
+				 && echo 'Path must only contain alphanumerics, dashes and underscores' && return 1 \
+				 || echo "path $(readlink -f "$2") does not exist" 
 
 			echo 'Would you like to create it? (y/n) '
 			read answer
@@ -412,9 +403,9 @@ function _zm_mark_dir() {
 	 ! __zm_check_name_clash "$new_zm_line" && return
 	 ! __zm_check_hash_clash "$new_zm_name"  && return
 
-	 if [[ "$new_zm_line" =~ ^"$HOME"(/|$) ]]; then
-			new_zm_line="\$HOME${new_zm_line#$HOME}"
-	 fi
+# 	 if [[ "$new_zm_line" =~ ^"$HOME"(/|$) ]]; then
+# 			new_zm_line="\$HOME${new_zm_line#$HOME}"
+# 	 fi
 
 	# no duplicates, make mark
 	echo "$new_zm_line" >> $ZM_DIRS_FILE
@@ -435,9 +426,8 @@ function _zm_mark_file() {
 	 fi
 
 	 if [[ ! "$new_zm_name" =~ $_ZM_MARK_RE ]]; then
-			echo 'Invalid mark name. 
-			# Mark name must only contain alphanumeric characters.' 
-			echo 'Mark names must only contain alphanumerics, dashes and underscores'
+			echo 'Invalid mark name.'
+			echo 'Mark name must only contain alphanumerics and underscores'
 			return 1
 	 fi
 
@@ -474,9 +464,9 @@ function _zm_mark_file() {
 		! __zm_check_hash_clash "$new_zm_name"  && return
 
 		# Replace /home/$USER with $HOME
-		if [[ "$new_zm_line" =~ ^"$HOME"(/|$) ]]; then
-			 new_zm_line="\$HOME${new_zm_line#$HOME}"
-		fi
+		# if [[ "$new_zm_line" =~ ^"$HOME"(/|$) ]]; then
+		# 	 new_zm_line="\$HOME${new_zm_line#$HOME}"
+		# fi
 
 		if [[ -n "$new_zm_name" && -n "$new_zm_path" ]]; then
 			 echo "$new_zm_line" >> "$ZM_FILES_FILE"
@@ -504,7 +494,7 @@ function __zm_check_hash_clash(){
 
 function __zm_check_name_clash(){
 	 # usage='usage: ${FUNCNAME[0]} <ZMARK_LINE>'
-	 local new_zm_line zm_name clash_line
+	 local new_zm_line zm_name clash_line clash_name clash_path
 	 new_zm_line="$1"
 	 zm_name="${new_zm_line##*|}"
 
@@ -513,8 +503,13 @@ function __zm_check_name_clash(){
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
 
-			printf "${_ZM_RED}Name clashes with marked file: $clash_line${_ZM_NOCOLOR}\n"
-			echo -n "Remove '$zm_name' file mark? (y/n)? "
+			clash_name=${clash_line##*|}
+			clash_path=${clash_line%%|*}
+
+			# printf "${_ZM_RED}Name clashes with marked file: $clash_line${_ZM_NOCOLOR}\n"
+			printf "${_ZM_RED}Name clashes with marked file:\n $clash_name\t -- $clash_path${_ZM_NOCOLOR}\n"
+			echo -n "Remove '$clash_name' file mark? (y/n)? "
+
 			__zm_checktoremove "$clash_line"
 
 	 elif  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
@@ -522,51 +517,61 @@ function __zm_check_name_clash(){
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
 
-			printf "${_ZM_RED}Name clashes with directory mark: $clash_line${_ZM_NOCOLOR}\n"
-			echo -n "Remove '$zm_name' directory mark? (y/n)? "
+			clash_name=${clash_line##*|}
+			clash_path=${clash_line%%|*}
+
+			printf "${_ZM_RED}Name clashes with marked directory:\n $clash_name\t -- $clash_path${_ZM_NOCOLOR}\n"
+			echo -n "Remove '$clash_name' directory mark? (y/n)? "
 			__zm_checktoremove "$clash_line"
 	 fi
 }
 
 function __zm_check_path_clash(){
-	 local new_zm_line zm_path zm_name zm_clashed_path zm_clash_name
+	 local new_zm_line zm_path zm_name clash_path clash_name
 	 new_zm_line="$1"
 	 zm_path="${new_zm_line%%|*}"
 	 echo "zmarks/init.zsh: 536 zm_path: $zm_path"
 	 zm_name="${new_zm_line##*|}"
 
-	 if [[ "$zm_path" =~ ^"$HOME"(/|$) ]]; then
-			zm_path="\$HOME${zm_path#$HOME}"
-	 fi
+# 	 if [[ "$zm_path" =~ ^"$HOME"(/|$) ]]; then
+# 			zm_path="\$HOME${zm_path#$HOME}"
+# 	 fi
 
-	 if  __zmarks_zgrep clash_line "^\\$zm_path\|[[:alnum:]]+" "$ZM_FILES_FILE"; then
+	 if  __zmarks_zgrep clash_line "^\\$zm_path\|" "$ZM_FILES_FILE"; then
 
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
 
-			printf "${_ZM_RED}Path clashes with marked file: $clash_line${_ZM_NOCOLOR}\n"
-			echo -n "Remove '${clash_line##*|}' file mark? (y/n)? "
+			clash_name=${clash_line##*|}
+			clash_path=${clash_line%%|*}
+
+			printf "${_ZM_RED}Path clashes with marked file: \n $clash_name\t -- $clash_path${_ZM_NOCOLOR}\n"
+			echo -n "Remove '$clash_name' file mark? (y/n)? "
 			__zm_checktoremove "$clash_line"
 
-	 elif  __zmarks_zgrep clash_line "^\\$zm_path\|[[:alnum:]]+" "$ZM_DIRS_FILE"; then
+	 elif  __zmarks_zgrep clash_line "^\\$zm_path\|" "$ZM_DIRS_FILE"; then
 
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
 
-			printf "${_ZM_RED}Path clashes with directory mark: $clash_line${_ZM_NOCOLOR}\n"
-			echo -n "Remove '${clash_line##*|}' directory mark? (y/n)? "
+			clash_name=${clash_line##*|}
+			clash_path=${clash_line%%|*}
+
+			printf "${_ZM_RED}Path clashes with marked directory: \n $clash_name\t -- $clash_path${_ZM_NOCOLOR}\n"
+
+			echo -n "Remove '$clash_name' directory mark? (y/n)? "
 			__zm_checktoremove "$clash_line"
 
 	 fi
 } 
 
 function __zm_checktoremove(){
-	 local zm_clash_name clash_line
+	 local clash_name clash_line
 	 clash_line="$1"
-	 zm_clash_name="${clash_line##*|}"
+	 clash_name="${clash_line##*|}"
 	 read answer
 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
-			_zm_remove "$zm_clash_name"
+			_zm_remove "$clash_name"
 	 else
 			echo 'abort'
 			return  1
