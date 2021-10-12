@@ -10,11 +10,11 @@
 
 _ZM_USAGE="USAGE: zm <OPTION> <MARK> [PATH|PATTERN]
   -d, --dir-jump <MARK> \t\t\tJump to directory mark. 
-  -d, --mark-dir <MARK> [PATH] \t\t\tMark directory. Will use current 
+  -D, --mark-dir <MARK> [PATH] \t\t\tMark directory. Will use current 
 \t\t\t\t\t\tdirectory name if not specified. 
   -f, --file-jump <MARK> [PATTERN] \t\tJump to file mark and search for
 \t\t\t\t\t\toptional pattern. 
-  -f, --mark-file <MARK> [PATH]\t\t\tMark file. Will use fzf to select
+  -F, --mark-file <MARK> [PATH]\t\t\tMark file. Will use fzf to select
 \t\t\t\t\t\tfrom files if pattern not specified.  
   -j, --jump <MARK> [PATTERN]\t\t\tJump to directory or jump into file.
 \t\t\t\t\t\tMarked files accept a search pattern.
@@ -45,14 +45,13 @@ if [[ -z $EDITOR ]]; then
 fi
 
 # Allows for a user to configure ZMARKS_DIR location.
-[[ -z "$ZMARKS_DIR" ]] \
-	 && export ZMARKS_DIR="$HOME/.local/share/zsh"
+
+export _ZM_ZOOM=${_ZM_ZOOM:-"__zm_zoom__"}
+export _ZM_FZF_DEPTH=${_ZM_FZF_DEPTH:-3}
+export ZMARKS_DIR=${ZMARKS_DIR:-"$HOME/.local/share/zsh/zmarks"}
 
 [[ ! -d "$ZMARKS_DIR" ]] \
 	 && mkdir -p "$ZMARKS_DIR" && echo "created ZMARKS_DIR: $ZMARKS_DIR " 
-
-[[ -z "$ZM_ZOOM_MARK" ]] \
-	 && export ZM_ZOOM_MARK="__zm_zoom__"
 
 export ZM_DIRS_FILE="$ZMARKS_DIR/zm_dirs" \
 	 && touch "$ZM_DIRS_FILE"
@@ -307,13 +306,13 @@ function __zm_clear_all_files(){
 	 __zm_ask_to_clear "$ZM_FILES_FILE" "Clear all file marks?"
 }
 
-# jump to $ZM_ZOOM_MARK in marked file
+# jump to $_ZM_ZOOM in marked file
 function _zm_zoom() {
 	 local file_path=$1
 	 if [[ -z $2 ]]; then
-			has_zoom_mark=$(grep "$ZM_ZOOM_MARK" "$file_path")
+			has_zoom_mark=$(grep "$_ZM_ZOOM" "$file_path")
 			if [[ -n $has_zoom_mark ]]; then
-				 "$EDITOR" +/"$ZM_ZOOM_MARK" "$file_path"	
+				 "$EDITOR" +/"$_ZM_ZOOM" "$file_path"	
 			else
 				 "$EDITOR" "$file_path"
 			fi
@@ -460,7 +459,7 @@ function _zm_mark_file() {
 			new_zm_path=$(readlink -e "$PWD/$new_zm_name")
 
 	 else
-			new_zm_path="$(find -L $(pwd) -maxdepth 4 -type f 2>/dev/null | fzf-tmux)"
+			new_zm_path="$(find -L $(pwd) -maxdepth $_ZM_FZF_DEPTH -type f 2>/dev/null | fzf-tmux)"
 			if [[ -z "$new_zm_path" ]]; then
 				 echo 'abort'
 				 return 1
@@ -602,7 +601,7 @@ function _zm_vi() {
 	 cmd="$1"
 	 pattern="$2"
 	 c_path=$(command -v $cmd)
-	 echo "zmarks/init.zsh: 465 c_path: $c_path"
+	 # echo "zmarks/init.zsh: 465 c_path: $c_path"
 	 if [[ -z "$c_path" ]];then
 			echo 'script not in path'
 	 else
@@ -617,7 +616,6 @@ function _zm_jump_n_source() {
 	 source ~"$1"
 }
 
-# __zm_zoom__
 function zm(){
 
 	 if [[ $# -gt 0 ]]; then
@@ -702,7 +700,7 @@ function zm(){
 # FZF bindings 
 
 # zsh fzf jump binding (all)
-_fzf_zm_jump(){
+_zm_fzf_jump(){
 	 local zm=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
 	 local dest="${zm%%|*}"
 	 [[ -z "$dest" ]] && zle reset-prompt && return 1
@@ -721,10 +719,10 @@ _fzf_zm_jump(){
 	 fi
 	 zle reset-prompt
 }
-zle     -N    _fzf_zm_jump
+zle     -N    _zm_fzf_jump
 
 # zsh fzf jump binding (dirs)
-_fzf_zm_dir_jump(){
+_zm_fzf_dir_jump(){
 	 local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
 	 if [[ -n $zm ]];then 
 			local dir="${zm%%|*}"
@@ -734,10 +732,10 @@ _fzf_zm_dir_jump(){
 			zle reset-prompt
 	 fi
 }
-zle     -N    _fzf_zm_dir_jump
+zle     -N    _zm_fzf_dir_jump
 
 # zsh fzf jump binding (files)
-_fzf_zm_file_jump(){
+_zm_fzf_file_jump(){
 	 local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
 	 if [[ -n $zm ]];then 
 			local file="${zm%%|*}"
@@ -746,7 +744,17 @@ _fzf_zm_file_jump(){
 			eval "_zm_zoom \"$file\""
 	 fi
 }
-zle     -N    _fzf_zm_file_jump
+zle     -N    _zm_fzf_file_jump
+
+_zm_quick_man(){
+	 local currbuff=${BUFFER}
+	 local cmd=$(echo "$currbuff"|cut -f1 -d' ')
+	 [ -n "$cmd" ] && man "$cmd"
+	 zle reset-prompt
+	 LBUFFER="$currbuff"
+}
+zle     -N   _zm_quick_man
+
 
 # Good stuff but not being used
 
