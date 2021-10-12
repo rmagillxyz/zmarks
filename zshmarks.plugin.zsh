@@ -8,6 +8,23 @@
 #        DEPENDS: fzf
 # ------------------------------------------------------------------------------
 
+_ZM_USAGE="USAGE: zm <OPTION> <MARK> [PATH|PATTERN]
+  -d, --dir-jump <MARK> \t\t\tJump to directory mark. 
+  -d, --mark-dir <MARK> [PATH] \t\t\tMark directory. Will use current 
+\t\t\t\t\t\tdirectory name if not specified. 
+  -f, --file-jump <MARK> [PATTERN] \t\tJump to file mark and search for
+\t\t\t\t\t\toptional pattern. 
+  -f, --mark-file <MARK> [PATH]\t\t\tMark file. Will use fzf to select
+\t\t\t\t\t\tfrom files if pattern not specified.  
+  -j, --jump <MARK> [PATTERN]\t\t\tJump to directory or jump into file.
+\t\t\t\t\t\tMarked files accept a search pattern.
+  -s, --show [PATTERN] \t\t\t\tShow Marks. 
+  --clear-all \t\t\t\t\tClear all directory and file marks.
+  --clear-all-dirs \t\t\t\tClear all directory marks.
+  --clear-all-files \t\t\t\tClear all file marks.
+  -h, --help \t\t\t\t\tShow this message.
+\t "
+
 [[ -d $ZDOTDIR ]] && fpath=("$ZDOTDIR/zmarks/functions" $fpath)
 
 _ZM_RED='\033[0;31m'
@@ -184,7 +201,7 @@ function _zm_show() {
 }
 
 __zm_line_parse(){
-	 USAGE="
+	 local USAGE="
 	 ${FUNCNAME[0]}  zm_line path_variable_to_set name_variable_to_set 
 	 "
 	 local zm_line="$1"
@@ -202,7 +219,7 @@ __zm_line_parse(){
 }
 
 __zm_line_printf() {
-	 USAGE="${FUNCNAME[0]} zm_line"
+	 local USAGE="${FUNCNAME[0]} zm_line"
 	 if [[ ! "$#" -eq 1 ]]; then
 			echo "$USAGE"
 	 fi
@@ -493,7 +510,7 @@ function __zm_check_hash_clash(){
 	 }
 
 function __zm_check_name_clash(){
-	 # usage='usage: ${FUNCNAME[0]} <ZMARK_LINE>'
+	 # lcoal USAGE='USAGE: ${FUNCNAME[0]} <ZMARK_LINE>'
 	 local new_zm_line zm_name clash_line clash_name clash_path
 	 new_zm_line="$1"
 	 zm_name="${new_zm_line##*|}"
@@ -603,19 +620,6 @@ function _zm_jump_n_source() {
 # __zm_zoom__
 function zm(){
 
-	 local USAGE="Usage: zm <OPTION> <MARK>
-	 -d, --dir-jump <DIR-MARK> \t\t Jump to directory mark. 
-	 -D, --mark-dir [MARK-NAME] \t\t Mark directory. Will use current directory name if not specified. 
-	 -f, --file-jump <FILE-MARK> [PATTERN] \t Jump to file mark and search for optional pattern. 
-	 -F, --mark-file <MARK-NAME> [FILE] \t Mark file. Will use fzf to select from files in current dir if not specified.  
-	 -j, --jump MARK \t\t\t Jump to directory or jump into file.
-	 -s, --show <MARK> \t\t\t Will try to match or show all if not specified.   
-	 --clear-all \t\t\t\t Clear all directory and file marks.
-	 --clear-all-dirs \t\t\t Clear all directory marks.
-	 --clear-all-files \t\t\t Clear all file marks.
-	 -h, --help \t\t\t\t Show this message.
-	 "
-
 	 if [[ $# -gt 0 ]]; then
 			key="$1"
 
@@ -682,14 +686,14 @@ function zm(){
 						;;
 
 				 -h|--help)
-						echo $USAGE
+						echo $_ZM_USAGE
 						return
 						;; 
 
 				 esac
 
 			else
-				 echo $USAGE
+				 echo $_ZM_USAGE
 				 return
 	 fi
 
