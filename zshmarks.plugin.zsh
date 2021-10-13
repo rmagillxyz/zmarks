@@ -43,8 +43,7 @@ if [[ -z $EDITOR ]]; then
 	 fi
 fi
 
-# Allows for a user to configure ZMARKS_DIR location.
-
+# Allows for a user to change default config
 export _ZM_ZOOM=${_ZM_ZOOM:-"__zm_zoom__"}
 export _ZM_FZF_DEPTH=${_ZM_FZF_DEPTH:-3}
 export ZMARKS_DIR=${ZMARKS_DIR:-"$HOME/.local/share/zsh/zmarks"}
@@ -124,8 +123,6 @@ function __zmarks_zgrep() {
 	 local contents_array; contents_array=(${(f)file_contents})
 
 	 for line in "${contents_array[@]}"; do
-			# echo "zmarks/init.zsh: 112 line: $line"
-			# echo "zmarks/init.zsh: 113 pattern: $pattern"
 			if [[ "$line" =~ "$pattern" ]]; then
 				 eval "$outvar=\"$line\""
 				 return 
@@ -192,7 +189,6 @@ function _zm_show() {
 
 	 else
 			for zm_line in $zm_array; do
-				 # echo 'printing formatted line'
 				 __zm_line_printf "$zm_line"
 			done
 	 fi
@@ -205,7 +201,6 @@ __zm_line_parse(){
 	 local zm_line="$1"
 	 local outpath outname
 	 local outpath="${zm_line%%|*}"
-	 # local outpath="${outpath/\$HOME/~}"
 	 local outname="${zm_line#*|}"
 
 	 if [[ "$#" -eq 3 ]]; then
@@ -227,10 +222,10 @@ __zm_line_printf() {
 	 __zm_line_parse "$zm_line" path name
 
 	 if [[ ${#name} -gt 7 ]]; then
-			# echo "${#name} is greater than 7"
+			# echo "${#name} length is greater than 7"
 			printf "%s\t-- %s\n" "$name" "$path"
 	 else
-			# echo "${#name} is not greater than 7"
+			# echo "${#name} length is less than 7"
 			printf "%s\t\t-- %s\n" "$name" "$path"
 	 fi
 }
@@ -305,7 +300,7 @@ function __zm_clear_all_files(){
 	 __zm_ask_to_clear "$ZM_FILES_FILE" "Clear all file marks?"
 }
 
-# jump to $_ZM_ZOOM in marked file
+# open marked file and jump to pattern or $_ZM_ZOOM if it exists in file
 function _zm_zoom() {
 	 local file_path=$1
 	 if [[ -z $2 ]]; then
@@ -358,11 +353,8 @@ function _zm_dir_jump() {
 }
 
 function _zm_mark_dir() {
-	 # echo "\$@: $@"
-	 # return 1
 	 local new_zm_name new_zm_path new_zm_line
 	 new_zm_name="$1"
-	 # new_zm_path="$2"
 
 	 if [[ -z $new_zm_name ]]; then
 			new_zm_name="${PWD##*/}"
@@ -390,7 +382,6 @@ function _zm_mark_dir() {
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ]; then 
 				 mkdir -p "$2"
-				 # echo "\$2: $2"
 				 new_zm_path=$(eval "readlink -e $2")
 				 echo "path created: $new_zm_path"
 				 [[ -z "$new_zm_path" ]] \
@@ -417,10 +408,6 @@ function _zm_mark_dir() {
 	 ! __zm_check_path_clash "$new_zm_line" && return
 	 ! __zm_check_name_clash "$new_zm_line" && return
 	 ! __zm_check_hash_clash "$new_zm_name"  && return
-
-# 	 if [[ "$new_zm_line" =~ ^"$HOME"(/|$) ]]; then
-# 			new_zm_line="\$HOME${new_zm_line#$HOME}"
-# 	 fi
 
 	# no duplicates, make mark
 	echo "$new_zm_line" >> $ZM_DIRS_FILE
@@ -450,11 +437,6 @@ function _zm_mark_file() {
 			new_zm_path=$(eval "readlink -e $new_zm_path")
 
 	 elif [[ -z "$new_zm_path" && -n $(\ls $(pwd) | grep -x "$new_zm_name") ]]; then
-			# cur_dir="$(pwd)"
-			# cur_dir="$PWD"
-			# new_zm_path="$cur_dir"
-			# new_zm_path+="/$new_zm_name"
-			#TODO: test this
 			new_zm_path=$(readlink -e "$PWD/$new_zm_name")
 
 	 else
@@ -477,11 +459,6 @@ function _zm_mark_file() {
 		! __zm_check_path_clash "$new_zm_line" && return
 		! __zm_check_name_clash "$new_zm_line" && return
 		! __zm_check_hash_clash "$new_zm_name"  && return
-
-		# Replace /home/$USER with $HOME
-		# if [[ "$new_zm_line" =~ ^"$HOME"(/|$) ]]; then
-		# 	 new_zm_line="\$HOME${new_zm_line#$HOME}"
-		# fi
 
 		if [[ -n "$new_zm_name" && -n "$new_zm_path" ]]; then
 			 echo "$new_zm_line" >> "$ZM_FILES_FILE"
@@ -546,10 +523,6 @@ function __zm_check_path_clash(){
 	 new_zm_line="$1"
 	 zm_path="${new_zm_line%%|*}"
 	 zm_name="${new_zm_line##*|}"
-
-# 	 if [[ "$zm_path" =~ ^"$HOME"(/|$) ]]; then
-# 			zm_path="\$HOME${zm_path#$HOME}"
-# 	 fi
 
 	 if  __zmarks_zgrep clash_line "^\\$zm_path\|" "$ZM_FILES_FILE"; then
 
