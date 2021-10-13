@@ -251,7 +251,7 @@ function _zm_remove()  {
 						return 1
 				 fi
 			else
-				 \cp "${zm_file}" "${zm_file}.bak"
+				 \cp "${zm_file}" "${zm_file}.zm_bak"
 				 zm_line=${zm_array[(r)$zm_search]}
 				 zm_array=(${zm_array[@]/$zm_line})
 
@@ -259,7 +259,7 @@ function _zm_remove()  {
 						&& eval "printf '%s\n' \"\${zm_array[@]}\"" > "$zm_file" \
 						|| echo -n > "$zm_file"
 
-				 __zm_move_to_trash "${zm_file}.bak" 
+				 __zm_move_to_trash "${zm_file}.zm_bak" 
 				 echo "$zm_name removed"
 
 				 _zm_rebuild_hash_table
@@ -376,7 +376,7 @@ function _zm_mark_dir() {
 
 			[[ ! $(readlink -f "$2") =~ $_ZM_PATH_RE ]] \
 				 && echo 'Path must only contain alphanumerics, dashes and underscores' && return 1 \
-				 || echo "Path $(readlink -f "$2") does not exist" 
+				 || echo "Path '$(readlink -f "$2")' does not exist" 
 
 			echo 'Would you like to create it? (y/n) '
 			read answer
@@ -435,15 +435,13 @@ function _zm_mark_file() {
 			return 1
 	 fi
 
-	 echo "zmarks/init.zsh: 436 new_zm_path: $new_zm_path"
 	 if [[ -n "$new_zm_path" ]]; then
 			if [[ -n $(eval "readlink -e  $new_zm_path") ]]; then
 				 new_zm_path=$(eval "readlink -e $new_zm_path")
 			else
-				 echo 'debug: file path does not exist'
 				 [[ ! $(readlink -f "$new_zm_path") =~ $_ZM_PATH_RE ]] \
 						&& echo 'Path must only contain alphanumerics, dashes and underscores' && return 1 \
-						|| echo "Path $(readlink -f "$new_zm_line") does not exist" 
+						|| echo "Path '$(readlink -f "$new_zm_path")' does not exist" 
 
 				 echo 'Would you like to create it? (y/n) '
 				 read answer
@@ -506,7 +504,7 @@ function __zm_check_hash_clash(){
 
 	 if [[ -n "$hash_name_exists" ]]; then
 			printf "${_ZM_RED} ~$zm_name named hash clashes: $hash_name_exists ${_ZM_NOCOLOR}\n"
-			# echo 'If you created this, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
+			echo 'If you created hash, you can remove it and run again, but this could have been set by another program. If you did not create it, I would just choose another name.'
 			return 1 
 			fi
 	 }
@@ -525,7 +523,6 @@ function __zm_check_name_clash(){
 			clash_name=${clash_line##*|}
 			clash_path=${clash_line%%|*}
 
-			# printf "${_ZM_RED}Name clashes with marked file: $clash_line${_ZM_NOCOLOR}\n"
 			printf "${_ZM_RED}Name clashes with marked file:\n $clash_name\t -- $clash_path${_ZM_NOCOLOR}\n"
 			echo -n "Remove '$clash_name' file mark? (y/n)? "
 
