@@ -152,7 +152,7 @@ Additional/functions:
 
 Notes/Tips:
 -----------
-Directory and files are saved in separate files, but the mark names cannot clash. I recommend using your own convention to keep dirs and files separate. i.e. Start each file mark with an underscore or specific letter. All marks must contain only alphanumerics or underscores. Mark paths can contain alphanumerics, underscores or dashes, but no spaces or escaped characters. 
+Directory and files are saved in separate files, but the mark names cannot clash. I recommend using your own convention to keep dirs and files separate so you can use the combined jump feature more efficiently. i.e. Start each file mark with an underscore or specific letter. All marks must contain only alphanumerics or underscores. Mark paths can contain alphanumerics, underscores or dashes, but no spaces or escaped characters. 
 
 You can change the location of the mark files (default is $HOME/.local/share/zsh/zmarks) by adding the environment variable 'ZMARKS_DIR' to your shell profile or .zshrc:
 

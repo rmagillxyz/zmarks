@@ -134,6 +134,7 @@ function __zmarks_zgrep() {
 function _zm_jump() {
 	 if [[ -z $1 ]];then
 			cd ~
+			ls
 			return 
 	 fi
 
@@ -169,6 +170,15 @@ function _zm_show() {
 	 local zm_array; zm_array=(${(f)zm_file});
 	 local zm_name zm_path zm_line
 	 zmarks=()
+				 [[ ${#zm_array[@]} -eq 0 ]] \
+					&& echo '
+ You do not have any marks set yet. \n
+ To mark a directory:
+ zm -D <name> \n
+ To mark a file:
+ zm -F <name> \n
+ zm --help
+				 '
 
 	 if [[ $# -eq 1 ]]; then
 			for zm_line in $zm_array; do
