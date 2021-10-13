@@ -377,8 +377,6 @@ function _zm_mark_dir() {
 			echo 'Mark name must only contain alphanumerics and underscores'
 			echo 'Example: zm -D MARK [PATH]'
 			return 1
-	 else 
-			echo 'good mark'
 	 fi
 
 	 [[ -z "$2" ]] \
