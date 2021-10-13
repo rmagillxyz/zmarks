@@ -170,10 +170,12 @@ Obviously you can shorten the commands up even more by adding aliases:
 
 ```
 alias \
+	 zf='zm -F' \
+	 zd='zm -D' \
+	 zs='zm -s' \
 	 j='zm -j' \
 	 jf='zm -f' \
 	 jd='zm -d' \
-	 zs='zm -s' \
 	 zi='_zm_vi' 
 ```
 Contributions welcome and please report any bugs. 

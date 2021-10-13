@@ -545,7 +545,6 @@ function __zm_check_path_clash(){
 	 local new_zm_line zm_path zm_name clash_path clash_name
 	 new_zm_line="$1"
 	 zm_path="${new_zm_line%%|*}"
-	 echo "zmarks/init.zsh: 536 zm_path: $zm_path"
 	 zm_name="${new_zm_line##*|}"
 
 # 	 if [[ "$zm_path" =~ ^"$HOME"(/|$) ]]; then
