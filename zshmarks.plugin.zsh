@@ -376,17 +376,19 @@ function _zm_mark_dir() {
 
 			[[ ! $(readlink -f "$2") =~ $_ZM_PATH_RE ]] \
 				 && echo 'Path must only contain alphanumerics, dashes and underscores' && return 1 \
-				 || echo "path $(readlink -f "$2") does not exist" 
+				 || echo "Path $(readlink -f "$2") does not exist" 
 
 			echo 'Would you like to create it? (y/n) '
 			read answer
 			if  [ "$answer" != "${answer#[Yy]}" ]; then 
 				 mkdir -p "$2"
 				 new_zm_path=$(eval "readlink -e $2")
-				 echo "path created: $new_zm_path"
+
 				 [[ -z "$new_zm_path" ]] \
 						&& echo 'invalid path' \
 						&& return 1
+
+				 echo "path created: $new_zm_path"
 			else
 				 echo 'abort'
 				 return 1
@@ -433,8 +435,33 @@ function _zm_mark_file() {
 			return 1
 	 fi
 
-	 if [[ -n "$new_zm_path" ]] && [[ -n $(eval "readlink -e  $new_zm_path") ]]; then
-			new_zm_path=$(eval "readlink -e $new_zm_path")
+	 echo "zmarks/init.zsh: 436 new_zm_path: $new_zm_path"
+	 if [[ -n "$new_zm_path" ]]; then
+			if [[ -n $(eval "readlink -e  $new_zm_path") ]]; then
+				 new_zm_path=$(eval "readlink -e $new_zm_path")
+			else
+				 echo 'debug: file path does not exist'
+				 [[ ! $(readlink -f "$new_zm_path") =~ $_ZM_PATH_RE ]] \
+						&& echo 'Path must only contain alphanumerics, dashes and underscores' && return 1 \
+						|| echo "Path $(readlink -f "$new_zm_line") does not exist" 
+
+				 echo 'Would you like to create it? (y/n) '
+				 read answer
+				 if  [ "$answer" != "${answer#[Yy]}" ]; then 
+						touch "$new_zm_path"
+						new_zm_path=$(eval "readlink -e $new_zm_path")
+
+						[[ -z "$new_zm_path" ]] \
+							 && echo 'invalid path' \
+							 && return 1
+
+						echo "path created: $new_zm_path"
+				 else
+						echo 'abort'
+						return 1
+				 fi
+			fi
+
 
 	 elif [[ -z "$new_zm_path" && -n $(\ls $(pwd) | grep -x "$new_zm_name") ]]; then
 			new_zm_path=$(readlink -e "$PWD/$new_zm_name")
