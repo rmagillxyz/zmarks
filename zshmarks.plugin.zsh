@@ -29,7 +29,7 @@ _ZM_USAGE="USAGE: zm <OPTION> <MARK> [PATH|PATTERN]
 
 _ZM_RED='\033[0;31m'
 _ZM_NOCOLOR='\033[0m'
-_ZM_MARK_RE='^([0-9A-Za-z]|_|\.)+' 
+# _ZM_MARK_RE='[0-9A-Za-z_\.]' # TODO: zsh regex behaves differently than bash. Figure this out.
 _ZM_PATH_RE='^\/[0-9A-Za-z\-_\.\/]+' 
 
 
@@ -372,10 +372,13 @@ function _zm_mark_dir() {
 			new_zm_name="${PWD##*/}"
 	 fi
 
-	 if [[ ! "$new_zm_name" =~ $_ZM_MARK_RE ]]; then
+	 # if [[ ! "${new_zm_name//$_ZM_MARK_RE/}" = "" ]]; then
+	 if [[ ! "${new_zm_name//[0-9A-Za-z_\.]/}" = "" ]]; then
 			echo 'Mark name must only contain alphanumerics and underscores'
 			echo 'Example: zm -D MARK [PATH]'
 			return 1
+	 else 
+			echo 'good mark'
 	 fi
 
 	 [[ -z "$2" ]] \
@@ -441,7 +444,8 @@ function _zm_mark_file() {
 			return 1
 	 fi
 
-	 if [[ ! "$new_zm_name" =~ $_ZM_MARK_RE ]]; then
+	 # if [[ ! "${new_zm_name//$_ZM_MARK_RE/}" = "" ]]; then
+	 if [[ ! "${new_zm_name//[0-9A-Za-z_\.]/}" = "" ]]; then
 			echo 'Invalid mark name.'
 			echo 'Mark name must only contain alphanumerics and underscores'
 			return 1
