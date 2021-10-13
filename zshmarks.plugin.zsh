@@ -118,13 +118,13 @@ function __zm_move_to_trash(){
 function __zmarks_zgrep() {
 	 local outvar="$1"; shift
 	 local pattern="$1"
-	 local filename="$2"
-	 local file_contents="$(<"$filename")"
+	 local zm_file="$2"
+	 local file_contents="$(<"$zm_file")"
 	 local contents_array; contents_array=(${(f)file_contents})
 
-	 for line in "${contents_array[@]}"; do
-			if [[ "$line" =~ "$pattern" ]]; then
-				 eval "$outvar=\"$line\""
+	 for zm_line in "${contents_array[@]}"; do
+			if [[ "$zm_line" =~ "$pattern" ]]; then
+				 eval "$outvar=\"$zm_line\""
 				 return 
 			fi
 	 done
@@ -157,16 +157,15 @@ function _zm_jump() {
 				 return 1
 			else
 				 # File mark found
-				 local zm_path="${zm%%|*}"
-				 _zm_zoom "$zm_path" "$2"
+				 local zm_file_path="${zm%%|*}"
+				 _zm_zoom "$zm_file_path" "$2"
 			fi
 
 	 else
 			# Directory mark found
-			# TODO: rename
-			local dir="${zm%%|*}"
-			eval "cd \"${dir}\""
-			eval "ls \"${dir}\""
+			local zm_dir_path="${zm%%|*}"
+			eval "cd \"${zm_dir_path}\""
+			eval "ls \"${zm_dir_path}\""
 	 fi
 }
 
@@ -331,9 +330,9 @@ function _zm_zoom() {
 }
 
 function _zm_file_jump() {
-	 local editmark_name=$1
-	 local editmark
-	 if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
+	 local zm_name=$1
+	 local zm
+	 if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
 			echo '
 Invalid file mark,
 Please provide a valid file mark name. \n
@@ -342,8 +341,8 @@ For more info:
 			'
 			return 1
 	 else
-			local filename="${editmark%%|*}"
-			_zm_zoom "$filename" "$2"
+			local zm_file_path="${zm%%|*}"
+			_zm_zoom "$zm_file_path" "$2"
 	 fi
 }
 
@@ -359,9 +358,9 @@ For more info:
 			'
 			return 1
 	 else
-			local dir="${zmark%%|*}"
-			eval "cd \"${dir}\""
-			eval "ls \"${dir}\""
+			local zm_dir_path="${zmark%%|*}"
+			eval "cd \"${zm_dir_path}\""
+			eval "ls \"${zm_dir_path}\""
 	 fi
 }
 
@@ -709,21 +708,20 @@ function zm(){
 
 # zsh fzf jump binding (all)
 _zm_fzf_jump(){
-	 local zm=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
-	 local dest="${zm%%|*}"
-	 [[ -z "$dest" ]] && zle reset-prompt && return 1
+	 local zm_line=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
+	 local zm_path="${zm_line%%|*}"
+	 [[ -z "$zm_path" ]] && zle reset-prompt && return 1
 
 	 # could also use zgrep here
-	 # if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
-	 # TODO why do I need eval here?
-	 if [ -d $(eval "echo $dest") ]; then
+	 # if ! __zmarks_zgrep zm_line "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+	 if [ -d $(eval "echo $zm_path") ]; then
 			# echo "we gotta dir"
-			eval "cd \"$dest\""
+			eval "cd \"$zm_path\""
 			ls
 			echo -e "\n"
 	 else
 			echo "we gotta file"
-			eval "_zm_zoom \"$dest\""
+			eval "_zm_zoom \"$zm_path\""
 	 fi
 	 zle reset-prompt
 }
@@ -731,10 +729,10 @@ zle     -N    _zm_fzf_jump
 
 # zsh fzf jump binding (dirs)
 _zm_fzf_dir_jump(){
-	 local zm=$(< $ZM_DIRS_FILE | fzf-tmux)
-	 if [[ -n $zm ]];then 
-			local dir="${zm%%|*}"
-			eval "cd ${dir}"
+	 local zm_line=$(< $ZM_DIRS_FILE | fzf-tmux)
+	 if [[ -n $zm_line ]];then 
+			local zm_dir_path="${zm_line%%|*}"
+			eval "cd ${zm_dir_path}"
 			ls
 			echo -e "\n"
 			zle reset-prompt
@@ -744,12 +742,12 @@ zle     -N    _zm_fzf_dir_jump
 
 # zsh fzf jump binding (files)
 _zm_fzf_file_jump(){
-	 local zm=$(cat $ZM_FILES_FILE | fzf-tmux)
-	 if [[ -n $zm ]];then 
-			local file="${zm%%|*}"
+	 local zm_line=$(cat $ZM_FILES_FILE | fzf-tmux)
+	 if [[ -n $zm_line ]];then 
+			local zm_file_path="${zm_line%%|*}"
 			# could use BUFFER and _zm_zoom here
-			# eval "\"$EDITOR\" \"$file\""
-			eval "_zm_zoom \"$file\""
+			# eval "\"$EDITOR\" \"$zm_file_path\""
+			eval "_zm_zoom \"$zm_file_path\""
 	 fi
 }
 zle     -N    _zm_fzf_file_jump
