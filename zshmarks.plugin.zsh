@@ -142,13 +142,18 @@ function _zm_jump() {
 	 local zm
 	 if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 			if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
-				 echo "Invalid name, please provide a valid file or directory mark name. For example:"
-				 echo "zm -j <MARK> [PATTERN]"
-				 echo
-				 echo "To mark a directory:"
-				 echo "zm -m <NAME>"
-				 echo "To mark a file:"
-				 echo "zm -d  <NAME>"
+				  echo '
+ Invalid mark,
+ Please provide a valid file or directory mark name.
+ For example:\n
+ Jump to mark:
+ zm -j <MARK> [PATTERN]\n
+ To mark a directory:
+ zm -D <NAME> \n
+ To mark a file:
+ zm -F  <NAME> \n
+ zm --help
+					'
 				 return 1
 			else
 				 # File mark found
@@ -329,13 +334,12 @@ function _zm_file_jump() {
 	 local editmark_name=$1
 	 local editmark
 	 if ! __zmarks_zgrep editmark "\\|$editmark_name\$" "$ZM_FILES_FILE"; then
-			echo "Invalid name, please provide a valid mark name. For example:"
-			echo "zm -j foo"
-			echo
-			echo "To mark a directory:"
-			echo "zm -D <name>"
-			echo "To mark a file:"
-			echo "zm -F <name>"
+			echo '
+Invalid file mark,
+Please provide a valid file mark name. \n
+For more info:
+ zm --help
+			'
 			return 1
 	 else
 			local filename="${editmark%%|*}"
@@ -347,13 +351,12 @@ function _zm_dir_jump() {
 	 local zmark_name=$1
 	 local zmark
 	 if ! __zmarks_zgrep zmark "\\|$zmark_name\$" "$ZM_DIRS_FILE"; then
-			echo "Invalid directory mark name, please provide a valid mark name. For example:"
-			echo "zm -d foo"
-			echo
-			echo "To mark a directory:"
-			echo "zm -D <name>"
-			echo "To mark a file:"
-			echo "zm -F <name>"
+			echo '
+Invalid directory mark,
+Please provide a valid directory mark name. \n
+For more info:
+ zm --help
+			'
 			return 1
 	 else
 			local dir="${zmark%%|*}"
