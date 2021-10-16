@@ -173,6 +173,7 @@ alias \
 	 zf='zm -F' \
 	 zd='zm -D' \
 	 zs='zm -s' \
+	 zr='zm -r' \
 	 j='zm -j' \
 	 jf='zm -f' \
 	 jd='zm -d' \
