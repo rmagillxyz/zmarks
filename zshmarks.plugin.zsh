@@ -614,13 +614,23 @@ function __zm_checktoremove(){
 function _zm_vi() {
 	 local cmd pattern c_path 
 	 cmd="$1"
+	 [[ -z "$cmd" ]] && echo 'command required' && return
 	 pattern="$2"
 	 c_path=$(command -v $cmd)
 	 # echo "zmarks/init.zsh: 465 c_path: $c_path"
 	 if [[ -z "$c_path" ]];then
 			echo 'script not in path'
 	 else
-			_zm_zoom "$c_path" "$pattern"
+			file "$c_path" | grep executable 1> /dev/null 
+			if [ $? -eq 0 ];then
+				 echo "$c_path is a binary"
+			else
+					file "$c_path" |egrep "ascii|text"
+					if [ $? -eq 0 ];then
+							echo "File is ascii"   
+						 _zm_zoom "$c_path" "$pattern"
+					fi
+			fi
 	 fi
 }
 
