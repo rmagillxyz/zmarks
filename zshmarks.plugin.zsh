@@ -763,55 +763,87 @@ _zm_quick_man(){
 }
 zle     -N   _zm_quick_man
 
+# function buildcache(){
+# 	 local cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+# 	 local cache="$cachedir/dmenu_run"
 
-# Good stuff but not being used
+# 	 [ ! -e "$cachedir" ] && mkdir -p "$cachedir"
 
-# function __ask_to_overwrite_zm_dir() {
-# 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement> [dir-path]'
-# 	 [ ! $# -ge 2 ] && echo "$usage" && return 1 
-
-# 	 local zm_clash zm_new_name zm_path
-# 	 zm_clash="$1"
-# 	 zm_new_name="$2"
-
-
-# 	 # [[ -n "$3" ]] && zm_path=$(eval "readlink -e $3") || zm_path=$(eval "readlink -e $PWD")
-# 	 [[ -n "$3" ]] && zm_path=$(eval "readlink -e $3") || zm_path="$PWD"
-# 	 # echo "zmarks/init.zsh: 396 zm_path: $zm_path"
-
-# 	 echo -e "overwrite: $(_zm_show $zm_clash)"
-# 	 # printf "replacement: $zm_new_name\t-- $zm_path\n"
-# 	 printf "replacement: $zm_new_name\t-- ${zm_path/#$HOME/~}\n"
-
-# 	 echo -n "overwrite mark $1 (y/n)? "
-# 	 read answer
-# 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
-
-# 		_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name" "$zm_path" 
-
+# 	 IFS=:
+# 	 if stest -dqr -n "$cache" $PATH; then
+# 		 stest -flx $PATH | sort -u > "$cache"
 # 	 else
-# 			echo 'abort'
-# 	 fi
-# 	 return
-# }
-
-# function __ask_to_overwrite_zm_file() {
-# 	 local overwrite replacement zm_path
-# 	 overwrite="$1"
-# 	 replacement="$2"
-# 	 zm_path="$3"
-# 	 echo "overwrite: $overwrite"
-# 	 echo "replacement: $replacement"
-
-# 	 echo -n "overwrite mark $1 (y/n)? "
-# 	 read answer
-# 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
-# 		_zm_remove "$overwrite"
-# 		_zm_mark_file "$replacement" "$zm_path"
-# 	 else
-# 		return 1
+# 		 cat "$cache"
 # 	 fi
 # }
 
-# zm_path="${foo%%|*}"
-# zm_name="${foo##*|}"
+# function buildcache(){
+# 	 echo $PATH
+# 	 cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+# 	 cache="$cachedir/dmenu_run"
+
+# 	 [ ! -e "$cachedir" ] && mkdir -p "$cachedir"
+
+# 	 IFS=:
+# 	 if stest -dqr -n "$cache" $PATH; then
+# 			echo 'true'
+# 		 stest -flx $PATH | sort -u | tee "$cache"
+# 	 else
+# 			echo 'not true'
+# 		 stest -flx $PATH | sort -u | tee "$cache"
+# 		 # cat "$cache"
+# 	 fi
+# }
+
+
+# # Good stuff but not being used
+
+# # function __ask_to_overwrite_zm_dir() {
+# # 	 usage='usage: ${FUNCNAME[0]} to-overwrite <replacement> [dir-path]'
+# # 	 [ ! $# -ge 2 ] && echo "$usage" && return 1 
+
+# # 	 local zm_clash zm_new_name zm_path
+# # 	 zm_clash="$1"
+# # 	 zm_new_name="$2"
+
+
+# # 	 # [[ -n "$3" ]] && zm_path=$(eval "readlink -e $3") || zm_path=$(eval "readlink -e $PWD")
+# # 	 [[ -n "$3" ]] && zm_path=$(eval "readlink -e $3") || zm_path="$PWD"
+# # 	 # echo "zmarks/init.zsh: 396 zm_path: $zm_path"
+
+# # 	 echo -e "overwrite: $(_zm_show $zm_clash)"
+# # 	 # printf "replacement: $zm_new_name\t-- $zm_path\n"
+# # 	 printf "replacement: $zm_new_name\t-- ${zm_path/#$HOME/~}\n"
+
+# # 	 echo -n "overwrite mark $1 (y/n)? "
+# # 	 read answer
+# # 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
+
+# # 		_zm_remove "$zm_clash" && _zm_mark_dir "$zm_new_name" "$zm_path" 
+
+# # 	 else
+# # 			echo 'abort'
+# # 	 fi
+# # 	 return
+# # }
+
+# # function __ask_to_overwrite_zm_file() {
+# # 	 local overwrite replacement zm_path
+# # 	 overwrite="$1"
+# # 	 replacement="$2"
+# # 	 zm_path="$3"
+# # 	 echo "overwrite: $overwrite"
+# # 	 echo "replacement: $replacement"
+
+# # 	 echo -n "overwrite mark $1 (y/n)? "
+# # 	 read answer
+# # 	 if  [ "$answer" != "${answer#[Yy]}" ];then 
+# # 		_zm_remove "$overwrite"
+# # 		_zm_mark_file "$replacement" "$zm_path"
+# # 	 else
+# # 		return 1
+# # 	 fi
+# # }
+
+# # zm_path="${foo%%|*}"
+# # zm_name="${foo##*|}"
