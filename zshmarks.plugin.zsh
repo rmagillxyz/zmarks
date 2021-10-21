@@ -19,6 +19,7 @@ _ZM_USAGE="USAGE: zm <OPTION> <MARK> [PATH|PATTERN]
   -j, --jump <MARK> [PATTERN]\t\t\tJump to directory or jump into file.
 \t\t\t\t\t\tMarked files accept a search pattern.
   -s, --show [PATTERN] \t\t\t\tShow Marks. 
+  -i, --into-cmd <CMD-IN-PATH> [PATTERN] \t\t\tJump into command which resides in path.
   --clear-all \t\t\t\t\tClear all directory and file marks.
   --clear-all-dirs \t\t\t\tClear all directory marks.
   --clear-all-files \t\t\t\tClear all file marks.
@@ -679,6 +680,12 @@ function zm(){
 						return
 						;;
 
+				 -i|--into-cmd)
+						shift
+						_zm_vi "$@"
+						return
+						;; 
+
 				 --clear-all)
 						shift 
 						__zm_clear_all
@@ -698,14 +705,14 @@ function zm(){
 						;;
 
 				 -h|--help)
-						echo $_ZM_USAGE
+						echo "$_ZM_USAGE"
 						return
 						;; 
 
 				 esac
 
 			else
-				 echo $_ZM_USAGE
+				 echo "$_ZM_USAGE"
 				 return
 	 fi
 

@@ -38,6 +38,28 @@ _zm_list(){
 	 _describe -t zmarks 'zmarks' zmarks && ret=0
 }
 
+_zm_vi_cmds(){
+	 # echo "words: ${words[@]}"
+	 local cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+	 local cache="$cachedir/zm_vi"
+
+	 local cmd_file=$(<"$cache")
+	 local all_cmds=(${(f)cmd_file})
+	 subset_cmds=() 
+
+	 for cmd in $all_cmds; do
+		 if [[ "$cmd" =~ ${words[3]}   ]] ; then
+			 subset_cmds+="$cmd"
+		 fi
+	 done
+
+	 [[ "${#subset_cmds[@]}" -eq 0 ]] && subset_cmds=$all_cmds
+
+
+		 # _describe -t commands 'ZMVI' subset_cmds
+		 _describe -t commands 'zmarks' subset_cmds
+}
+
 # _zm_pwd(){
 # 	 _arguments 1:(`basename $PWD`)
 # }
@@ -52,6 +74,7 @@ _arguments \
 	 '-r[Remove mark]: :_zm_all' \
 	 '-F[Mark file]: :_files' \
 	 '-D[Mark dir]: :(`basename $(pwd)`)' \
+	 '-i[Jump to commands file]: :_zm_vi_cmds' \
 	 '--clear-all[Clear all directory and file marks]: :' \
 	 '--clear-all-files[Clear all file marks]: :' \
 	 '--clear-all-dirs[Clear all directory marks]: :' \
