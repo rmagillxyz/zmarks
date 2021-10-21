@@ -1,0 +1,47 @@
+#compdef _zm_vi
+#autoload
+
+# echo "functions/_zm_vi_"
+
+cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+cache="$cachedir/dmenu_run"
+
+[ ! -e "$cachedir" ] && mkdir -p "$cachedir"
+
+# declare -a allcmds
+# allcmds=()
+allcmds=($(dmenu_path))
+# echo "functions/_zm_vi_: 13 allcmds: $allcmds"
+# allcmds=($(/usr/local/bin/dmenu_path))
+
+subset=()
+# echo "functions/_zm_vi_: 13 allcmds: $allcmds"
+for cmd in $allcmds; do
+	 # echo "functions/_zm_vi_: 15 cmd : $cmd "
+	# if [[ "$cmd" == *"|"* ]] ; then
+	if [[ "$cmd" == * ]] ; then
+		subset+="$cmd"
+	fi
+done
+# echo "functions/_zm_vi_: 25 subset: $subset"
+
+# IFS=:
+# if stest -dqr -n "$cache" $PATH; then
+# 	# stest -flx $PATH | sort -u | tee "$cache"
+# 	allcmds=($( stest -flx $PATH | sort -u | tee "$cache" ))
+# else
+# 	# cat "$cache"
+# 		allcmds=($( echo "$cache" ))
+# fi
+
+_arguments \
+	'*:: :->subcmds' && return 0
+
+if (( CURRENT == 1 )); then
+	# _describe -t commands 'Zmarks' zmarks
+	_describe -t commands 'Zmarks' subset
+	# _describe -t commands 'ZiCmds' subset
+	# _describe -t commands 'Zmarks' allcmds
+	# _describe -t commands 'Zmarks' dmenu_path
+	return
+fi
