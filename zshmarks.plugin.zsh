@@ -621,14 +621,18 @@ function _zm_vi() {
 	 if [[ -z "$c_path" ]];then
 			echo 'script not in path'
 	 else
-			file "$c_path" | grep executable 1> /dev/null 
-			if [ $? -eq 0 ];then
+			
+			# if [ $? -eq 0 ];then
+			# if file "$c_path" | grep executable &> /dev/null; then
+			if file "$c_path" | grep 'binary'; then
 				 echo "$c_path is a binary"
 			else
-					file "$c_path" |egrep "ascii|text"
-					if [ $? -eq 0 ];then
-							echo "File is ascii"   
+					
+					if file "$c_path" |egrep "ascii|text";then
+							# echo "File is ascii"   
 						 _zm_zoom "$c_path" "$pattern"
+					else
+						 echo "$cmd is not ascii text"
 					fi
 			fi
 	 fi
