@@ -1,33 +1,28 @@
 #compdef _zm_vi
 #autoload
 
-# echo "functions/_zm_vi_"
 
 local cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
 local cache="$cachedir/zm_vi"
-
-# buildcache
-"$ZDOTDIR/zmarks/bin/zm_vi_path"
-
 
 local cmd_file=$(<"$cache")
 local all_cmds=(${(f)cmd_file})
 subset_cmds=() 
 
-echo "functions/_zm_vi_: 28 all: ${#all_cmds[@]} "
 for cmd in $all_cmds; do
-	# if [[ "$cmd" == *$ ]] ; then
 	if [[ "$cmd" =~ ${words[2]}   ]] ; then
 		subset_cmds+="$cmd"
 	fi
 done
 
-echo "functions/_zm_vi_: 28 subnum: ${#subset_cmds[@]} "
+# echo "functions/_zm_vi_: 28 all: ${#all_cmds[@]} "
+# echo "functions/_zm_vi_: 28 sub: ${#subset_cmds[@]} "
+
 [[ "${#subset_cmds[@]}" -eq 0 ]] && subset_cmds=$all_cmds
-# echo "functions/_zm_vi_: 25 subset_cmds: $subset_cmds"
-echo "words"
-echo "words: ${words[@]}"
-echo "words: ${words[2]}"
+
+# echo "words"
+# echo "words: ${words[@]}"
+# echo "words: ${words[2]}"
 
 _arguments \
 	'*:: :->subcmds' && return 0

@@ -43,6 +43,11 @@ if [[ -z $EDITOR ]]; then
 	 fi
 fi
 
+# build commands cache for _zm_vi
+local cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+local cache="$cachedir/zm_vi"
+print -rlo -- $commands:t > "$cache"
+
 # Allows for a user to change default config
 export _ZM_ZOOM=${_ZM_ZOOM:-"__zm_zoom__"}
 export _ZM_FZF_DEPTH=${_ZM_FZF_DEPTH:-3}
