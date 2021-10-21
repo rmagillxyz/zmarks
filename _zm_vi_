@@ -4,18 +4,28 @@
 # echo "functions/_zm_vi_"
 
 cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
-cache="$cachedir/dmenu_run"
+cache="$cachedir/zm_vi"
 
 [ ! -e "$cachedir" ] && mkdir -p "$cachedir"
+# touch "$cache"
+# [ ! -e "$cache" ] && mkdir -p "$cache"
 
-# declare -a allcmds
-# allcmds=()
-allcmds=($(dmenu_path))
-# echo "functions/_zm_vi_: 13 allcmds: $allcmds"
-# allcmds=($(/usr/local/bin/dmenu_path))
-
+# allcmds=($(dmenu_path))
+allcmds=()
 subset=()
-# echo "functions/_zm_vi_: 13 allcmds: $allcmds"
+
+IFS=:
+if stest -dqr -n "$cache" $PATH &> /dev/null; then
+# if stest -dqr -n "$cache"; then
+	 echo 'true'
+	# stest -flx $PATH | sort -u | tee "$cache"
+	allcmds=($( stest -flx $PATH | sort -u | tee "$cache" ))
+else
+	 echo 'false'
+	# cat "$cache"
+		allcmds=($( cat "$cache" ))
+fi
+
 for cmd in $allcmds; do
 	 # echo "functions/_zm_vi_: 15 cmd : $cmd "
 	# if [[ "$cmd" == *"|"* ]] ; then
@@ -25,14 +35,7 @@ for cmd in $allcmds; do
 done
 # echo "functions/_zm_vi_: 25 subset: $subset"
 
-# IFS=:
-# if stest -dqr -n "$cache" $PATH; then
-# 	# stest -flx $PATH | sort -u | tee "$cache"
-# 	allcmds=($( stest -flx $PATH | sort -u | tee "$cache" ))
-# else
-# 	# cat "$cache"
-# 		allcmds=($( echo "$cache" ))
-# fi
+
 
 _arguments \
 	'*:: :->subcmds' && return 0
