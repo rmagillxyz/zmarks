@@ -39,21 +39,26 @@ _zm_list(){
 }
 
 _zm_vi_cmds(){
-	 echo "words: ${#words[@]}"
+	 # echo "words: ${#words[@]}"
 	 local cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
 	 local cache="$cachedir/zm_vi"
 
 	 local cmd_file=$(<"$cache")
 	 local all_cmds=(${(f)cmd_file})
 	 local subset_cmds=() 
-
 	 for cmd in $all_cmds; do
-		 if [[ "$cmd" =~ ${words[3]}   ]] ; then
+		 if [[ "$cmd" =~ ${words[3]} ]] ; then
 			 subset_cmds+="$cmd"
 		 fi
 	 done
 
-	 [[ "${#subset_cmds[@]}" -eq 0 ]] && subset_cmds="$all_cmds"
+
+	 if [[ "${#subset_cmds[@]}" -eq 0 &&  ${#words[@]} -lt 3 ]]; then
+			subset_cmds="$all_cmds"
+	 else
+			# return
+			ret=0
+	 fi
 
 
 		 # _describe -t commands 'ZMVI' subset_cmds

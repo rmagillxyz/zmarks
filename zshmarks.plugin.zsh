@@ -45,9 +45,12 @@ if [[ -z $EDITOR ]]; then
 fi
 
 # build commands cache for _zm_vi
-local cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
-local cache="$cachedir/zm_vi"
-print -rlo -- $commands:t > "$cache"
+function buildcmdcache(){
+	 local cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+	 local cache="$cachedir/zm_vi"
+	 print -rlo -- $commands:t > "$cache"
+}; 
+buildcmdcache
 
 # Allows for a user to change default config
 export _ZM_ZOOM=${_ZM_ZOOM:-"__zm_zoom__"}
@@ -632,7 +635,9 @@ function _zm_vi() {
 							# echo "File is ascii"   
 						 _zm_zoom "$c_path" "$pattern"
 					else
-						 echo "$cmd is not ascii text"
+						 # echo "$cmd is not ascii text"
+							printf "${_ZM_RED}$cmd is not ascii text${_ZM_NOCOLOR}\n\n"
+						 file "$c_path"
 					fi
 			fi
 	 fi

@@ -177,7 +177,7 @@ alias \
 	 j='zm -j' \
 	 jf='zm -f' \
 	 jd='zm -d' \
-	 zi='_zm_vi' 
+	 zi='zi -i' 
 ```
 Contributions welcome and please report any bugs. 
 =================
