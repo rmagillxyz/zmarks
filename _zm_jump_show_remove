@@ -46,11 +46,19 @@ _zm_vi_cmds(){
 	 local cmd_file=$(<"$cache")
 	 local all_cmds=(${(f)cmd_file})
 	 local subset_cmds=() 
+
+	 # subset_cmds=(${(M)all_cmds:#${words[3]}*})
+	 # {time  ( subset_cmds=(${(M)all_cmds:#${words[3]}*}) ) }
+
+	 { time 
+	 (
 	 for cmd in $all_cmds; do
 		 if [[ "$cmd" =~ ${words[3]} ]] ; then
 			 subset_cmds+="$cmd"
 		 fi
 	 done
+	 )
+	 }
 
 
 	 if [[ "${#subset_cmds[@]}" -eq 0 &&  ${#words[@]} -lt 3 ]]; then
