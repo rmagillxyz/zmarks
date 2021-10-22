@@ -138,30 +138,8 @@ function __zmarks_zgrep() {
 			&& return \
 			|| return 1
 
-
-	 # if contents_array[(r)*\|lsz]
-	 # test=${contents_array[(re)$pattern]} 
-	 echo "zmarks/init.zsh: 135 test: $test"
 	 [[ ${contents_array[(ie)$pattern]} -le ${#contents_array} ]] && echo 'contains val'
 	 return
-
-	 # local index=$(( $contents_array[(I)$pattern] ))
-	 # echo "zmarks/init.zsh: 136 index: $index"
-	 # echo $($contents_array[(Ie)$pattern])
-
-# 	 if ($contents_array[(Ie)$pattern]); then
-# 		 echo value is amongst the values of the array
-# 	 fi
-
-	 # subset_cmds=(${(Ie)$pattern})
-
-	 for zm_line in "${contents_array[@]}"; do
-			if [[ "$zm_line" =~ "$pattern" ]]; then
-				 eval "$outvar=\"$zm_line\""
-				 return 
-			fi
-	 done
-	 return 1
 }
 
 function _zm_jump() {
@@ -172,9 +150,11 @@ function _zm_jump() {
 	 fi
 
 	 local zm_name=$1
-	 local zm
-	 if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
-			if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
+	 local zm_line
+	 # if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+	 if ! __zmarks_zgrep zm_line "*\|$zmark_name" "$ZM_DIRS_FILE"; then
+			# if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
+			if ! __zmarks_zgrep zm_line "*\|$zmark_name" "$ZM_FILES_FILE"; then
 				  echo '
  Invalid mark,
  Please provide a valid file or directory mark name.
@@ -190,13 +170,13 @@ function _zm_jump() {
 				 return 1
 			else
 				 # File mark found
-				 local zm_file_path="${zm%%|*}"
+				 local zm_file_path="${zm_line%%|*}"
 				 _zm_zoom "$zm_file_path" "$2"
 			fi
 
 	 else
 			# Directory mark found
-			local zm_dir_path="${zm%%|*}"
+			local zm_dir_path="${zm_line%%|*}"
 			eval "cd \"${zm_dir_path}\""
 			eval "ls \"${zm_dir_path}\""
 	 fi
@@ -365,8 +345,9 @@ function _zm_zoom() {
 
 function _zm_file_jump() {
 	 local zm_name=$1
-	 local zm
-	 if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
+	 local zm_line
+	 # if ! __zmarks_zgrep zm_line "\\|$zm_name\$" "$ZM_FILES_FILE"; then
+	 if ! __zmarks_zgrep zm_line "*\|$zmark_name" "$ZM_FILES_FILE"; then
 			echo '
 Invalid file mark,
 Please provide a valid file mark name. \n
@@ -375,7 +356,7 @@ For more info:
 			'
 			return 1
 	 else
-			local zm_file_path="${zm%%|*}"
+			local zm_file_path="${zm_line%%|*}"
 			_zm_zoom "$zm_file_path" "$2"
 	 fi
 }
@@ -565,7 +546,8 @@ function __zm_check_name_clash(){
 	 new_zm_line="$1"
 	 zm_name="${new_zm_line##*|}"
 
-	 if  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_FILES_FILE"; then
+	 # if  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_FILES_FILE"; then
+	 if  __zmarks_zgrep clash_line "*\|$zmark_name" "$ZM_FILES_FILE"; then
 
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
@@ -578,7 +560,8 @@ function __zm_check_name_clash(){
 
 			__zm_checktoremove "$clash_line"
 
-	 elif  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+	 # elif  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+	 elif  __zmarks_zgrep clash_line "*\|$zmark_name" "$ZM_DIRS_FILE"; then
 
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
@@ -598,7 +581,8 @@ function __zm_check_path_clash(){
 	 zm_path="${new_zm_line%%|*}"
 	 zm_name="${new_zm_line##*|}"
 
-	 if  __zmarks_zgrep clash_line "^\\$zm_path\|" "$ZM_FILES_FILE"; then
+	 # if  __zmarks_zgrep clash_line "^\\$zm_path\|" "$ZM_FILES_FILE"; then
+	 if  __zmarks_zgrep clash_line "$zmark_path\|*" "$ZM_FILES_FILE"; then
 
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
@@ -610,7 +594,8 @@ function __zm_check_path_clash(){
 			echo -n "Remove '$clash_name' file mark? (y/n)? "
 			__zm_checktoremove "$clash_line"
 
-	 elif  __zmarks_zgrep clash_line "^\\$zm_path\|" "$ZM_DIRS_FILE"; then
+	 # elif  __zmarks_zgrep clash_line "^\\$zm_path\|" "$ZM_DIRS_FILE"; then
+	 elif  __zmarks_zgrep clash_line "$zmark_path\|*" "$ZM_DIRS_FILE"; then
 
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
@@ -772,7 +757,7 @@ _zm_fzf_jump(){
 	 local zm_path="${zm_line%%|*}"
 	 [[ -z "$zm_path" ]] && zle reset-prompt && return 1
 
-	 # could also use zgrep here
+	 # TODO could also use zgrep here, this would allow new marks without sourcing
 	 # if ! __zmarks_zgrep zm_line "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
 	 if [ -d $(eval "echo $zm_path") ]; then
 			# echo "we gotta dir"
