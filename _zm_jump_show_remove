@@ -13,16 +13,12 @@ _zm_dirs(){
 }
 
 _zm_all(){
-	 # echo 'zm_all called'
 	 local zm_file=$(<"$ZMARKS_DIR/zm_dirs" <"$ZMARKS_DIR/zm_files")
-	 # echo "zmarks/_jump_showmarks_deletemark: 23 zm_file: $zm_file"
 	 _zm_list $zm_file
 }
 
 _zm_list(){
-	 # echo 'zm_list called'
 	 local zm_file="$1"
-	 # echo "zmarks/_jump_showmarks_deletemark: 31 zm_file: $zm_file"
 	 local zm_array; zm_array=(${(f)zm_file});
 	 local zm_name zm_path zm_line
 	 zmarks=()
@@ -32,50 +28,26 @@ _zm_list(){
 			 zm_path="${zm_path/\$HOME/\~}"
 			 zm_name="${zm_line#*|}"
 			 zmarks+="${zm_name}:${zm_path}"
-			 # echo "zmarks/_jump_showmarks_deletemark: 18 zmarks: $zmarks"
 		 fi
 	 done
-	 _describe -t zmarks 'zmarks' zmarks && ret=0
+	 _describe -t zmarks 'zmarks' zmarks && return
 }
 
 _zm_vi_cmds(){
-	 # echo "words: ${#words[@]}"
 	 local cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
 	 local cache="$cachedir/zm_vi"
 
-	 local cmd_file=$(<"$cache")
-	 local all_cmds=(${(f)cmd_file})
+	 local cache_contents=$(<"$cache")
+	 local all_cmds=(${(f)cache_contents})
 	 local subset_cmds=() 
 
-	 # subset_cmds=(${(M)all_cmds:#${words[3]}*})
-	 # {time  ( subset_cmds=(${(M)all_cmds:#${words[3]}*}) ) }
+	 subset_cmds=(${(M)all_cmds:#${words[3]}*})
 
-	 { time 
-	 (
-	 for cmd in $all_cmds; do
-		 if [[ "$cmd" =~ ${words[3]} ]] ; then
-			 subset_cmds+="$cmd"
-		 fi
-	 done
-	 )
-	 }
+	 [[ ${#words[@]} -lt 3 ]] && subset_cmds="$all_cmds" \
+			|| [[ "${#subset_cmds[@]}" -eq 0 ]] && return
 
-
-	 if [[ "${#subset_cmds[@]}" -eq 0 &&  ${#words[@]} -lt 3 ]]; then
-			subset_cmds="$all_cmds"
-	 else
-			# return
-			ret=0
-	 fi
-
-
-		 # _describe -t commands 'ZMVI' subset_cmds
-		 _describe -t commands 'zmarks' subset_cmds && ret=0
+		 _describe -t commands 'zmarks' subset_cmds && return
 }
-
-# _zm_pwd(){
-# 	 _arguments 1:(`basename $PWD`)
-# }
 
 # TODO add optional _canonical_paths as third arg to -F[mark file]
 
