@@ -125,11 +125,35 @@ function __zm_move_to_trash(){
 }
 
 function __zmarks_zgrep() {
+	 echo 'zgrep'
 	 local outvar="$1"; shift
 	 local pattern="$1"
+	 echo "zmarks/init.zsh: 131 pattern: $pattern"
 	 local zm_file="$2"
 	 local file_contents="$(<"$zm_file")"
 	 local contents_array; contents_array=(${(f)file_contents})
+	 local zm_line=${contents_array[(r)$pattern]}
+
+	 [[ -n "$zm_line" ]] && eval "$outvar=\"$zm_line\"" \
+			&& return \
+			|| return 1
+
+
+	 # if contents_array[(r)*\|lsz]
+	 # test=${contents_array[(re)$pattern]} 
+	 echo "zmarks/init.zsh: 135 test: $test"
+	 [[ ${contents_array[(ie)$pattern]} -le ${#contents_array} ]] && echo 'contains val'
+	 return
+
+	 # local index=$(( $contents_array[(I)$pattern] ))
+	 # echo "zmarks/init.zsh: 136 index: $index"
+	 # echo $($contents_array[(Ie)$pattern])
+
+# 	 if ($contents_array[(Ie)$pattern]); then
+# 		 echo value is amongst the values of the array
+# 	 fi
+
+	 # subset_cmds=(${(Ie)$pattern})
 
 	 for zm_line in "${contents_array[@]}"; do
 			if [[ "$zm_line" =~ "$pattern" ]]; then
@@ -265,6 +289,7 @@ function _zm_remove()  {
 			local file_contents="$(<"$zm_file")"
 			local zm_array; zm_array=(${(f)file_contents});
 			zm_search="*\|${zm_name}"
+			# TODO: this could be sped up. maybe use zgrep
 			if [[ -z ${zm_array[(r)$zm_search]} ]]; then
 				 if [[ $zm_file == $ZM_DIRS_FILE ]]; then
 						# name not found in dirs, run again with files
@@ -358,7 +383,9 @@ For more info:
 function _zm_dir_jump() {
 	 local zmark_name=$1
 	 local zmark
-	 if ! __zmarks_zgrep zmark "\\|$zmark_name\$" "$ZM_DIRS_FILE"; then
+	 # if ! __zmarks_zgrep zmark "\\|$zmark_name\$" "$ZM_DIRS_FILE"; then
+	 # if ! __zmarks_zgrep zmark "*\|$zmark_name" "$ZM_DIRS_FILE"; then
+	 if ! __zmarks_zgrep zmark "*\|$zmark_name" "$ZM_DIRS_FILE"; then
 			echo '
 Invalid directory mark,
 Please provide a valid directory mark name. \n
