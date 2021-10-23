@@ -150,11 +150,12 @@ function _zm_jump() {
 	 fi
 
 	 local zm_name=$1
+	 echo "zmarks/init.zsh: 153 zm_name: $zm_name"
 	 local zm_line
 	 # if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
-	 if ! __zmarks_zgrep zm_line "*\|$zmark_name" "$ZM_DIRS_FILE"; then
+	 if ! __zmarks_zgrep zm_line "*\|$zm_name" "$ZM_DIRS_FILE"; then
 			# if ! __zmarks_zgrep zm "\\|$zm_name\$" "$ZM_FILES_FILE"; then
-			if ! __zmarks_zgrep zm_line "*\|$zmark_name" "$ZM_FILES_FILE"; then
+			if ! __zmarks_zgrep zm_line "*\|$zm_name" "$ZM_FILES_FILE"; then
 				  echo '
  Invalid mark,
  Please provide a valid file or directory mark name.
@@ -347,7 +348,7 @@ function _zm_file_jump() {
 	 local zm_name=$1
 	 local zm_line
 	 # if ! __zmarks_zgrep zm_line "\\|$zm_name\$" "$ZM_FILES_FILE"; then
-	 if ! __zmarks_zgrep zm_line "*\|$zmark_name" "$ZM_FILES_FILE"; then
+	 if ! __zmarks_zgrep zm_line "*\|$zm_name" "$ZM_FILES_FILE"; then
 			echo '
 Invalid file mark,
 Please provide a valid file mark name. \n
@@ -362,11 +363,11 @@ For more info:
 }
 
 function _zm_dir_jump() {
-	 local zmark_name=$1
+	 local zm_name=$1
 	 local zmark
-	 # if ! __zmarks_zgrep zmark "\\|$zmark_name\$" "$ZM_DIRS_FILE"; then
-	 # if ! __zmarks_zgrep zmark "*\|$zmark_name" "$ZM_DIRS_FILE"; then
-	 if ! __zmarks_zgrep zmark "*\|$zmark_name" "$ZM_DIRS_FILE"; then
+	 # if ! __zmarks_zgrep zmark "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
+	 # if ! __zmarks_zgrep zmark "*\|$zm_name" "$ZM_DIRS_FILE"; then
+	 if ! __zmarks_zgrep zmark "*\|$zm_name" "$ZM_DIRS_FILE"; then
 			echo '
 Invalid directory mark,
 Please provide a valid directory mark name. \n
@@ -547,7 +548,7 @@ function __zm_check_name_clash(){
 	 zm_name="${new_zm_line##*|}"
 
 	 # if  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_FILES_FILE"; then
-	 if  __zmarks_zgrep clash_line "*\|$zmark_name" "$ZM_FILES_FILE"; then
+	 if  __zmarks_zgrep clash_line "*\|$zm_name" "$ZM_FILES_FILE"; then
 
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
@@ -561,7 +562,7 @@ function __zm_check_name_clash(){
 			__zm_checktoremove "$clash_line"
 
 	 # elif  __zmarks_zgrep clash_line "\\|$zm_name\$" "$ZM_DIRS_FILE"; then
-	 elif  __zmarks_zgrep clash_line "*\|$zmark_name" "$ZM_DIRS_FILE"; then
+	 elif  __zmarks_zgrep clash_line "*\|$zm_name" "$ZM_DIRS_FILE"; then
 
 			[[ "$clash_line" == "$new_zm_line" ]] \
 				 && echo "umm, like, you already have this EXACT mark." && return 1
