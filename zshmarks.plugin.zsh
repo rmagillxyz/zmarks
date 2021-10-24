@@ -253,39 +253,36 @@ __zm_line_printf() {
 function _zm_remove()  {
 	 local zm_name="$1"
 	 local zm_file="${2:-$ZM_DIRS_FILE}"
-	 if [[ -z $zm_name ]]; then
-			printf "%s \n" "Please provide a mark name to remove. For example:"
-			printf "\t%s \n" "zm -r foo"
-			return 1
+	 [[ -z $zm_name ]] && printf "%s \n" "Provide a mark name to remove" \
+			&& return 1
+
+	 local file_contents="$(<"$zm_file")"
+	 local zm_array; zm_array=(${(f)file_contents});
+
+	 local matched_line pattern
+	 pattern="*\|${zm_name}"
+	 matched_line=${zm_array[(r)$pattern]}
+
+	 if [[ -z "$matched_line"  ]]; then
+
+			# name not found in dirs, run again with files
+			[[ "$zm_file" == "$ZM_DIRS_FILE" ]] \
+				 && _zm_remove "$zm_name" "$ZM_FILES_FILE" \
+				 || eval "printf '%s\n' \"'${zm_name}' not found.\"" && return 1 
+
 	 else
-			local zm_line zm_search
-			local file_contents="$(<"$zm_file")"
-			local zm_array; zm_array=(${(f)file_contents});
-			zm_search="*\|${zm_name}"
-			# TODO: this could be sped up. maybe use zgrep
-			if [[ -z ${zm_array[(r)$zm_search]} ]]; then
-				 if [[ $zm_file == $ZM_DIRS_FILE ]]; then
-						# name not found in dirs, run again with files
-						_zm_remove "$zm_name" "$ZM_FILES_FILE"
-				 else
-						eval "printf '%s\n' \"'${zm_name}' not found.\""
-						return 1
-				 fi
-			else
-				 \cp "${zm_file}" "${zm_file}.zm_bak"
-				 zm_line=${zm_array[(r)$zm_search]}
-				 zm_array=(${zm_array[@]/$zm_line})
+			\cp "${zm_file}" "${zm_file}.zm_bak"
+			local new_array=(${zm_array[@]/$matched_line})
 
-				 [[ ${#zm_array[@]} -gt 0 ]] \
-						&& eval "printf '%s\n' \"\${zm_array[@]}\"" > "$zm_file" \
-						|| echo -n > "$zm_file"
+			[[ ${#new_array} -gt 0 ]] \
+				 && eval "printf '%s\n' \"\${new_array[@]}\"" > "$zm_file" \
+				 || echo -n > "$zm_file"
 
-				 __zm_move_to_trash "${zm_file}.zm_bak" 
-				 echo "$zm_name removed"
+			__zm_move_to_trash "${zm_file}.zm_bak" 
+			echo "$zm_name removed"
 
-				 _zm_rebuild_hash_table
-				 return 
-			fi
+			_zm_rebuild_hash_table
+			return 
 	 fi
 }
 
