@@ -334,9 +334,9 @@ function _zm_zoom() {
 }
 
 function _zm_file_jump() {
-	 local zm_name=$1
-	 local zm_line
-	 if ! __zm_find zm_line "*\|$zm_name" "$ZM_FILES_FILE"; then
+	 local zm_name="$1"
+	 local matched_line
+	 if ! __zm_find matched_line "*\|$zm_name" "$ZM_FILES_FILE"; then
 			echo '
 Invalid file mark,
 Please provide a valid file mark name. \n
@@ -345,15 +345,15 @@ For more info:
 			'
 			return 1
 	 else
-			local zm_file_path="${zm_line%%|*}"
+			local zm_file_path="${matched_line%%|*}"
 			_zm_zoom "$zm_file_path" "$2"
 	 fi
 }
 
 function _zm_dir_jump() {
 	 local zm_name=$1
-	 local zmark
-	 if ! __zm_find zmark "*\|$zm_name" "$ZM_DIRS_FILE"; then
+	 local matched_line
+	 if ! __zm_find matched_line "*\|$zm_name" "$ZM_DIRS_FILE"; then
 			echo '
 Invalid directory mark,
 Please provide a valid directory mark name. \n
@@ -362,7 +362,7 @@ For more info:
 			'
 			return 1
 	 else
-			local zm_dir_path="${zmark%%|*}"
+			local zm_dir_path="${matched_line%%|*}"
 			eval "cd \"${zm_dir_path}\""
 			eval "ls \"${zm_dir_path}\""
 	 fi
