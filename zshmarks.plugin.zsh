@@ -56,6 +56,9 @@ buildcmdcache
 export _ZM_ZOOM=${_ZM_ZOOM:-"__zm_zoom__"}
 export _ZM_FZF_DEPTH=${_ZM_FZF_DEPTH:-3}
 export ZMARKS_DIR=${ZMARKS_DIR:-"$HOME/.local/share/zsh/zmarks"}
+export FUZZY_CMD=${FUZZY_CMD:-fzf}
+# export FUZZY_CMD='fzf-tmux'
+# export FUZZY_CMD='fzy'
 
 [[ ! -d "$ZMARKS_DIR" ]] \
 	 && mkdir -p "$ZMARKS_DIR" && echo "created ZMARKS_DIR: $ZMARKS_DIR " 
@@ -483,7 +486,7 @@ function _zm_mark_file() {
 			new_zm_path=$(readlink -e "$PWD/$new_zm_name")
 
 	 else
-			new_zm_path="$(find -L $(pwd) -maxdepth $_ZM_FZF_DEPTH -type f 2>/dev/null | fzf-tmux)"
+			new_zm_path="$(find -L $(pwd) -maxdepth $_ZM_FZF_DEPTH -type f 2>/dev/null | "$FUZZY_CMD")"
 			if [[ -z "$new_zm_path" ]]; then
 				 echo 'abort'
 				 return 1
@@ -736,7 +739,7 @@ function zm(){
 
 # zsh fzf jump binding (all)
 _zm_fzf_jump(){
-	 local zm_line=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | fzf-tmux)
+	 local zm_line=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | "$FUZZY_CMD")
 	 local zm_path="${zm_line%%|*}"
 	 [[ -z "$zm_path" ]] && zle reset-prompt && return 1
 
@@ -757,7 +760,7 @@ zle     -N    _zm_fzf_jump
 
 # zsh fzf jump binding (dirs)
 _zm_fzf_dir_jump(){
-	 local zm_line=$(< $ZM_DIRS_FILE | fzf-tmux)
+	 local zm_line=$(< "$ZM_DIRS_FILE" | "$FUZZY_CMD")
 	 if [[ -n $zm_line ]];then 
 			local zm_dir_path="${zm_line%%|*}"
 			eval "cd ${zm_dir_path}"
@@ -770,11 +773,9 @@ zle     -N    _zm_fzf_dir_jump
 
 # zsh fzf jump binding (files)
 _zm_fzf_file_jump(){
-	 local zm_line=$(cat $ZM_FILES_FILE | fzf-tmux)
+	 local zm_line=$(< "$ZM_FILES_FILE" | "$FUZZY_CMD")
 	 if [[ -n $zm_line ]];then 
 			local zm_file_path="${zm_line%%|*}"
-			# could use BUFFER and _zm_zoom here
-			# eval "\"$EDITOR\" \"$zm_file_path\""
 			eval "_zm_zoom \"$zm_file_path\""
 	 fi
 }
