@@ -131,9 +131,9 @@ _zm_quick_man
 ```
 ##### zsh bindings, just add these lines to a file sourced by zsh:
 ```
-bindkey '\ej' _zm_fzf_jump
-bindkey '\ef' _zm_fzf_file_jump
-bindkey '\ed' _zm_fzf_dir_jump
+bindkey '\ej' _zm_fuzzy_jump
+bindkey '\ef' _zm_fuzzy_file_jump
+bindkey '\ed' _zm_fuzzy_dir_jump
 bindkey '^k' _zm_quick_man
 ```
 *\e* is alt, `^` is control. Change to what works for you. 
