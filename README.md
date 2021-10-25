@@ -1,9 +1,9 @@
 zmarks
 ========
-## Directory and file marks for zsh with completions
+## Directory and file bookmarks for zsh with completions
 
-A fork of [Zshmarks (by Jocelyn Mallon)](https://github.com/jocelynmallon/zshmarks)
-
+A fork of [Zshmarks (by Jocelyn Mallon)](https://github.com/jocelynmallon/zshmarks) (Thanks Jocelyn!)
+ 
 ## How to install
 --------------
 ##### required dependency: [fzf](https://github.com/junegunn/fzf#installation)
@@ -65,10 +65,10 @@ The fuzzy selector will search 3 directories deep from cwd by default, but this 
 ##### Jump into `_rc` mark and search for pattern `PATTERN`:
 `zm -j _rc PATTERN`
 
-#### Setting directories also works using current working directory
+#### Setting directories also works using current working directory and the basename
 ```
 cd ~/.config/nvim
-zm -D n
+zm -D
 ```
 
 #### Marking files will also accept a path
@@ -95,20 +95,30 @@ Each time you create a mark, a named hash is created.
 
 This allows you to use your marks via tilda+mark. 
 
-If you have a directory mark named `foo`, then you can:
+If you have a directory mark named `foo`, then you can use like such from anywhere:
 
-`cd ~foo`  or `mv bar ~foo`
+`ls ~foo`
 
-This is generally used for dirs, but named hashes are also created for files:  
+`mv bar ~foo`
 
-`echo 'alias now="date +%T"' >> ~zali` or `cat ~zali`
+This is generally used for directories, but named hashes are also created for files:  
 
-By sourcing  `$ZM_NAMED_DIRS` or `$ZM_NAMED_FILES` in a script, marks can also be used there. Only works in zsh not bash, but be careful with these. 
+`echo 'alias now="date +%T"' >> ~zali` 
+
+`cat ~zali | tail`
+
+I find named hashes especially useful in aliases or shell functions.
+
+And by sourcing  `$ZM_NAMED_DIRS` or `$ZM_NAMED_FILES` in a script, marks can also be used there. Only works in zsh not bash. 
 
 ```
+#!/bin/zsh
+
 source "$ZM_NAMED_DIRS" 
 source "$ZM_NAMED_FILES" 
-echo 'foo bar' >>  ~mymark
+
+cd ~mydir
+echo 'foo bar' >>  ~myfile
 ```
 
 FZF bindings: 
@@ -130,41 +140,49 @@ bindkey '^k' _zm_quick_man
 
 `_zm_quick_man` allows you to jump to the man page of the first command on the command line while in the middle of a line without losing or having to save the line. 
 
-	`echo "foo bar"`  press _zm_quick_man binding, now you're in the echo man page, quit and you have your line back
+`echo "foo bar"`  (without entering)
+	
+Use the _zm_quick_man binding, now you're in the echo man page, quit and you have your line back how you left it. 
 
 Additional/functions:
 -------------------
-* `_zm_jump_n_source`   jump to zsh file mark and source it exit
+* `_zm_jump_n_source`   jump to zsh file mark and source it on exit
  
-`zm -F zali $ZDOTDIR/aliases`
+	`zm -F zali $ZDOTDIR/aliases`
 
-`alias jali='_zm_jump_n_source zali'`
+	`alias jali='_zm_jump_n_source zali'`
 
-`jali`
+	`jali [PATTERN]`
 
 * If you find yourself jumping to files and moving to a specific spot in the file, you can automattically jump to that spot by adding `__zm_zoom__` to a comment and it will jump to that comment upon opening if pattern option is not supplied.
 
-* I want to make this more dynamic, but I find myself using it a lot. You can use `_zm_vi` to jump into a script in your `PATH` and search for pattern:  
+* You can use `zm -i <CMD> [PATTERN] ` to jump into a script in your `PATH` and search for pattern:  
 
-`alias zi='_zm_vi'` 
-
-`zi <some-script-in-path> [pattern]` 
+	`zm -i fzf-tmux opt` 
 
 Notes/Tips:
 -----------
-Directory and files are saved in separate files, but the mark names cannot clash. I recommend using your own convention to keep dirs and files separate so you can use the combined jump feature more efficiently. i.e. Start each file mark with an underscore or specific letter. All marks must contain only alphanumerics or underscores. Mark paths can contain alphanumerics, underscores or dashes, but no spaces or escaped characters. 
+Directory and files are saved in separate files, but the mark names cannot clash. I recommend using your own convention to keep dirs and files separate so you can use the combined jump feature more efficiently. i.e. Start each file mark with an underscore or specific letter. All mark names must contain only alphanumerics or underscores. Mark paths can contain alphanumerics, underscores or dashes, but no spaces or escaped characters. 
 
-You can change the location of the mark files (default is $HOME/.local/share/zsh/zmarks) by adding the environment variable 'ZMARKS_DIR' to your shell profile or .zshrc:
+Optional environment variables 
+-----------------------------
+Change the location of the zmark files (default: $HOME/.local/share/zsh/zmarks). 
 
 `export ZMARKS_DIR="/some/other/path"`
 				
-and the (default `__zm_zoom__`) spot in file jump:
+Change the (default: `__zm_zoom__`) default search pattern for file jumps.
 
 `export _ZM_ZOOM_MARK="__jump_here__"`
 
-and the mark file fzf depth (default 3):
+Change the fuzzy selector (default: `fzf`).
 
-`export _ZM_FZF_DEPTH=1`
+`export FUZZY_CMD='fzy'`
+or 
+`export FUZZY_CMD='fzf-tmux'`
+
+Change the mark file fuzzy selector search depth (default: 3):
+
+`export _ZM_MARK_FILE_SEARCH_DEPTH=1`
 
 Obviously you can shorten the commands up even more by adding aliases:
 

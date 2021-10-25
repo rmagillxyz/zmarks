@@ -19,7 +19,7 @@ _ZM_USAGE="USAGE: zm <OPTION> <MARK> [PATH|PATTERN]
   -j, --jump <MARK> [PATTERN]\t\t\tJump to directory or jump into file.
 \t\t\t\t\t\tMarked files accept a search pattern.
   -s, --show [PATTERN] \t\t\t\tShow Marks. 
-  -i, --into-cmd <CMD-IN-PATH> [PATTERN] \t\t\tJump into command which resides in path.
+  -i, --into-cmd <CMD> [PATTERN] \t\t\tJump into command which resides in path.
   --clear-all \t\t\t\t\tClear all directory and file marks.
   --clear-all-dirs \t\t\t\tClear all directory marks.
   --clear-all-files \t\t\t\tClear all file marks.
@@ -54,7 +54,7 @@ buildcmdcache
 
 # Allows for a user to change default config
 export _ZM_ZOOM=${_ZM_ZOOM:-"__zm_zoom__"}
-export _ZM_FILE_FUZZY_DEPTH=${_ZM_FILE_FUZZY_DEPTH:-3}
+export _ZM_MARK_FILE_SEARCH_DEPTH=${_ZM_MARK_FILE_SEARCH_DEPTH:-3}
 export ZMARKS_DIR=${ZMARKS_DIR:-"$HOME/.local/share/zsh/zmarks"}
 export FUZZY_CMD=${FUZZY_CMD:-fzf}
 # export FUZZY_CMD='fzf-tmux'
@@ -486,7 +486,7 @@ function _zm_mark_file() {
 			new_zm_path=$(readlink -e "$PWD/$new_zm_name")
 
 	 else
-			new_zm_path="$(find -L $(pwd) -maxdepth $_ZM_FILE_FUZZY_DEPTH -type f 2>/dev/null | "$FUZZY_CMD")"
+			new_zm_path="$(find -L $(pwd) -maxdepth $_ZM_MARK_FILE_SEARCH_DEPTH -type f 2>/dev/null | "$FUZZY_CMD")"
 			if [[ -z "$new_zm_path" ]]; then
 				 echo 'abort'
 				 return 1
