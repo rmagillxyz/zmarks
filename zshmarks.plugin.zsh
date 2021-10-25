@@ -760,7 +760,6 @@ zle     -N    _zm_fuzzy_jump
 
 # zsh fuzzy jump binding (dirs)
 _zm_fuzzy_dir_jump(){
-cat "$ZM_DIRS_FILE" 
 	 local zm_line=$("$FUZZY_CMD" <"$ZM_DIRS_FILE" )
 	 if [[ -n $zm_line ]];then 
 			local zm_dir_path="${zm_line%%|*}"
