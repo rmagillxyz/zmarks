@@ -14,8 +14,8 @@ _ZM_USAGE="USAGE: zm <OPTION> <MARK> [PATH|PATTERN]
 \t\t\t\t\t\tdirectory name if not specified. 
   -f, --file-jump <MARK> [PATTERN] \t\tJump to file mark and search for
 \t\t\t\t\t\toptional pattern. 
-  -F, --mark-file <MARK> [PATH]\t\t\tMark file. Will use fzf to select
-\t\t\t\t\t\tfrom files if pattern not specified.  
+  -F, --mark-file <MARK> [PATH]\t\t\tMark file. Will use fuzzy selector
+\t\t\t\t\t\t for file if path not specified.  
   -j, --jump <MARK> [PATTERN]\t\t\tJump to directory or jump into file.
 \t\t\t\t\t\tMarked files accept a search pattern.
   -s, --show [PATTERN] \t\t\t\tShow Marks. 
@@ -54,7 +54,7 @@ buildcmdcache
 
 # Allows for a user to change default config
 export _ZM_ZOOM=${_ZM_ZOOM:-"__zm_zoom__"}
-export _ZM_FZF_DEPTH=${_ZM_FZF_DEPTH:-3}
+export _ZM_FILE_FUZZY_DEPTH=${_ZM_FILE_FUZZY_DEPTH:-3}
 export ZMARKS_DIR=${ZMARKS_DIR:-"$HOME/.local/share/zsh/zmarks"}
 export FUZZY_CMD=${FUZZY_CMD:-fzf}
 # export FUZZY_CMD='fzf-tmux'
@@ -486,7 +486,7 @@ function _zm_mark_file() {
 			new_zm_path=$(readlink -e "$PWD/$new_zm_name")
 
 	 else
-			new_zm_path="$(find -L $(pwd) -maxdepth $_ZM_FZF_DEPTH -type f 2>/dev/null | "$FUZZY_CMD")"
+			new_zm_path="$(find -L $(pwd) -maxdepth $_ZM_FILE_FUZZY_DEPTH -type f 2>/dev/null | "$FUZZY_CMD")"
 			if [[ -z "$new_zm_path" ]]; then
 				 echo 'abort'
 				 return 1
@@ -735,11 +735,11 @@ function zm(){
 
 }
 
-# FZF bindings 
+# fuzzy bindings 
 
-# zsh fzf jump binding (all)
-_zm_fzf_jump(){
-	 local zm_line=$(<"$ZM_DIRS_FILE" <"$ZM_FILES_FILE" | "$FUZZY_CMD")
+# zsh fuzzy jump binding (all)
+_zm_fuzzy_jump(){
+	 local zm_line=$("$FUZZY_CMD" <"$ZM_DIRS_FILE" <"$ZM_FILES_FILE")
 	 local zm_path="${zm_line%%|*}"
 	 [[ -z "$zm_path" ]] && zle reset-prompt && return 1
 
@@ -751,16 +751,17 @@ _zm_fzf_jump(){
 			ls
 			echo -e "\n"
 	 else
-			echo "we gotta file"
+			# echo "we gotta file"
 			eval "_zm_zoom \"$zm_path\""
 	 fi
 	 zle reset-prompt
 }
-zle     -N    _zm_fzf_jump
+zle     -N    _zm_fuzzy_jump
 
-# zsh fzf jump binding (dirs)
-_zm_fzf_dir_jump(){
-	 local zm_line=$(< "$ZM_DIRS_FILE" | "$FUZZY_CMD")
+# zsh fuzzy jump binding (dirs)
+_zm_fuzzy_dir_jump(){
+cat "$ZM_DIRS_FILE" 
+	 local zm_line=$("$FUZZY_CMD" <"$ZM_DIRS_FILE" )
 	 if [[ -n $zm_line ]];then 
 			local zm_dir_path="${zm_line%%|*}"
 			eval "cd ${zm_dir_path}"
@@ -769,17 +770,17 @@ _zm_fzf_dir_jump(){
 			zle reset-prompt
 	 fi
 }
-zle     -N    _zm_fzf_dir_jump
+zle     -N    _zm_fuzzy_dir_jump
 
-# zsh fzf jump binding (files)
-_zm_fzf_file_jump(){
-	 local zm_line=$(< "$ZM_FILES_FILE" | "$FUZZY_CMD")
+# zsh fuzzy jump binding (files)
+_zm_fuzzy_file_jump(){
+	 local zm_line=$("$FUZZY_CMD" <"$ZM_FILES_FILE")
 	 if [[ -n $zm_line ]];then 
 			local zm_file_path="${zm_line%%|*}"
 			eval "_zm_zoom \"$zm_file_path\""
 	 fi
 }
-zle     -N    _zm_fzf_file_jump
+zle     -N    _zm_fuzzy_file_jump
 
 _zm_quick_man(){
 	 local currbuff=${BUFFER}
