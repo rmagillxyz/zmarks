@@ -779,11 +779,9 @@ _zm_fuzzy_nested_dir_jump(){
 	 if [[ -n $zm_line ]];then 
 			local zm_dir_path="${zm_line%%|*}"
 
-	 local cmd="command find -L $zm_dir_path -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
-			-o -type d -print 2> /dev/null"
+			local cmd="fd . -t directory $zm_dir_path" 
 
 			local nested_dir="$(eval "$cmd | $FUZZY_CMD")"
-			echo "zmarks/init.zsh: 786 nested_dir: $nested_dir"
 
 			[[ -z "$nested_dir" ]] \
 				 && zle redisplay && return 0
@@ -798,8 +796,10 @@ _zm_fuzzy_nested_dir_jump(){
 _zm_fuzzy_nested_dir_edit(){
 		 setopt localoptions pipefail no_aliases 2> /dev/null
 		 filesel () {
-				# fzf is used regardless of FUZZY_CMD setting
-				local filecmd="command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune -o -type f -print -o -print 2> /dev/null" 
+				# fzf is used here regardless of FUZZY_CMD setting
+				# local filecmd="command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune -o -type f -print -o -print 2> /dev/null" 
+				# local filecmd="command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune -o -type f -print -o -print 2> /dev/null" 
+				local filecmd="fd . -t file" 
 				local item
 				eval "$filecmd | fzf -m $@" | while read item
 				do
@@ -815,8 +815,10 @@ _zm_fuzzy_nested_dir_edit(){
 	 if [[ -n $zm_line ]];then 
 			local zm_dir_path="${zm_line%%|*}"
 
-	 local cmd="command find -L $zm_dir_path -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
-			-o -type d -print 2> /dev/null"
+# 	 local cmd="command find -L $zm_dir_path -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
+# 			-o -type d -print 2> /dev/null"
+
+			local cmd="fd . -t directory $zm_dir_path" 
 
       # get nested dir			
 			local nested_dir="$(eval "$cmd | $FUZZY_CMD")"
