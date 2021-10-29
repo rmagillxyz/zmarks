@@ -825,8 +825,64 @@ _zm_fuzzy_dir_jump_increment(){
 			local ret=$?
 			return $ret
 	 fi
+}; zle     -N    _zm_fuzzy_dir_jump_increment
+
+_zm_fuzzy_dir_jump_increment_edit(){
+		 setopt localoptions pipefail no_aliases 2> /dev/null
+		 filesel () {
+				# fzf is used regardless of FUZZY_CMD setting
+				local filecmd="command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune -o -type f -print -o -print 2> /dev/null" 
+				local item
+				eval "$filecmd | fzf -m $@" | while read item
+				do
+					echo -n "${(q)item} "
+				done
+				local ret=$? 
+				echo
+				return $ret
+			}
+
+   # get marked dir
+	 local zm_line=$("$FUZZY_CMD" <"$ZM_DIRS_FILE" )
+	 if [[ -n $zm_line ]];then 
+			local zm_dir_path="${zm_line%%|*}"
+
+	 local cmd="command find -L $zm_dir_path -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
+			-o -type d -print 2> /dev/null"
+			# local dir="$(eval "$cmd" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse --bind=ctrl-z:ignore $FZF_DEFAULT_OPTS $FZF_ALT_C_OPTS" $(__fzfcmd) +m)"
+			local dir="$(eval "$cmd | $FUZZY_CMD")"
+
+			[[ -z "$dir" ]] \
+				 && zle redisplay && return 0
+    
+
+			if [[ -d "$dir" ]]; then
+	 				 # zle push-line # Clear buffer. Auto-restored on next prompt.
+					 cd ${(q)dir}
+					 # zle accept-line
+
+					 # local sel="$(__fsel)"
+					 local sel="$(filesel)"
+					 echo "zmarks/init.zsh: 815 sel: $sel"
+					 [[ -n "$sel" ]] && LBUFFER="$EDITOR $sel"
+
+					 local ret=$?
+					 unset dir # ensure this doesn't end up appearing in prompt expansion
+					 zle reset-prompt
+					 return $ret
+
+			fi
+			# if [[ -f "$dir" ]]; then
+			# 			LBUFFER="vi ${(q)dir}"
+			# 			return 0
+			# fi
+			# # unset dir # ensure this doesn't end up appearing in prompt expansion
+			# # zle reset-prompt
+			local ret=$?
+			return $ret
+	 fi
 }
-zle     -N    _zm_fuzzy_dir_jump_increment
+zle     -N    _zm_fuzzy_dir_jump_increment_edit
 
 
 # zsh fuzzy jump binding (files)
