@@ -771,6 +771,72 @@ _zm_fuzzy_dir_jump(){
 }
 zle     -N    _zm_fuzzy_dir_jump
 
+_zm_fuzzy_dir_jump_increment(){
+		 setopt localoptions pipefail no_aliases 2> /dev/null
+		 filesel () {
+				# local filecmd="command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune -o -type f -print -o -print 2> /dev/null" 
+				local filecmd="command find -L . -mindepth 1 -prune -o -type f -print -o -print 2> /dev/null" 
+				local item
+				eval "$filecmd | $FUZZY_CMD -m $@" | while read item
+				do
+					echo -n "${(q)item} "
+				done
+				local ret=$? 
+				echo
+				return $ret
+			}
+
+	 local zm_line=$("$FUZZY_CMD" <"$ZM_DIRS_FILE" )
+	 if [[ -n $zm_line ]];then 
+			local zm_dir_path="${zm_line%%|*}"
+
+	 local cmd="command find -L $zm_dir_path -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
+			-o -type d -print 2> /dev/null"
+			setopt localoptions pipefail no_aliases 2> /dev/null
+			# local dir="$(eval "$cmd" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse --bind=ctrl-z:ignore $FZF_DEFAULT_OPTS $FZF_ALT_C_OPTS" $(__fzfcmd) +m)"
+			local dir="$(eval "$cmd | $FUZZY_CMD")"
+
+			[[ -z "$dir" ]] \
+				 && zle redisplay && return 0
+    
+
+			if [[ -d "$dir" ]]; then
+					 # LBUFFER="cd ${(q)dir}"
+					 # cd ${(q)dir}
+					 # return 0
+
+	 				 zle push-line # Clear buffer. Auto-restored on next prompt.
+					 # BUFFER="cd ${(q)dir}"
+					 cd ${(q)dir}
+					 # zle accept-line
+					 # fzf-edit-widget
+
+					 local sel="$(__fsel)"
+					 echo "zmarks/init.zsh: 815 sel: $sel"
+					 [[ -n "$sel" ]] && LBUFFER="$EDITOR $sel"
+					 local ret=$?
+					 # zle reset-prompt
+					 return $ret
+
+					 local ret=$?
+					 unset dir # ensure this doesn't end up appearing in prompt expansion
+					 # zle reset-prompt
+					 return $ret
+
+			fi
+			# if [[ -f "$dir" ]]; then
+			# 			LBUFFER="vi ${(q)dir}"
+			# 			return 0
+			# fi
+			# # unset dir # ensure this doesn't end up appearing in prompt expansion
+			# # zle reset-prompt
+			local ret=$?
+			return $ret
+	 fi
+}
+zle     -N    _zm_fuzzy_dir_jump_increment
+
+
 # zsh fuzzy jump binding (files)
 _zm_fuzzy_file_jump(){
 	 local zm_line=$("$FUZZY_CMD" <"$ZM_FILES_FILE")
