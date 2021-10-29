@@ -771,7 +771,7 @@ _zm_fuzzy_dir_jump(){
 }
 zle     -N    _zm_fuzzy_dir_jump
 
-_zm_fuzzy_dir_jump_increment(){
+_zm_fuzzy_nested_dir_jump(){
    setopt localoptions pipefail no_aliases 2> /dev/null #TODO look into setopt for other functions
 
    # get marked dir
@@ -782,20 +782,20 @@ _zm_fuzzy_dir_jump_increment(){
 	 local cmd="command find -L $zm_dir_path -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
 			-o -type d -print 2> /dev/null"
 
-			local dir="$(eval "$cmd | $FUZZY_CMD")"
-			echo "zmarks/init.zsh: 786 dir: $dir"
+			local nested_dir="$(eval "$cmd | $FUZZY_CMD")"
+			echo "zmarks/init.zsh: 786 nested_dir: $nested_dir"
 
-			[[ -z "$dir" ]] \
+			[[ -z "$nested_dir" ]] \
 				 && zle redisplay && return 0
 
-			if [[ -d "$dir" ]]; then
-					 cd ${(q)dir} && ls
+			if [[ -d "$nested_dir" ]]; then
+					 cd ${(q)nested_dir} && ls
 					 zle accept-line
 			fi
 	 fi
-}; zle     -N    _zm_fuzzy_dir_jump_increment
+}; zle     -N    _zm_fuzzy_nested_dir_jump
 
-_zm_fuzzy_dir_jump_increment_edit(){
+_zm_fuzzy_nested_dir_edit(){
 		 setopt localoptions pipefail no_aliases 2> /dev/null
 		 filesel () {
 				# fzf is used regardless of FUZZY_CMD setting
@@ -819,14 +819,14 @@ _zm_fuzzy_dir_jump_increment_edit(){
 			-o -type d -print 2> /dev/null"
 
       # get nested dir			
-			local dir="$(eval "$cmd | $FUZZY_CMD")"
+			local nested_dir="$(eval "$cmd | $FUZZY_CMD")"
 
-			[[ -z "$dir" ]] \
+			[[ -z "$nested_dir" ]] \
 				 && zle redisplay && return 0
     
-			if [[ -d "$dir" ]]; then
+			if [[ -d "$nested_dir" ]]; then
 	 				 # zle push-line # Clear buffer. Auto-restored on next prompt.
-					 cd ${(q)dir}
+					 cd ${(q)nested_dir}
 					 # zle accept-line
 
 					 # local sel="$(__fsel)"
@@ -835,13 +835,13 @@ _zm_fuzzy_dir_jump_increment_edit(){
 					 [[ -n "$sel" ]] && LBUFFER="$EDITOR $sel"
 
 					 local ret=$?
-					 unset dir # ensure this doesn't end up appearing in prompt expansion
+					 unset nested_dir # ensure this doesn't end up appearing in prompt expansion
 					 zle reset-prompt
 					 return $ret
 
 			fi
 	 fi
-}; zle     -N    _zm_fuzzy_dir_jump_increment_edit
+}; zle     -N    _zm_fuzzy_nested_dir_edit
 
 
 # zsh fuzzy jump binding (files)
