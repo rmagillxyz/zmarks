@@ -1,4 +1,4 @@
-#compdef _zm_dir_jump
+#compdef _zm_dir_jump zm_tmux
 #autoload
 
 local zm_file=$(<"$ZMARKS_DIR/zm_dirs")
