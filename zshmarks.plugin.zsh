@@ -735,15 +735,6 @@ function zm(){
 
 zm_tmux(){
 
-# local zm_line=$("$FUZZY_CMD" <"$ZM_DIRS_FILE" )
-# 	if [[ -n $zm_line ]];then 
-# 		local zm_dir_path="${zm_line%%|*}"
-# 		# eval "cd ${zm_dir_path}"
-# 	else 
-# 		exit
-# 	fi
-
-	# [[ $# -lt 1 ]] && echo 'directory mark name required' && return 1
 	local sesh_name zm_dir_path
 	if [[ $# -lt 1 ]]; then 
 		local zm_line=$("$FUZZY_CMD" <"$ZM_DIRS_FILE" )
@@ -754,44 +745,37 @@ zm_tmux(){
 		sesh_name="${zm_line##*|}"
 	else
 		 local zm_name="$1"
-		 echo "zmarks/init.zsh: 757 zm_name: $zm_name"
 		 local matched_line
 		 if __zm_find matched_line "*\|$zm_name" "$ZM_DIRS_FILE"; then
 
-			 echo "zmarks/init.zsh: 760 matched_line : $matched_line "
-			# [[ -z "$matched_line" ]] && "directory mark does not exist" && return 1
 			zm_dir_path="${matched_line%%|*}" 
 
-				# && sesh_name="$2" && tmux switch-client -t "$sesh_name" && return \
-				echo $#
 			[[ $# -eq 2 ]] \
 				&& sesh_name="$2" \
 				|| sesh_name="${matched_line##*|}"
 
-			echo "zmarks/init.zsh: 770 sesh_name: $sesh_name"
 			else
-				echo 'something went wrong'
-			# [[ -z "$matched_line" ]] && "directory mark does not exist" && return 1
-				return
+	 			printf "${_ZM_RED}\"$zm_name\" is not a valid directory mark.${_ZM_NOCOLOR}\n"
+				return 1
 		fi
 	fi
 
-	# || sesh_name=$(basename "$zm_dir_path")
-	# || sesh_name=$(basename "$zm_dir_path")
+# 	echo "zmarks/init.zsh: 765 zm_dir_path: $zm_dir_path"
+# 	echo "zmarks/init.zsh: 767 sesh_name: $sesh_name"
 
-# 	if [[ $# -eq 1 ]]; then
-# 	sesh_name="$1"
-# 	else
-# 	sesh_name=$(basename "$zm_dir_path")
-# 	fi
+if tmux list-sessions | cut -f1 -d: | grep "$sesh_name" &> /dev/null ; then
+	# echo "session $sesh_name already exists"
+	printf "${_ZM_RED}session \"$sesh_name\" already exists${_ZM_NOCOLOR}\n"
+	echo -n "switch to $sesh_name (y/n)? "
+	read answer
+	[ "$answer" != "${answer#[Yy]}" ] \
+		&& tmux switch-client -t "$sesh_name" && return 
 
-	echo "zmarks/init.zsh: 765 zm_dir_path: $zm_dir_path"
-	echo "zmarks/init.zsh: 767 sesh_name: $sesh_name"
-	tmux switch-client -t "$sesh_name" && return 
-
+else
 	tmux new-session -c "$zm_dir_path" -d -s "$sesh_name" \
 		&& tmux switch-client -t "$sesh_name" \
 		|| tmux new -c "$zm_dir_path" -A -s "$sesh_name"
+fi
 }
 
 # fuzzy bindings 
