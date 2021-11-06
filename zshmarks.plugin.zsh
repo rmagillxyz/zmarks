@@ -733,21 +733,21 @@ function zm(){
 	 fi
 }
 
-zm_tmux(){
+function zm_tmux(){
 	local sesh_name zm_dir_path
 	if [[ $# -lt 1 ]]; then 
 		local zm_line=$("$FUZZY_CMD" <"$ZM_DIRS_FILE" )
+		echo "zmarks/init.zsh: 740 zm_line: $zm_line"
 
 		[[ -z $zm_line ]] && return 1
-
-		zm_dir_path="${zm_line%%|*}" 
+		zm_dir_path=$(eval "readlink -e ${zm_line%%|*}")
 		sesh_name="${zm_line##*|}"
 	else
 		 local zm_name="$1"
 		 local matched_line
 		 if __zm_find matched_line "*\|$zm_name" "$ZM_DIRS_FILE"; then
 
-			zm_dir_path="${matched_line%%|*}" 
+			zm_dir_path=$(eval "readlink -e ${matched_line%%|*}")
 
 			[[ $# -eq 2 ]] \
 				&& sesh_name="$2" \
@@ -758,9 +758,6 @@ zm_tmux(){
 				return 1
 		fi
 	fi
-
-	# 	echo "zmarks/init.zsh: 765 zm_dir_path: $zm_dir_path"
-	# 	echo "zmarks/init.zsh: 767 sesh_name: $sesh_name"
 
 	if tmux list-sessions | cut -f1 -d: | grep "$sesh_name" &> /dev/null ; then
 		printf "${_ZM_RED}session \"$sesh_name\" already exists${_ZM_NOCOLOR}\n"
